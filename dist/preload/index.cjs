@@ -30,6 +30,8 @@ var api = {
   listDrafts: () => import_electron.ipcRenderer.invoke("drafts:list"),
   saveDraft: (input) => import_electron.ipcRenderer.invoke("drafts:save", input),
   removeDraft: (id) => import_electron.ipcRenderer.invoke("drafts:remove", id),
+  sendEmail: (input) => import_electron.ipcRenderer.invoke("email:send", input),
+  syncEmails: () => import_electron.ipcRenderer.invoke("email:sync"),
   getAppInfo: () => import_electron.ipcRenderer.invoke("app:info")
 };
 import_electron.contextBridge.exposeInMainWorld("still", api);

@@ -191,14 +191,14 @@ export function TopBar({
         onClick={onSync}
         disabled={syncStatus === 'syncing'}
         aria-label="Sync email"
-        title="Sync email"
-        className="no-drag flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] text-text-secondary transition-colors hover:bg-bg-subtle hover:text-text disabled:opacity-60"
+        title="Sync email with mail server"
+        className="no-drag flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1 text-[12px] font-medium text-text-secondary transition-colors hover:bg-bg-subtle hover:text-text disabled:opacity-60"
       >
         <RefreshIcon
           size={13}
-          className={syncStatus === 'syncing' ? 'animate-spin text-accent' : 'text-text-tertiary'}
+          className={syncStatus === 'syncing' ? 'animate-spin text-accent' : 'text-text-secondary'}
         />
-        {SYNC_LABEL[syncStatus]}
+        {syncStatus === 'local' ? 'Sync' : SYNC_LABEL[syncStatus]}
       </button>
       <button
         type="button"

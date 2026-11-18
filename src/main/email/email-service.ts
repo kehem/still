@@ -386,7 +386,7 @@ export class EmailService {
                 messageId,
                 account.id,
                 conversationId,
-                inboxFolderId,
+                null,
                 providerId,
                 messageIdHeader,
                 inReplyTo,

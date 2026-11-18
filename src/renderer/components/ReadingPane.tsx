@@ -59,9 +59,15 @@ export function ReadingPane({
   return (
     <main className="flex min-w-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-border px-6 pb-4 pt-5">
-        <h1 className="text-[22px] font-semibold leading-snug">{conversation.subject}</h1>
+        <h1 className="text-[22px] font-semibold leading-snug">
+          {messages[messages.length - 1]?.subject || conversation.subject}
+        </h1>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-secondary">
-          <span>{conversation.participants.join(', ')}</span>
+          <span>
+            {conversation.participants
+              .filter((p) => !account || p.toLowerCase() !== account.email.toLowerCase())
+              .join(', ') || conversation.participants.join(', ')}
+          </span>
           {account && (
             <span className="flex items-center gap-1.5">
               <span
@@ -149,10 +155,25 @@ export function ReadingPane({
                 {dates.full(message.sentAt)}
               </span>
             </div>
-            {message.bodyText && (
-              <p className="mt-2 whitespace-pre-wrap text-[14px] leading-relaxed text-text">
-                {message.bodyText}
-              </p>
+            {message.bodyHtml ? (
+              <iframe
+                title={`Message ${message.id}`}
+                sandbox="allow-same-origin"
+                srcDoc={message.bodyHtml}
+                className="mt-2 min-h-[220px] w-full rounded border-0 bg-transparent"
+                onLoad={(e) => {
+                  const doc = e.currentTarget.contentDocument;
+                  if (doc?.body) {
+                    e.currentTarget.style.height = `${Math.max(doc.body.scrollHeight + 16, 120)}px`;
+                  }
+                }}
+              />
+            ) : (
+              message.bodyText && (
+                <p className="mt-2 whitespace-pre-wrap text-[14px] leading-relaxed text-text">
+                  {message.bodyText}
+                </p>
+              )
             )}
             {message.hasAttachments && (
               <div className="mt-3 flex items-center gap-1.5 text-[12px] text-text-secondary">

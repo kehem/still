@@ -107,21 +107,18 @@ export class EmailService {
     }
 
     const smtpPort = account.smtpPort ?? (account.smtpSecure ? 465 : 587);
-    const transporter = nodemailer.createTransport({
-      host: account.smtpHost,
-      port: smtpPort,
-      secure: account.smtpSecure,
-      auth: {
-        user: account.username ?? account.email,
-        pass: password,
-      },
-    });
+    const smtpSecure =
+      smtpPort === 465
+        ? true
+        : smtpPort === 587 || smtpPort === 25
+          ? false
+          : account.smtpSecure;
 
     const fromHeader = account.displayName
       ? `"${account.displayName.replace(/"/g, '\\"')}" <${account.email}>`
       : account.email;
 
-    const info = await transporter.sendMail({
+    const mailOptions = {
       from: fromHeader,
       to: input.to.join(', '),
       cc: input.cc && input.cc.length > 0 ? input.cc.join(', ') : undefined,
@@ -129,7 +126,32 @@ export class EmailService {
       subject: input.subject || '(no subject)',
       text: input.bodyText,
       inReplyTo: input.inReplyTo ?? undefined,
-    });
+    };
+
+    const sendWithSecure = async (secure: boolean) => {
+      const transporter = nodemailer.createTransport({
+        host: account.smtpHost!,
+        port: smtpPort,
+        secure,
+        auth: {
+          user: account.username ?? account.email,
+          pass: password,
+        },
+      });
+      return transporter.sendMail(mailOptions);
+    };
+
+    let info;
+    try {
+      info = await sendWithSecure(smtpSecure);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('WRONG_VERSION_NUMBER') || msg.includes('SSL routines')) {
+        info = await sendWithSecure(!smtpSecure);
+      } else {
+        throw err;
+      }
+    }
 
     const sentAt = nowIso();
     const sentFolderId = this.ensureFolder(account.id, 'Sent', 'sent');

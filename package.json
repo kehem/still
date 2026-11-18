@@ -1,7 +1,7 @@
 {
   "name": "still",
   "version": "0.1.0",
-  "description": "Still \u2014 a premium, privacy-focused desktop email client with intelligent follow-up management.",
+  "description": "Still — a premium, privacy-focused desktop email client with intelligent follow-up management.",
   "private": true,
   "author": "Still",
   "license": "UNLICENSED",
@@ -27,6 +27,8 @@
   "dependencies": {
     "@fontsource/manrope": "^5.2.5",
     "better-sqlite3": "^12.2.0",
+    "imapflow": "^2.12.1",
+    "nodemailer": "^10.6.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -36,6 +38,7 @@
     "@testing-library/react": "^16.3.3",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.0",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.4.1",

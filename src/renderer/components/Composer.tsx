@@ -13,6 +13,7 @@ interface ComposerProps {
   accounts: Account[];
   initial: Partial<Draft> & { id?: string };
   onClose: () => void;
+  onSent?: () => void;
 }
 
 
@@ -23,7 +24,7 @@ function parseAddresses(value: string): string[] {
     .filter(Boolean);
 }
 
-export function Composer({ accounts, initial, onClose }: ComposerProps) {
+export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) {
   const { settings } = useSettings();
   const [accountId, setAccountId] = useState<string | null>(
     initial.accountId ?? settings.defaultSendingAccountId ?? accounts[0]?.id ?? null,
@@ -127,19 +128,44 @@ export function Composer({ accounts, initial, onClose }: ComposerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId, to, cc, bcc, subject, body, followUpEnabled, followUpDays, touched]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
+    if (!accountId) {
+      setNotice('Select an account to send from.');
+      return;
+    }
+    const toList = to.split(',').map((s) => s.trim()).filter(Boolean);
+    if (toList.length === 0) {
+      setNotice('Enter at least one recipient.');
+      return;
+    }
     if (settings.confirmBeforeSend) {
       const ok = window.confirm('Send this message?');
       if (!ok) return;
     }
-    setNotice(
-      isElectron
-        ? 'Sending arrives with account sync in Phase 3. Your draft is saved locally.'
-        : 'Preview mode — sending is disabled. Your draft is saved locally.',
-    );
-    void getAPI()
-      .saveDraft(latest.current)
-      .then((saved) => setDraftId(saved.id));
+    setNotice('Sending…');
+    try {
+      const ccList = cc.split(',').map((s) => s.trim()).filter(Boolean);
+      const bccList = bcc.split(',').map((s) => s.trim()).filter(Boolean);
+      const result = await getAPI().sendEmail({
+        accountId,
+        to: toList,
+        cc: ccList.length > 0 ? ccList : undefined,
+        bcc: bccList.length > 0 ? bccList : undefined,
+        subject,
+        bodyText: body,
+        conversationId: initial.inReplyToConversationId ?? null,
+        draftId: draftId ?? null,
+      });
+      if (followUpEnabled && result.conversationId) {
+        await getAPI().createFollowUp({
+          conversationId: result.conversationId,
+        });
+      }
+      onSent?.();
+      onClose();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : 'Failed to send email.');
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

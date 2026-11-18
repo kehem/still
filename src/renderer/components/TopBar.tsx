@@ -11,7 +11,8 @@ interface TopBarProps {
    * `local` — data is on this device and no provider sync has run yet
    * (Phase 1). `syncing` / `upToDate` are driven by the sync engine (Phase 3).
    */
-  syncStatus: 'local' | 'syncing' | 'upToDate';
+  syncStatus: 'local' | 'syncing' | 'synced' | 'error';
+  onSync?: () => void;
   /** Reminders raised for follow-ups that fell due (spec §6.7). */
   notifications: NotificationItem[];
   unreadNotifications: number;
@@ -21,9 +22,10 @@ interface TopBarProps {
 }
 
 const SYNC_LABEL: Record<TopBarProps['syncStatus'], string> = {
-  local: 'Local data only',
+  local: 'Local',
   syncing: 'Syncing…',
-  upToDate: 'Up to date',
+  synced: 'Synced',
+  error: 'Sync error',
 };
 
 function dueLabel(notification: NotificationItem): string {
@@ -41,6 +43,7 @@ export function TopBar({
   onCompose,
   onToggleSidebar,
   syncStatus,
+  onSync,
   notifications,
   unreadNotifications,
   onOpenNotification,
@@ -68,7 +71,7 @@ export function TopBar({
   }, [open]);
 
   return (
-    <header className="drag-region flex h-11 shrink-0 items-center gap-3 border-b border-border px-4">
+    <header className="drag-region flex h-11 shrink-0 items-center gap-3 border-b border-border pl-4 pr-36">
       <button
         type="button"
         onClick={onToggleSidebar}
@@ -183,13 +186,20 @@ export function TopBar({
         )}
       </div>
 
-      <span className="no-drag flex items-center gap-1.5 text-[12px] text-text-secondary">
+      <button
+        type="button"
+        onClick={onSync}
+        disabled={syncStatus === 'syncing'}
+        aria-label="Sync email"
+        title="Sync email"
+        className="no-drag flex items-center gap-1.5 rounded-md px-2 py-1 text-[12px] text-text-secondary transition-colors hover:bg-bg-subtle hover:text-text disabled:opacity-60"
+      >
         <RefreshIcon
           size={13}
           className={syncStatus === 'syncing' ? 'animate-spin text-accent' : 'text-text-tertiary'}
         />
         {SYNC_LABEL[syncStatus]}
-      </span>
+      </button>
       <button
         type="button"
         onClick={onCompose}

@@ -915,6 +915,75 @@ class BrowserPreviewAPI implements StillAPI {
     lsWrite('drafts', this.drafts);
   }
 
+  async sendEmail(input: {
+    accountId: string;
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    bodyText: string;
+    inReplyTo?: string | null;
+    conversationId?: string | null;
+    draftId?: string | null;
+  }): Promise<{
+    messageId: string;
+    conversationId: string;
+    sentAt: string;
+    messageIdHeader: string | null;
+  }> {
+    const sentAt = new Date().toISOString();
+    const conversationId = input.conversationId || uid();
+    const messageId = uid();
+    const account = this.accounts.find((a) => a.id === input.accountId);
+    const msg: Message = {
+      id: messageId,
+      accountId: input.accountId,
+      conversationId,
+      folderId: 'sent',
+      providerMessageId: messageId,
+      messageIdHeader: `<${messageId}@still.local>`,
+      inReplyTo: input.inReplyTo ?? null,
+      referencesHeader: null,
+      threadId: null,
+      subject: input.subject || '(no subject)',
+      snippet: input.bodyText.slice(0, 160),
+      bodyText: input.bodyText,
+      bodyHtml: null,
+      fromName: account?.displayName ?? 'Me',
+      fromAddress: account?.email ?? 'me@example.com',
+      toAddresses: input.to,
+      ccAddresses: input.cc ?? [],
+      bccAddresses: input.bcc ?? [],
+      sentAt,
+      receivedAt: sentAt,
+      isRead: true,
+      isStarred: false,
+      isSnoozed: false,
+      snoozedUntil: null,
+      hasAttachments: false,
+      direction: 'outbound',
+      deletedAt: null,
+    };
+    this.messages = [msg, ...this.messages];
+    if (input.draftId) {
+      this.drafts = this.drafts.filter((d) => d.id !== input.draftId);
+      lsWrite('drafts', this.drafts);
+    }
+    return {
+      messageId,
+      conversationId,
+      sentAt,
+      messageIdHeader: msg.messageIdHeader,
+    };
+  }
+
+  async syncEmails(): Promise<{
+    syncedCount: number;
+    results: Array<{ accountId: string; syncedCount: number; error?: string }>;
+  }> {
+    return { syncedCount: 0, results: [] };
+  }
+
   async getAppInfo(): Promise<AppInfo> {
     return {
       version: '0.1.0-preview',

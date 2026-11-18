@@ -68,6 +68,7 @@ function Shell() {
   const [detail, setDetail] = useState<ConversationDetail | null>(null);
   const [query, setQuery] = useState('');
   const [composer, setComposer] = useState<ComposerState>({ open: false, initial: {} });
+  const [syncStatus, setSyncStatus] = useState<'local' | 'syncing' | 'synced' | 'error'>('local');
   const [listWidth, setListWidth] = useState(360);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -209,6 +210,21 @@ function Shell() {
       active = false;
     };
   }, [selection.conversationId, settings.markAsReadOnOpen]);
+
+  const handleSync = useCallback(async () => {
+    setSyncStatus('syncing');
+    try {
+      const res = await getAPI().syncEmails();
+      const hasError = res.results.some((r) => Boolean(r.error));
+      setSyncStatus(hasError ? 'error' : 'synced');
+      if (view?.kind === 'mail') {
+        const list = await getAPI().listMessages(folderToMessageOptions(view.folder, accounts));
+        setMessages(list);
+      }
+    } catch {
+      setSyncStatus('error');
+    }
+  }, [view, accounts]);
 
   const openComposer = useCallback(
     (initial: Partial<Draft> & { id?: string }) => {
@@ -448,7 +464,8 @@ function Shell() {
       <TopBar
         onCompose={() => openComposer({})}
         onToggleSidebar={() => void update({ sidebarVisible: !settings.sidebarVisible })}
-        syncStatus="local"
+        syncStatus={syncStatus}
+        onSync={() => void handleSync()}
         notifications={notifications}
         unreadNotifications={unreadNotifications}
         onOpenNotification={openNotification}
@@ -546,6 +563,13 @@ function Shell() {
           accounts={accounts}
           initial={composer.initial}
           onClose={() => setComposer({ open: false, initial: {} })}
+          onSent={() => {
+            if (view.kind === 'mail') {
+              void getAPI()
+                .listMessages(folderToMessageOptions(view.folder, accounts))
+                .then(setMessages);
+            }
+          }}
         />
       )}
     </div>

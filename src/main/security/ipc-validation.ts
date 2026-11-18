@@ -180,6 +180,18 @@ export const saveDraftSchema = z.object({
   inReplyToConversationId: z.string().min(1).max(128).nullable().optional(),
 });
 
+export const sendEmailSchema = z.object({
+  accountId: idSchema,
+  to: z.array(z.string().email().max(254)).min(1),
+  cc: z.array(z.string().email().max(254)).optional(),
+  bcc: z.array(z.string().email().max(254)).optional(),
+  subject: z.string().max(1000),
+  bodyText: z.string().max(500_000),
+  inReplyTo: z.string().max(500).nullable().optional(),
+  conversationId: z.string().min(1).max(128).nullable().optional(),
+  draftId: z.string().min(1).max(128).nullable().optional(),
+});
+
 /**
  * Notification list limit. Absent or null input is allowed and defaults in the
  * handler, since a missing limit must never hide due reminders. Out-of-range

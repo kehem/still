@@ -395,5 +395,25 @@ export interface StillAPI {
   listDrafts(): Promise<Draft[]>;
   saveDraft(input: SaveDraftInput): Promise<Draft>;
   removeDraft(id: string): Promise<void>;
+  sendEmail(input: {
+    accountId: string;
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    bodyText: string;
+    inReplyTo?: string | null;
+    conversationId?: string | null;
+    draftId?: string | null;
+  }): Promise<{
+    messageId: string;
+    conversationId: string;
+    sentAt: string;
+    messageIdHeader: string | null;
+  }>;
+  syncEmails(): Promise<{
+    syncedCount: number;
+    results: Array<{ accountId: string; syncedCount: number; error?: string }>;
+  }>;
   getAppInfo(): Promise<AppInfo>;
 }

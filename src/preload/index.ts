@@ -37,6 +37,8 @@ const api: StillAPI = {
   listDrafts: () => ipcRenderer.invoke('drafts:list'),
   saveDraft: (input) => ipcRenderer.invoke('drafts:save', input),
   removeDraft: (id) => ipcRenderer.invoke('drafts:remove', id),
+  sendEmail: (input) => ipcRenderer.invoke('email:send', input),
+  syncEmails: () => ipcRenderer.invoke('email:sync'),
   getAppInfo: () => ipcRenderer.invoke('app:info'),
 };
 

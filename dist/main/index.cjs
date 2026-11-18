@@ -8,9 +8,9 @@ var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __export = (target, all) => {
-  for (var name3 in all)
-    __defProp(target, name3, { get: all[name3], enumerable: true });
+var __export = (target, all2) => {
+  for (var name4 in all2)
+    __defProp(target, name4, { get: all2[name4], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -824,7 +824,7 @@ var require_redact = __commonJS({
       const {
         paths = [],
         censor = "[REDACTED]",
-        serialize = JSON.stringify,
+        serialize: serialize2 = JSON.stringify,
         strict = true,
         remove = false
       } = options;
@@ -833,10 +833,10 @@ var require_redact = __commonJS({
       return function redact(obj) {
         if (strict && (obj === null || typeof obj !== "object")) {
           if (obj === null || obj === void 0) {
-            return serialize ? serialize(obj) : obj;
+            return serialize2 ? serialize2(obj) : obj;
           }
           if (typeof obj !== "object") {
-            return serialize ? serialize(obj) : obj;
+            return serialize2 ? serialize2(obj) : obj;
           }
         }
         const cloned = selectiveClone(obj, pathStructure);
@@ -846,14 +846,14 @@ var require_redact = __commonJS({
           actualCensor = censor;
         }
         redactPaths(cloned, paths, actualCensor, remove);
-        if (serialize === false) {
+        if (serialize2 === false) {
           cloned.restore = function() {
             return deepClone(original);
           };
           return cloned;
         }
-        if (typeof serialize === "function") {
-          return serialize(cloned);
+        if (typeof serialize2 === "function") {
+          return serialize2(cloned);
         }
         return JSON.stringify(cloned);
       };
@@ -942,13 +942,13 @@ var require_redaction = __commonJS({
     var rx = /[^.[\]]+|\[([^[\]]*?)\]/g;
     var CENSOR = "[Redacted]";
     var strict = false;
-    function redaction(opts, serialize) {
+    function redaction(opts, serialize2) {
       const { paths, censor, remove } = handle(opts);
       const shape = paths.reduce((o, str) => {
         rx.lastIndex = 0;
-        const first = rx.exec(str);
+        const first2 = rx.exec(str);
         const next = rx.exec(str);
-        let ns = first[1] !== void 0 ? first[1].replace(/^(?:"|'|`)(.*)(?:"|'|`)$/, "$1") : first[0];
+        let ns = first2[1] !== void 0 ? first2[1].replace(/^(?:"|'|`)(.*)(?:"|'|`)$/, "$1") : first2[0];
         if (ns === "*") {
           ns = wildcardFirstSym;
         }
@@ -976,10 +976,10 @@ var require_redaction = __commonJS({
         return o;
       }, {});
       const result = {
-        [redactFmtSym]: Redact({ paths, censor, serialize, strict, remove })
+        [redactFmtSym]: Redact({ paths, censor, serialize: serialize2, strict, remove })
       };
       const topCensor = (...args) => {
-        return typeof censor === "function" ? serialize(censor(...args)) : serialize(censor);
+        return typeof censor === "function" ? serialize2(censor(...args)) : serialize2(censor);
       };
       return [...Object.keys(shape), ...Object.getOwnPropertySymbols(shape)].reduce((o, k) => {
         if (shape[k] === null) {
@@ -991,7 +991,7 @@ var require_redaction = __commonJS({
           o[k] = Redact({
             paths: shape[k],
             censor: wrappedCensor,
-            serialize,
+            serialize: serialize2,
             strict,
             remove
           });
@@ -1418,8 +1418,8 @@ var require_sonic_boom = __commonJS({
           }
         }
       };
-      this.on("newListener", function(name3) {
-        if (name3 === "drain") {
+      this.on("newListener", function(name4) {
+        if (name4 === "drain") {
           this._asyncDrainScheduled = false;
         }
       });
@@ -1530,12 +1530,12 @@ var require_sonic_boom = __commonJS({
         throw new Error("flush cb must be a function");
       }
       if (this.destroyed) {
-        const error2 = new Error("SonicBoom destroyed");
+        const error3 = new Error("SonicBoom destroyed");
         if (cb) {
-          cb(error2);
+          cb(error3);
           return;
         }
-        throw error2;
+        throw error3;
       }
       if (this.minLength <= 0) {
         cb?.();
@@ -1557,12 +1557,12 @@ var require_sonic_boom = __commonJS({
         throw new Error("flush cb must be a function");
       }
       if (this.destroyed) {
-        const error2 = new Error("SonicBoom destroyed");
+        const error3 = new Error("SonicBoom destroyed");
         if (cb) {
-          cb(error2);
+          cb(error3);
           return;
         }
-        throw error2;
+        throw error3;
       }
       if (this.minLength <= 0) {
         cb?.();
@@ -2248,11 +2248,11 @@ var require_thread_stream = __commonJS({
       write(data) {
         const dataBuf = Buffer.isBuffer(data) ? data : Buffer.from(data);
         if (this[kImpl].destroyed) {
-          error2(this, new Error("the worker has exited"));
+          error3(this, new Error("the worker has exited"));
           return false;
         }
         if (this[kImpl].ending) {
-          error2(this, new Error("the worker is ending"));
+          error3(this, new Error("the worker is ending"));
           return false;
         }
         if (this[kImpl].flushing && this[kImpl].bufLen + dataBuf.length >= MAX_STRING) {
@@ -2448,7 +2448,7 @@ var require_thread_stream = __commonJS({
       }
       callbacks.clear();
     }
-    function error2(stream, err) {
+    function error3(stream, err) {
       setImmediate(() => {
         stream.emit("error", err);
       });
@@ -2461,7 +2461,7 @@ var require_thread_stream = __commonJS({
       failPendingFlushCallbacks(stream, err);
       if (err) {
         stream[kImpl].errored = err;
-        error2(stream, err);
+        error3(stream, err);
       }
       if (!stream.worker.exited) {
         stream.worker.terminate().catch(() => {
@@ -2632,29 +2632,29 @@ var require_transport = __commonJS({
       const sanitized = [];
       let changed = false;
       for (let i = 0; i < tokens.length; i++) {
-        const token = tokens[i];
-        if (token === "--require" || token === "-r" || token === "--import") {
+        const token2 = tokens[i];
+        if (token2 === "--require" || token2 === "-r" || token2 === "--import") {
           const next = tokens[i + 1];
           if (next && shouldDropPreload(next)) {
             changed = true;
             i++;
             continue;
           }
-          sanitized.push(token);
+          sanitized.push(token2);
           if (next) {
             sanitized.push(next);
             i++;
           }
           continue;
         }
-        if (token.startsWith("--require=") || token.startsWith("-r=") || token.startsWith("--import=")) {
-          const value = token.slice(token.indexOf("=") + 1);
+        if (token2.startsWith("--require=") || token2.startsWith("-r=") || token2.startsWith("--import=")) {
+          const value = token2.slice(token2.indexOf("=") + 1);
           if (shouldDropPreload(value)) {
             changed = true;
             continue;
           }
         }
-        sanitized.push(token);
+        sanitized.push(token2);
       }
       return changed ? sanitized.join(" ") : nodeOptions;
     }
@@ -2674,14 +2674,14 @@ var require_transport = __commonJS({
       return isAbsolute(path5) && !existsSync(path5);
     }
     function stripQuotes(value) {
-      const first = value[0];
+      const first2 = value[0];
       const last = value[value.length - 1];
-      if (first === '"' && last === '"' || first === "'" && last === "'") {
+      if (first2 === '"' && last === '"' || first2 === "'" && last === "'") {
         return value.slice(1, -1);
       }
       return value;
     }
-    function buildStream(filename, workerData, workerOpts, sync, name3) {
+    function buildStream(filename, workerData, workerOpts, sync, name4) {
       if (!workerOpts.execArgv && hasPreloadFlags() && require.main === void 0) {
         workerOpts = {
           ...workerOpts,
@@ -2700,7 +2700,7 @@ var require_transport = __commonJS({
           };
         }
       }
-      workerOpts = { ...workerOpts, name: name3 };
+      workerOpts = { ...workerOpts, name: name4 };
       const stream = new ThreadStream({
         filename,
         workerData,
@@ -2785,8 +2785,8 @@ var require_transport = __commonJS({
         options.dedupe = dedupe;
       }
       options.pinoWillSendConfig = true;
-      const name3 = targets || pipeline3 ? "pino.transport" : target;
-      return buildStream(fixTarget(target), options, worker, sync, name3);
+      const name4 = targets || pipeline3 ? "pino.transport" : target;
+      return buildStream(fixTarget(target), options, worker, sync, name4);
       function fixTarget(origin) {
         origin = bundlerOverrides[origin] || origin;
         if (isAbsolute(origin) || origin.indexOf("file://") === 0) {
@@ -3056,7 +3056,7 @@ var require_tools = __commonJS({
         stream.flushSync();
       }
     }
-    function createArgsNormalizer(defaultOptions) {
+    function createArgsNormalizer(defaultOptions2) {
       return function normalizeArgs(instance, caller, opts = {}, stream) {
         if (typeof opts === "string") {
           stream = buildSafeSonicBoom({ dest: opts });
@@ -3082,9 +3082,9 @@ var require_tools = __commonJS({
           }
           stream = transport({ caller, ...opts.transport, levels: customLevels });
         }
-        opts = Object.assign({}, defaultOptions, opts);
-        opts.serializers = Object.assign({}, defaultOptions.serializers, opts.serializers);
-        opts.formatters = Object.assign({}, defaultOptions.formatters, opts.formatters);
+        opts = Object.assign({}, defaultOptions2, opts);
+        opts.serializers = Object.assign({}, defaultOptions2.serializers, opts.serializers);
+        opts.formatters = Object.assign({}, defaultOptions2.formatters, opts.formatters);
         if (opts.prettyPrint) {
           throw new Error("prettyPrint option is no longer supported, see the pino-pretty package (https://github.com/pinojs/pino-pretty)");
         }
@@ -4414,7 +4414,7 @@ var require_pino = __commonJS({
     var { pid } = process;
     var hostname = os3.hostname();
     var defaultErrorSerializer = stdSerializers.err;
-    var defaultOptions = {
+    var defaultOptions2 = {
       level: "info",
       levelComparison: SORTING_ORDER.ASC,
       levels: DEFAULT_LEVELS,
@@ -4446,11 +4446,11 @@ var require_pino = __commonJS({
       depthLimit: 5,
       edgeLimit: 100
     };
-    var normalize = createArgsNormalizer(defaultOptions);
+    var normalize2 = createArgsNormalizer(defaultOptions2);
     var serializers = Object.assign(/* @__PURE__ */ Object.create(null), stdSerializers);
     function pino2(...args) {
       const instance = {};
-      const { opts, stream } = normalize(instance, caller(), ...args);
+      const { opts, stream } = normalize2(instance, caller(), ...args);
       if (opts.level && typeof opts.level === "string" && DEFAULT_LEVELS[opts.level.toLowerCase()] !== void 0) opts.level = opts.level.toLowerCase();
       const {
         redact,
@@ -4461,7 +4461,7 @@ var require_pino = __commonJS({
         errorKey,
         nestedKey,
         base: base2,
-        name: name3,
+        name: name4,
         level,
         customLevels,
         levelComparison,
@@ -4500,10 +4500,10 @@ var require_pino = __commonJS({
       });
       let chindings = "";
       if (base2 !== null) {
-        if (name3 === void 0) {
+        if (name4 === void 0) {
           chindings = coreChindings(base2);
         } else {
-          chindings = coreChindings(Object.assign({}, base2, { name: name3 }));
+          chindings = coreChindings(Object.assign({}, base2, { name: name4 }));
         }
       }
       const time2 = timestamp instanceof Function ? timestamp : timestamp ? epochTime : nullTime;
@@ -6864,8 +6864,8 @@ var require_regular_expressions = __commonJS({
       return groupPossibilities(possibilities);
     }
     function possibleElisions(elidedGroups, moreLeft, moreRight) {
-      const left = moreLeft ? "" : ":";
-      const right = moreRight ? "" : ":";
+      const left2 = moreLeft ? "" : ":";
+      const right2 = moreRight ? "" : ":";
       const possibilities = [];
       if (!moreLeft && !moreRight) {
         possibilities.push("::");
@@ -6876,8 +6876,8 @@ var require_regular_expressions = __commonJS({
       if (moreRight && !moreLeft || !moreRight && moreLeft) {
         possibilities.push(":");
       }
-      possibilities.push(`${left}(:0{1,4}){1,${elidedGroups - 1}}`);
-      possibilities.push(`(0{1,4}:){1,${elidedGroups - 1}}${right}`);
+      possibilities.push(`${left2}(:0{1,4}){1,${elidedGroups - 1}}`);
+      possibilities.push(`(0{1,4}:){1,${elidedGroups - 1}}${right2}`);
       possibilities.push(`(0{1,4}:){${elidedGroups - 1}}0{1,4}`);
       for (let groups = 1; groups < elidedGroups - 1; groups++) {
         for (let position = 1; position < elidedGroups - groups; position++) {
@@ -7056,27 +7056,27 @@ var require_ipv6 = __commonJS({
        * addressAndPort.port; // 8080
        */
       static fromURL(url) {
-        var _a;
+        var _a3;
         let host;
         let port = null;
         let result;
-        let error2;
+        let error3;
         const stripped = url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "");
         if (stripped.indexOf("[") !== -1 && stripped.indexOf("]:") !== -1) {
-          error2 = "failed to parse address with port";
+          error3 = "failed to parse address with port";
           result = constants6.RE_URL_WITH_PORT.exec(stripped);
           if (result === null) {
-            return { error: error2, address: null, port: null };
+            return { error: error3, address: null, port: null };
           }
           host = result[1];
           port = result[2];
         } else {
-          error2 = "failed to parse address from URL";
+          error3 = "failed to parse address from URL";
           result = constants6.RE_URL.exec(stripped);
           if (result === null) {
-            return { error: error2, address: null, port: null };
+            return { error: error3, address: null, port: null };
           }
-          host = (_a = result[1]) !== null && _a !== void 0 ? _a : result[2];
+          host = (_a3 = result[1]) !== null && _a3 !== void 0 ? _a3 : result[2];
         }
         if (port) {
           port = parseInt(port, 10);
@@ -7090,7 +7090,7 @@ var require_ipv6 = __commonJS({
         try {
           address = new _Address6(host);
         } catch {
-          return { error: error2, address: null, port: null };
+          return { error: error3, address: null, port: null };
         }
         return { address, port };
       }
@@ -7147,13 +7147,13 @@ var require_ipv6 = __commonJS({
         }
         let groups;
         if (halves.length === 2) {
-          const left = halves[0] === "" ? [] : halves[0].split(":");
-          const right = halves[1] === "" ? [] : halves[1].split(":");
-          const remaining = constants6.GROUPS - left.length - right.length;
+          const left2 = halves[0] === "" ? [] : halves[0].split(":");
+          const right2 = halves[1] === "" ? [] : halves[1].split(":");
+          const remaining = constants6.GROUPS - left2.length - right2.length;
           if (remaining < 1) {
             throw new address_error_1.AddressError("Wildcard pattern with '::' has too many groups");
           }
-          groups = [...left, ...new Array(remaining).fill("0"), ...right];
+          groups = [...left2, ...new Array(remaining).fill("0"), ...right2];
         } else {
           groups = input.split(":");
         }
@@ -7554,22 +7554,22 @@ var require_ipv6 = __commonJS({
         let groups = [];
         const halves = address.split("::");
         if (halves.length === 2) {
-          let first = halves[0].split(":");
+          let first2 = halves[0].split(":");
           let last = halves[1].split(":");
-          if (first.length === 1 && first[0] === "") {
-            first = [];
+          if (first2.length === 1 && first2[0] === "") {
+            first2 = [];
           }
           if (last.length === 1 && last[0] === "") {
             last = [];
           }
-          const remaining = this.groups - (first.length + last.length);
+          const remaining = this.groups - (first2.length + last.length);
           if (!remaining) {
             throw new address_error_1.AddressError("Error parsing groups");
           }
           this.elidedGroups = remaining;
-          this.elisionBegin = first.length;
-          this.elisionEnd = first.length + this.elidedGroups;
-          groups = groups.concat(first);
+          this.elisionBegin = first2.length;
+          this.elisionEnd = first2.length + this.elidedGroups;
+          groups = groups.concat(first2);
           for (let i = 0; i < remaining; i++) {
             groups.push("0");
           }
@@ -8127,9 +8127,9 @@ var require_ipv6 = __commonJS({
         assert(typeof this.elidedGroups === "number");
         assert(typeof this.elisionBegin === "number");
         const output = [];
-        const [left, right] = this.addressMinusSuffix.split("::");
-        if (left.length) {
-          output.push(...helpers.simpleGroup(left));
+        const [left2, right2] = this.addressMinusSuffix.split("::");
+        if (left2.length) {
+          output.push(...helpers.simpleGroup(left2));
         } else {
           output.push("");
         }
@@ -8138,8 +8138,8 @@ var require_ipv6 = __commonJS({
           classes.push(`group-${i}`);
         }
         output.push(`<span class="${classes.join(" ")}"></span>`);
-        if (right.length) {
-          output.push(...helpers.simpleGroup(right, this.elisionEnd));
+        if (right2.length) {
+          output.push(...helpers.simpleGroup(right2, this.elisionEnd));
         } else {
           output.push("");
         }
@@ -8430,13 +8430,13 @@ var require_receivebuffer = __commonJS({
 var require_socksclient = __commonJS({
   "node_modules/socks/build/client/socksclient.js"(exports2) {
     "use strict";
-    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P, generator) {
+    var __awaiter = exports2 && exports2.__awaiter || function(thisArg, _arguments, P2, generator) {
       function adopt(value) {
-        return value instanceof P ? value : new P(function(resolve3) {
+        return value instanceof P2 ? value : new P2(function(resolve3) {
           resolve3(value);
         });
       }
-      return new (P || (P = Promise))(function(resolve3, reject) {
+      return new (P2 || (P2 = Promise))(function(resolve3, reject) {
         function fulfilled(value) {
           try {
             step(generator.next(value));
@@ -12695,14 +12695,14 @@ var require_streams = __commonJS({
     "use strict";
     var Buffer5 = require_safer().Buffer;
     module2.exports = function(streamModule) {
-      var Transform15 = streamModule.Transform;
+      var Transform17 = streamModule.Transform;
       function IconvLiteEncoderStream(conv, options) {
         this.conv = conv;
         options = options || {};
         options.decodeStrings = false;
-        Transform15.call(this, options);
+        Transform17.call(this, options);
       }
-      IconvLiteEncoderStream.prototype = Object.create(Transform15.prototype, {
+      IconvLiteEncoderStream.prototype = Object.create(Transform17.prototype, {
         constructor: { value: IconvLiteEncoderStream }
       });
       IconvLiteEncoderStream.prototype._transform = function(chunk, encoding, done) {
@@ -12741,9 +12741,9 @@ var require_streams = __commonJS({
         this.conv = conv;
         options = options || {};
         options.encoding = this.encoding = "utf8";
-        Transform15.call(this, options);
+        Transform17.call(this, options);
       }
-      IconvLiteDecoderStream.prototype = Object.create(Transform15.prototype, {
+      IconvLiteDecoderStream.prototype = Object.create(Transform17.prototype, {
         constructor: { value: IconvLiteDecoderStream }
       });
       IconvLiteDecoderStream.prototype._transform = function(chunk, encoding, done) {
@@ -12877,7 +12877,7 @@ var require_lib = __commonJS({
       }
       return encoder;
     };
-    module2.exports.getDecoder = function getDecoder2(encoding, options) {
+    module2.exports.getDecoder = function getDecoder3(encoding, options) {
       var codec = module2.exports.getCodec(encoding);
       var decoder = new codec.decoder(options, codec);
       if (codec.bomAware && !(options && options.stripBOM === false)) {
@@ -12995,18 +12995,18 @@ var require_config = __commonJS({
         }
       }
       var orders = [];
-      var name3, encoding, j, l;
+      var name4, encoding, j, l;
       for (var i = 0, len = names2.length; i < len; i++) {
-        name3 = names2[i];
-        aliases[name3] = name3;
-        encoding = EncodingNames[name3];
+        name4 = names2[i];
+        aliases[name4] = name4;
+        encoding = EncodingNames[name4];
         if (encoding != null) {
           if (encoding.order != null) {
-            orders[orders.length] = name3;
+            orders[orders.length] = name4;
           }
           if (encoding.alias) {
             for (j = 0, l = encoding.alias.length; j < l; j++) {
-              aliases[encoding.alias[j]] = name3;
+              aliases[encoding.alias[j]] = name4;
             }
           }
         }
@@ -13184,7 +13184,7 @@ var require_util2 = __commonJS({
     }
     exports2.bufferToCode = bufferToCode;
     function canonicalizeEncodingName(target) {
-      var name3 = "";
+      var name4 = "";
       var expect = ("" + target).toUpperCase().replace(/[^A-Z0-9]+/g, "");
       var aliasNames = objectKeys(config.EncodingAliases);
       var len = aliasNames.length;
@@ -13193,21 +13193,21 @@ var require_util2 = __commonJS({
       for (var i = 0; i < len; i++) {
         encoding = aliasNames[i];
         if (encoding === expect) {
-          name3 = encoding;
+          name4 = encoding;
           break;
         }
         encodingLen = encoding.length;
         for (j = hit; j < encodingLen; j++) {
           if (encoding.slice(0, j) === expect.slice(0, j) || encoding.slice(-j) === expect.slice(-j)) {
-            name3 = encoding;
+            name4 = encoding;
             hit = j;
           }
         }
       }
-      if (hasOwnProperty.call(config.EncodingAliases, name3)) {
-        return config.EncodingAliases[name3];
+      if (hasOwnProperty.call(config.EncodingAliases, name4)) {
+        return config.EncodingAliases[name4];
       }
-      return name3;
+      return name4;
     }
     exports2.canonicalizeEncodingName = canonicalizeEncodingName;
     var base64EncodeChars = [
@@ -14068,26 +14068,26 @@ var require_encoding_table = __commonJS({
     }
     function expandTable(data, utf8ToJisTable, jisToUtf8Table) {
       var tokens = data.split(",");
-      var lead, trail, token, pos, cp, n, jis, utf8;
+      var lead, trail, token2, pos, cp, n, jis, utf8;
       for (var i = 0, len = tokens.length; i < len; i++) {
-        token = tokens[i];
-        pos = token.indexOf("=");
+        token2 = tokens[i];
+        pos = token2.indexOf("=");
         if (pos !== -1) {
-          lead = parseInt(token.slice(0, pos), 16);
+          lead = parseInt(token2.slice(0, pos), 16);
           trail = 33;
-          token = token.slice(pos + 1);
+          token2 = token2.slice(pos + 1);
         }
-        if (token.charAt(0) === "-") {
-          trail += parseInt(token.slice(1), 10);
+        if (token2.charAt(0) === "-") {
+          trail += parseInt(token2.slice(1), 10);
           continue;
         }
-        pos = token.indexOf("+");
+        pos = token2.indexOf("+");
         if (pos === -1) {
-          cp = parseInt(token, 16);
+          cp = parseInt(token2, 16);
           n = 1;
         } else {
-          cp = parseInt(token.slice(0, pos), 16);
-          n = parseInt(token.slice(pos + 1), 10);
+          cp = parseInt(token2.slice(0, pos), 16);
+          n = parseInt(token2.slice(pos + 1), 10);
         }
         while (n-- > 0) {
           jis = lead << 8 | trail++;
@@ -15186,15 +15186,15 @@ var require_encoding_convert = __commonJS({
       var i = 0;
       var len = data && data.length;
       var isLE = false;
-      var first = true;
+      var first2 = true;
       var c1, c2;
       var results = createBuffer(16, len);
       var n = 0;
       while (i < len) {
         c1 = data[i++];
         c2 = data[i++];
-        if (first && i === 2) {
-          first = false;
+        if (first2 && i === 2) {
+          first2 = false;
           if (c1 === 254 && c2 === 255) {
             isLE = false;
           } else if (c1 === 255 && c2 === 254) {
@@ -15226,15 +15226,15 @@ var require_encoding_convert = __commonJS({
       var i = 0;
       var len = data && data.length;
       var isLE = false;
-      var first = true;
+      var first2 = true;
       var c1, c2;
       var results = createBuffer(8, len);
       var n = 0;
       while (i < len) {
         c1 = data[i++];
         c2 = data[i++];
-        if (first && i === 2) {
-          first = false;
+        if (first2 && i === 2) {
+          first2 = false;
           if (c1 === 254 && c2 === 255) {
             isLE = false;
           } else if (c1 === 255 && c2 === 254) {
@@ -15301,15 +15301,15 @@ var require_encoding_convert = __commonJS({
       var i = 0;
       var len = data && data.length;
       var isLE = false;
-      var first = true;
+      var first2 = true;
       var c1, c2;
       var results = createBuffer(8, len);
       var n = 0;
       while (i < len) {
         c1 = data[i++];
         c2 = data[i++];
-        if (first && i === 2) {
-          first = false;
+        if (first2 && i === 2) {
+          first2 = false;
           if (c1 === 254 && c2 === 255) {
             isLE = false;
           } else if (c1 === 255 && c2 === 254) {
@@ -15527,15 +15527,15 @@ var require_encoding_convert = __commonJS({
       switch (fallbackOption) {
         case "html-entity":
         case "html-entity-hex":
-          var unicode = UTF8ToUNICODE(bytes, { asCodePoint: true })[0];
-          if (unicode) {
+          var unicode2 = UTF8ToUNICODE(bytes, { asCodePoint: true })[0];
+          if (unicode2) {
             results[n++] = 38;
             results[n++] = 35;
             var radix = fallbackOption.slice(-3) === "hex" ? 16 : 10;
             if (radix === 16) {
               results[n++] = 120;
             }
-            var entity = unicode.toString(radix);
+            var entity = unicode2.toString(radix);
             for (var i = 0, len = entity.length; i < len; i++) {
               results[n++] = entity.charCodeAt(i);
             }
@@ -16559,7 +16559,7 @@ var require_libqp = __commonJS({
       QP_LITERAL3[i] = i === 9 || i === 10 || i === 13 || i >= 32 && i <= 126 && i !== 61 ? 1 : 0;
     }
     var HEX_DIGITS3 = Buffer.from("0123456789ABCDEF", "latin1");
-    var isWhitespace3 = (c) => c === 32 || c === 9;
+    var isWhitespace4 = (c) => c === 32 || c === 9;
     function encode7(buffer) {
       return encodeBytes3(typeof buffer === "string" ? Buffer.from(buffer, "utf-8") : buffer);
     }
@@ -16572,7 +16572,7 @@ var require_libqp = __commonJS({
         const preceding = i > 0 ? buffer[i - 1] : previous;
         const following = i + 1 < len ? buffer[i + 1] : next;
         const loneLineBreak = binary && (ord === 13 ? following !== 10 : ord === 10 && preceding !== 13);
-        if (QP_LITERAL3[ord] && !loneLineBreak && !(isWhitespace3(ord) && (following === void 0 || following === 10 || following === 13)) && !(ord === 45 && (preceding === void 0 || preceding === 10 || preceding === 13))) {
+        if (QP_LITERAL3[ord] && !loneLineBreak && !(isWhitespace4(ord) && (following === void 0 || following === 10 || following === 13)) && !(ord === 45 && (preceding === void 0 || preceding === 10 || preceding === 13))) {
           output[pos++] = ord;
           continue;
         }
@@ -16651,9 +16651,9 @@ var require_libqp = __commonJS({
           break;
         }
         let line = escapeHyphen ? "=2D" + str.substr(pos + 1, lineLength - 3) : str.substr(pos, lineLength);
-        let match;
-        if (match = line.substr(-lineMargin).match(/[ \t.,!?][^ \t.,!?]*$/)) {
-          line = line.substr(0, line.length - (match[0].length - 1));
+        let match2;
+        if (match2 = line.substr(-lineMargin).match(/[ \t.,!?][^ \t.,!?]*$/)) {
+          line = line.substr(0, line.length - (match2[0].length - 1));
         } else if (/[=][\da-f]{0,2}$/i.test(line)) {
           line = trimUtf8Sequence2(line.replace(/[=][\da-f]?$/i, ""));
         }
@@ -16717,7 +16717,7 @@ var require_libqp = __commonJS({
           this._heldByte = void 0;
         }
         const last = buf[buf.length - 1];
-        if (isWhitespace3(last) || this.options.binary && last === 13) {
+        if (isWhitespace4(last) || this.options.binary && last === 13) {
           this._heldByte = last;
           buf = buf.subarray(0, buf.length - 1);
         }
@@ -17180,7 +17180,7 @@ var require_charset = __commonJS({
     exports2.DecodeStream = void 0;
     exports2.encode = encode7;
     exports2.decode = decode5;
-    exports2.convert = convert2;
+    exports2.convert = convert3;
     exports2.normalizeCharset = normalizeCharset2;
     exports2.createDecodeStream = createDecodeStream2;
     var node_buffer_1 = require("node:buffer");
@@ -17190,10 +17190,10 @@ var require_charset = __commonJS({
     var encoding_japanese_1 = __importDefault(require_src());
     var charsets_js_1 = __importDefault(require_charsets());
     var UTF8_COMPATIBLE2 = /^(?:(?:us-)?ascii|utf-8|7bit)$/i;
-    var UNSUPPORTED_CODECS2 = new Set(["utf7", "utf7imap", "base64", "hex"].map((name3) => iconv_lite_1.default.getCodec(name3)));
-    var isUnsupportedCodec2 = (name3) => {
+    var UNSUPPORTED_CODECS2 = new Set(["utf7", "utf7imap", "base64", "hex"].map((name4) => iconv_lite_1.default.getCodec(name4)));
+    var isUnsupportedCodec2 = (name4) => {
       try {
-        return UNSUPPORTED_CODECS2.has(iconv_lite_1.default.getCodec(name3));
+        return UNSUPPORTED_CODECS2.has(iconv_lite_1.default.getCodec(name4));
       } catch (_err) {
         return false;
       }
@@ -17233,7 +17233,7 @@ var require_charset = __commonJS({
         return buf.toString();
       }
     }
-    function convert2(data, fromCharset) {
+    function convert3(data, fromCharset) {
       fromCharset = normalizeCharset2(fromCharset || "UTF-8");
       if (typeof data !== "string") {
         if (UTF8_COMPATIBLE2.test(fromCharset)) {
@@ -17244,13 +17244,13 @@ var require_charset = __commonJS({
       return encode7(data);
     }
     function normalizeCharset2(charset) {
-      let name3 = (charset || "UTF-8").toString().toLowerCase().trim();
-      let canonical = CHARSET_ALIASES2.get(name3);
+      let name4 = (charset || "UTF-8").toString().toLowerCase().trim();
+      let canonical = CHARSET_ALIASES2.get(name4);
       if (canonical) {
         return canonical;
       }
-      name3 = name3.replace(/^utf[-_]?(\d+)/, "utf-$1").replace(/^(?:us[-_]?)ascii/, "windows-1252").replace(/^win(?:dows)?[-_]?(\d+)/, "windows-$1").replace(/^(?:latin|iso[-_]?8859)?[-_]?(\d+)/, "iso-8859-$1").replace(/^l[-_]?(\d+)/, "iso-8859-$1");
-      return CHARSET_ALIASES2.get(name3) || name3.toUpperCase();
+      name4 = name4.replace(/^utf[-_]?(\d+)/, "utf-$1").replace(/^(?:us[-_]?)ascii/, "windows-1252").replace(/^win(?:dows)?[-_]?(\d+)/, "windows-$1").replace(/^(?:latin|iso[-_]?8859)?[-_]?(\d+)/, "iso-8859-$1").replace(/^l[-_]?(\d+)/, "iso-8859-$1");
+      return CHARSET_ALIASES2.get(name4) || name4.toUpperCase();
     }
     var DBCS_DECODER2 = iconv_lite_1.default.getCodec("gbk").decoder;
     var BYTE_ORDER_GUESSING2 = /* @__PURE__ */ new Map([
@@ -17372,7 +17372,7 @@ var require_charset = __commonJS({
     function createDecodeStream2(charset) {
       return new DecodeStream2(charset);
     }
-    exports2.default = { encode: encode7, decode: decode5, convert: convert2, normalizeCharset: normalizeCharset2, createDecodeStream: createDecodeStream2, DecodeStream: DecodeStream2 };
+    exports2.default = { encode: encode7, decode: decode5, convert: convert3, normalizeCharset: normalizeCharset2, createDecodeStream: createDecodeStream2, DecodeStream: DecodeStream2 };
     Object.defineProperty(exports2, "default", { value: exports2, enumerable: false, writable: true, configurable: true });
   }
 });
@@ -19818,16 +19818,16 @@ var require_libmime = __commonJS({
        * @return {String} Decoded unicode string
        */
       decodeWords(str) {
-        return (str || "").toString().replace(/(=\?([^?]+)\?[Bb]\?[^?]*\?=)\s*(?==\?([^?]+)\?[Bb]\?[^?]*\?=)/g, (match, left, chLeft, chRight) => {
+        return (str || "").toString().replace(/(=\?([^?]+)\?[Bb]\?[^?]*\?=)\s*(?==\?([^?]+)\?[Bb]\?[^?]*\?=)/g, (match2, left2, chLeft, chRight) => {
           if (libcharset.normalizeCharset(chLeft || "") === libcharset.normalizeCharset(chRight || "")) {
-            return left + "__\0JOIN\0__";
+            return left2 + "__\0JOIN\0__";
           }
-          return match;
-        }).replace(/(=\?([^?]+)\?[Qq]\?[^?]*\?=)\s*(?==\?([^?]+)\?[Qq]\?[^?]*\?=)/g, (match, left, chLeft, chRight) => {
+          return match2;
+        }).replace(/(=\?([^?]+)\?[Qq]\?[^?]*\?=)\s*(?==\?([^?]+)\?[Qq]\?[^?]*\?=)/g, (match2, left2, chLeft, chRight) => {
           if (libcharset.normalizeCharset(chLeft || "") === libcharset.normalizeCharset(chRight || "")) {
-            return left + "__\0JOIN\0__";
+            return left2 + "__\0JOIN\0__";
           }
-          return match;
+          return match2;
         }).replace(/(\?=)?__\x00JOIN\x00__(=\?([^?]+)\?[QqBb]\?)?/g, "").replace(/(=\?[^?]+\?[QqBb]\?[^?]*\?=)\s+(?==\?[^?]+\?[QqBb]\?[^?]*\?=)/g, "$1").replace(/=\?([\w_\-*]+)\?([QqBb])\?([^?]*)\?=/g, (_m, charset, encoding, text) => this.decodeWord(charset, encoding, text));
       }
       getHex(c) {
@@ -19845,7 +19845,7 @@ var require_libmime = __commonJS({
        * @return {Object} An object of {key, value}
        */
       decodeHeader(headerLine) {
-        let line = (headerLine || "").toString().replace(/(?:\r?\n|\r)[ \t]*/g, " ").trim(), match = line.match(/^\s*([^:]+):(.*)$/), key = (match && match[1] || "").trim().toLowerCase(), value = (match && match[2] || "").trim();
+        let line = (headerLine || "").toString().replace(/(?:\r?\n|\r)[ \t]*/g, " ").trim(), match2 = line.match(/^\s*([^:]+):(.*)$/), key = (match2 && match2[1] || "").trim().toLowerCase(), value = (match2 && match2[2] || "").trim();
         return {
           key,
           value
@@ -19966,9 +19966,9 @@ var require_libmime = __commonJS({
           value = "";
           valueEnd = 0;
           if (stage === STAGE_KEY2) {
-            let name3 = collected.toLowerCase();
-            if (name3 && !Object.hasOwn(response.params, name3)) {
-              setOwnProperty2(response.params, name3, "");
+            let name4 = collected.toLowerCase();
+            if (name4 && !Object.hasOwn(response.params, name4)) {
+              setOwnProperty2(response.params, name4, "");
             }
           } else if (key === false) {
             response.value = collected;
@@ -20046,12 +20046,12 @@ var require_libmime = __commonJS({
         commit();
         let continuations = /* @__PURE__ */ new Map();
         for (let key2 of Object.keys(response.params)) {
-          let match = key2.match(/\*((\d+)\*?)?$/);
-          if (!match) {
+          let match2 = key2.match(/\*((\d+)\*?)?$/);
+          if (!match2) {
             continue;
           }
-          let actualKey = key2.substring(0, match.index).toLowerCase();
-          let nr = Number(match[2]) || 0;
+          let actualKey = key2.substring(0, match2.index).toLowerCase();
+          let nr = Number(match2[2]) || 0;
           let value2 = response.params[key2];
           delete response.params[key2];
           let continuation = continuations.get(actualKey);
@@ -20062,9 +20062,9 @@ var require_libmime = __commonJS({
             };
             continuations.set(actualKey, continuation);
           }
-          if (nr === 0 && match[0].charAt(match[0].length - 1) === "*" && (match = value2.match(/^([^']*)'[^']*'(.*)$/))) {
-            continuation.charset = match[1] || "utf-8";
-            value2 = match[2];
+          if (nr === 0 && match2[0].charAt(match2[0].length - 1) === "*" && (match2 = value2.match(/^([^']*)'[^']*'(.*)$/))) {
+            continuation.charset = match2[1] || "utf-8";
+            value2 = match2[2];
           }
           continuation.values.push({ nr, value: value2 });
         }
@@ -20253,22 +20253,22 @@ var require_libmime = __commonJS({
       foldLines(input, lineLength, afterSpace) {
         let str = (input || "").toString();
         lineLength = lineLength || 76;
-        let pos = 0, len = str.length, result = "", line, match;
+        let pos = 0, len = str.length, result = "", line, match2;
         while (pos < len) {
           line = str.substring(pos, pos + Math.max(lineLength, 0));
           if (line.length < lineLength) {
             result += line;
             break;
           }
-          if (match = line.match(/^[^\n\r]*(\r?\n|\r)/)) {
-            line = match[0];
+          if (match2 = line.match(/^[^\n\r]*(\r?\n|\r)/)) {
+            line = match2[0];
             result += line;
             pos += line.length;
             continue;
-          } else if ((match = line.match(/(\s+)[^\s]*$/)) && match[0].length - (afterSpace ? (match[1] || "").length : 0) < line.length) {
-            line = line.substring(0, line.length - (match[0].length - (afterSpace ? (match[1] || "").length : 0)));
-          } else if (match = str.slice(pos + line.length).match(/^[^\s]+(\s*)/)) {
-            line = line + match[0].substring(0, match[0].length - (!afterSpace ? (match[1] || "").length : 0));
+          } else if ((match2 = line.match(/(\s+)[^\s]*$/)) && match2[0].length - (afterSpace ? (match2[1] || "").length : 0) < line.length) {
+            line = line.substring(0, line.length - (match2[0].length - (afterSpace ? (match2[1] || "").length : 0)));
+          } else if (match2 = str.slice(pos + line.length).match(/^[^\s]+(\s*)/)) {
+            line = line + match2[0].substring(0, match2[0].length - (!afterSpace ? (match2[1] || "").length : 0));
           }
           result += line;
           pos += line.length;
@@ -20286,19 +20286,19 @@ var require_libmime = __commonJS({
        * @return {Array} Split string
        */
       splitMimeEncodedString(str, maxlen) {
-        let curLine, fallbackLine, match, chr, done, lines = [];
+        let curLine, fallbackLine, match2, chr, done, lines = [];
         maxlen = Math.max(maxlen || 0, 12);
         while (str.length) {
           curLine = str.substring(0, maxlen);
-          if (match = curLine.match(/[=][0-9A-F]?$/i)) {
-            curLine = curLine.substring(0, match.index);
+          if (match2 = curLine.match(/[=][0-9A-F]?$/i)) {
+            curLine = curLine.substring(0, match2.index);
           }
           fallbackLine = curLine.length ? curLine : str.substring(0, maxlen);
           done = false;
           while (!done && curLine.length) {
             done = true;
-            if (match = str.slice(curLine.length).match(/^[=]([0-9A-F]{2})/i)) {
-              chr = parseInt(match[1], 16);
+            if (match2 = str.slice(curLine.length).match(/^[=]([0-9A-F]{2})/i)) {
+              chr = parseInt(match2[1], 16);
               if (chr < 194 && chr > 127 && /=[0-9A-F]{2}$/i.test(curLine)) {
                 curLine = curLine.substring(0, curLine.length - 3);
                 done = false;
@@ -20593,7 +20593,7 @@ var require_headers = __commonJS({
        * @returns {string} Line with only folding line breaks left.
        */
       _normalizeLineBreaks(line, lineEnd) {
-        return line.replace(/^[\r\n]+/, "").replace(/\r\n|\r|\n/g, (match, offset, source) => match !== "\r" && this._isFoldingChar(source.charAt(offset + match.length)) ? lineEnd : "");
+        return line.replace(/^[\r\n]+/, "").replace(/\r\n|\r|\n/g, (match2, offset, source) => match2 !== "\r" && this._isFoldingChar(source.charAt(offset + match2.length)) ? lineEnd : "");
       }
       /**
        * Prepares a caller supplied line for insertion. On top of the line break rules an
@@ -20651,17 +20651,17 @@ var require_headers = __commonJS({
         }
         let rawLines = raw.slice(0, end).split(/\r?\n/);
         let i = 1;
-        let first = rawLines[0];
+        let first2 = rawLines[0];
         while (i < rawLines.length && this._isFoldingChar(rawLines[i].charAt(0))) {
-          first += "\r\n" + rawLines[i++];
+          first2 += "\r\n" + rawLines[i++];
         }
         let lines = [];
-        if (/^From /i.test(first)) {
-          this.mbox = first;
-        } else if (/^POST /i.test(first)) {
-          this.http = first;
+        if (/^From /i.test(first2)) {
+          this.mbox = first2;
+        } else if (/^POST /i.test(first2)) {
+          this.http = first2;
         } else {
-          lines.push({ key: this._normalizeHeader(first.substr(0, first.indexOf(":"))), line: first });
+          lines.push({ key: this._normalizeHeader(first2.substr(0, first2.indexOf(":"))), line: first2 });
         }
         let keyPending = false;
         for (; i < rawLines.length; i++) {
@@ -21046,7 +21046,7 @@ var require_mime_node = __commonJS({
 var require_message_splitter = __commonJS({
   "node_modules/@zone-eu/mailsplit/lib/message-splitter.js"(exports2, module2) {
     "use strict";
-    var Transform15 = require("stream").Transform;
+    var Transform17 = require("stream").Transform;
     var MimeNode2 = require_mime_node();
     var MAX_HEAD_SIZE = 1 * 1024 * 1024;
     var MAX_CHILD_NODES = 1e3;
@@ -21078,7 +21078,7 @@ var require_message_splitter = __commonJS({
       }
       return end;
     }
-    var MessageSplitter = class extends Transform15 {
+    var MessageSplitter = class extends Transform17 {
       /**
        * @param {SplitterOptions} [config]
        */
@@ -21558,8 +21558,8 @@ var require_message_splitter = __commonJS({
 var require_message_joiner = __commonJS({
   "node_modules/@zone-eu/mailsplit/lib/message-joiner.js"(exports2, module2) {
     "use strict";
-    var Transform15 = require("stream").Transform;
-    var MessageJoiner = class extends Transform15 {
+    var Transform17 = require("stream").Transform;
+    var MessageJoiner = class extends Transform17 {
       /**
        * Creates a joiner that accepts splitter objects and emits Buffer chunks.
        */
@@ -21602,13 +21602,13 @@ var require_message_joiner = __commonJS({
 var require_flowed_decoder = __commonJS({
   "node_modules/@zone-eu/mailsplit/lib/flowed-decoder.js"(exports2, module2) {
     "use strict";
-    var Transform15 = require("stream").Transform;
+    var Transform17 = require("stream").Transform;
     var libmime2 = require_libmime();
     var Libmime2 = (
       /** @type {any} */
       libmime2.Libmime
     );
-    var FlowedDecoder2 = class extends Transform15 {
+    var FlowedDecoder3 = class extends Transform17 {
       /**
        * @param {FlowedDecoderOptions} [config] Flowed text and charset decoding settings.
        */
@@ -21649,7 +21649,7 @@ var require_flowed_decoder = __commonJS({
         return callback();
       }
     };
-    module2.exports = FlowedDecoder2;
+    module2.exports = FlowedDecoder3;
   }
 });
 
@@ -21657,9 +21657,9 @@ var require_flowed_decoder = __commonJS({
 var require_node_rewriter = __commonJS({
   "node_modules/@zone-eu/mailsplit/lib/node-rewriter.js"(exports2, module2) {
     "use strict";
-    var Transform15 = require("stream").Transform;
-    var FlowedDecoder2 = require_flowed_decoder();
-    var NodeRewriter = class extends Transform15 {
+    var Transform17 = require("stream").Transform;
+    var FlowedDecoder3 = require_flowed_decoder();
+    var NodeRewriter = class extends Transform17 {
       /**
        * @param {FilterFunc} filterFunc Function that receives a MIME node and returns true to rewrite it.
        * @param {Function} [rewriteAction] Optional compatibility hook stored on the instance.
@@ -21809,7 +21809,7 @@ var require_node_rewriter = __commonJS({
         });
         if (/^text\//.test(node.contentType || "") && node.flowed) {
           let flowDecoder = decoder;
-          decoder = new FlowedDecoder2({
+          decoder = new FlowedDecoder3({
             delSp: node.delSp
           });
           flowDecoder.on(
@@ -21844,9 +21844,9 @@ var require_node_rewriter = __commonJS({
 var require_node_streamer = __commonJS({
   "node_modules/@zone-eu/mailsplit/lib/node-streamer.js"(exports2, module2) {
     "use strict";
-    var Transform15 = require("stream").Transform;
-    var FlowedDecoder2 = require_flowed_decoder();
-    var NodeStreamer = class extends Transform15 {
+    var Transform17 = require("stream").Transform;
+    var FlowedDecoder3 = require_flowed_decoder();
+    var NodeStreamer = class extends Transform17 {
       /**
        * @param {FilterFunc} filterFunc Function that receives a MIME node and returns true to stream it.
        * @param {Function} [streamAction] Optional compatibility hook stored on the instance.
@@ -21937,7 +21937,7 @@ var require_node_streamer = __commonJS({
         decoder.$reading = false;
         if (/^text\//.test(node.contentType || "") && node.flowed) {
           let flowDecoder = decoder;
-          decoder = new FlowedDecoder2({
+          decoder = new FlowedDecoder3({
             delSp: node.delSp
           });
           flowDecoder.on(
@@ -21980,8 +21980,8 @@ var require_node_streamer = __commonJS({
 var require_chunked_passthrough = __commonJS({
   "node_modules/@zone-eu/mailsplit/lib/chunked-passthrough.js"(exports2, module2) {
     "use strict";
-    var { Transform: Transform15 } = require("stream");
-    var ChunkedPassthrough = class extends Transform15 {
+    var { Transform: Transform17 } = require("stream");
+    var ChunkedPassthrough2 = class extends Transform17 {
       /**
        * @param {import('..').ChunkedPassthroughOptions} [options]
        */
@@ -22020,7 +22020,7 @@ var require_chunked_passthrough = __commonJS({
         callback();
       }
     };
-    module2.exports = ChunkedPassthrough;
+    module2.exports = ChunkedPassthrough2;
   }
 });
 
@@ -22033,17 +22033,1960 @@ var require_mailsplit = __commonJS({
     var NodeRewriter = require_node_rewriter();
     var NodeStreamer = require_node_streamer();
     var Headers2 = require_headers();
-    var ChunkedPassthrough = require_chunked_passthrough();
+    var ChunkedPassthrough2 = require_chunked_passthrough();
     var MimeNode2 = require_mime_node();
     module2.exports = {
       Splitter: MessageSplitter,
       Joiner: MessageJoiner,
       Rewriter: NodeRewriter,
       Streamer: NodeStreamer,
-      ChunkedPassthrough,
+      ChunkedPassthrough: ChunkedPassthrough2,
       Headers: Headers2,
       MimeNode: MimeNode2
     };
+  }
+});
+
+// node_modules/he/he.js
+var require_he = __commonJS({
+  "node_modules/he/he.js"(exports2, module2) {
+    (function(root) {
+      var freeExports = typeof exports2 == "object" && exports2;
+      var freeModule = typeof module2 == "object" && module2 && module2.exports == freeExports && module2;
+      var freeGlobal = typeof global == "object" && global;
+      if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+        root = freeGlobal;
+      }
+      var regexAstralSymbols = /[\uD800-\uDBFF][\uDC00-\uDFFF]/g;
+      var regexAsciiWhitelist = /[\x01-\x7F]/g;
+      var regexBmpWhitelist = /[\x01-\t\x0B\f\x0E-\x1F\x7F\x81\x8D\x8F\x90\x9D\xA0-\uFFFF]/g;
+      var regexEncodeNonAscii = /<\u20D2|=\u20E5|>\u20D2|\u205F\u200A|\u219D\u0338|\u2202\u0338|\u2220\u20D2|\u2229\uFE00|\u222A\uFE00|\u223C\u20D2|\u223D\u0331|\u223E\u0333|\u2242\u0338|\u224B\u0338|\u224D\u20D2|\u224E\u0338|\u224F\u0338|\u2250\u0338|\u2261\u20E5|\u2264\u20D2|\u2265\u20D2|\u2266\u0338|\u2267\u0338|\u2268\uFE00|\u2269\uFE00|\u226A\u0338|\u226A\u20D2|\u226B\u0338|\u226B\u20D2|\u227F\u0338|\u2282\u20D2|\u2283\u20D2|\u228A\uFE00|\u228B\uFE00|\u228F\u0338|\u2290\u0338|\u2293\uFE00|\u2294\uFE00|\u22B4\u20D2|\u22B5\u20D2|\u22D8\u0338|\u22D9\u0338|\u22DA\uFE00|\u22DB\uFE00|\u22F5\u0338|\u22F9\u0338|\u2933\u0338|\u29CF\u0338|\u29D0\u0338|\u2A6D\u0338|\u2A70\u0338|\u2A7D\u0338|\u2A7E\u0338|\u2AA1\u0338|\u2AA2\u0338|\u2AAC\uFE00|\u2AAD\uFE00|\u2AAF\u0338|\u2AB0\u0338|\u2AC5\u0338|\u2AC6\u0338|\u2ACB\uFE00|\u2ACC\uFE00|\u2AFD\u20E5|[\xA0-\u0113\u0116-\u0122\u0124-\u012B\u012E-\u014D\u0150-\u017E\u0192\u01B5\u01F5\u0237\u02C6\u02C7\u02D8-\u02DD\u0311\u0391-\u03A1\u03A3-\u03A9\u03B1-\u03C9\u03D1\u03D2\u03D5\u03D6\u03DC\u03DD\u03F0\u03F1\u03F5\u03F6\u0401-\u040C\u040E-\u044F\u0451-\u045C\u045E\u045F\u2002-\u2005\u2007-\u2010\u2013-\u2016\u2018-\u201A\u201C-\u201E\u2020-\u2022\u2025\u2026\u2030-\u2035\u2039\u203A\u203E\u2041\u2043\u2044\u204F\u2057\u205F-\u2063\u20AC\u20DB\u20DC\u2102\u2105\u210A-\u2113\u2115-\u211E\u2122\u2124\u2127-\u2129\u212C\u212D\u212F-\u2131\u2133-\u2138\u2145-\u2148\u2153-\u215E\u2190-\u219B\u219D-\u21A7\u21A9-\u21AE\u21B0-\u21B3\u21B5-\u21B7\u21BA-\u21DB\u21DD\u21E4\u21E5\u21F5\u21FD-\u2205\u2207-\u2209\u220B\u220C\u220F-\u2214\u2216-\u2218\u221A\u221D-\u2238\u223A-\u2257\u2259\u225A\u225C\u225F-\u2262\u2264-\u228B\u228D-\u229B\u229D-\u22A5\u22A7-\u22B0\u22B2-\u22BB\u22BD-\u22DB\u22DE-\u22E3\u22E6-\u22F7\u22F9-\u22FE\u2305\u2306\u2308-\u2310\u2312\u2313\u2315\u2316\u231C-\u231F\u2322\u2323\u232D\u232E\u2336\u233D\u233F\u237C\u23B0\u23B1\u23B4-\u23B6\u23DC-\u23DF\u23E2\u23E7\u2423\u24C8\u2500\u2502\u250C\u2510\u2514\u2518\u251C\u2524\u252C\u2534\u253C\u2550-\u256C\u2580\u2584\u2588\u2591-\u2593\u25A1\u25AA\u25AB\u25AD\u25AE\u25B1\u25B3-\u25B5\u25B8\u25B9\u25BD-\u25BF\u25C2\u25C3\u25CA\u25CB\u25EC\u25EF\u25F8-\u25FC\u2605\u2606\u260E\u2640\u2642\u2660\u2663\u2665\u2666\u266A\u266D-\u266F\u2713\u2717\u2720\u2736\u2758\u2772\u2773\u27C8\u27C9\u27E6-\u27ED\u27F5-\u27FA\u27FC\u27FF\u2902-\u2905\u290C-\u2913\u2916\u2919-\u2920\u2923-\u292A\u2933\u2935-\u2939\u293C\u293D\u2945\u2948-\u294B\u294E-\u2976\u2978\u2979\u297B-\u297F\u2985\u2986\u298B-\u2996\u299A\u299C\u299D\u29A4-\u29B7\u29B9\u29BB\u29BC\u29BE-\u29C5\u29C9\u29CD-\u29D0\u29DC-\u29DE\u29E3-\u29E5\u29EB\u29F4\u29F6\u2A00-\u2A02\u2A04\u2A06\u2A0C\u2A0D\u2A10-\u2A17\u2A22-\u2A27\u2A29\u2A2A\u2A2D-\u2A31\u2A33-\u2A3C\u2A3F\u2A40\u2A42-\u2A4D\u2A50\u2A53-\u2A58\u2A5A-\u2A5D\u2A5F\u2A66\u2A6A\u2A6D-\u2A75\u2A77-\u2A9A\u2A9D-\u2AA2\u2AA4-\u2AB0\u2AB3-\u2AC8\u2ACB\u2ACC\u2ACF-\u2ADB\u2AE4\u2AE6-\u2AE9\u2AEB-\u2AF3\u2AFD\uFB00-\uFB04]|\uD835[\uDC9C\uDC9E\uDC9F\uDCA2\uDCA5\uDCA6\uDCA9-\uDCAC\uDCAE-\uDCB9\uDCBB\uDCBD-\uDCC3\uDCC5-\uDCCF\uDD04\uDD05\uDD07-\uDD0A\uDD0D-\uDD14\uDD16-\uDD1C\uDD1E-\uDD39\uDD3B-\uDD3E\uDD40-\uDD44\uDD46\uDD4A-\uDD50\uDD52-\uDD6B]/g;
+      var encodeMap = { "\xAD": "shy", "\u200C": "zwnj", "\u200D": "zwj", "\u200E": "lrm", "\u2063": "ic", "\u2062": "it", "\u2061": "af", "\u200F": "rlm", "\u200B": "ZeroWidthSpace", "\u2060": "NoBreak", "\u0311": "DownBreve", "\u20DB": "tdot", "\u20DC": "DotDot", "	": "Tab", "\n": "NewLine", "\u2008": "puncsp", "\u205F": "MediumSpace", "\u2009": "thinsp", "\u200A": "hairsp", "\u2004": "emsp13", "\u2002": "ensp", "\u2005": "emsp14", "\u2003": "emsp", "\u2007": "numsp", "\xA0": "nbsp", "\u205F\u200A": "ThickSpace", "\u203E": "oline", "_": "lowbar", "\u2010": "dash", "\u2013": "ndash", "\u2014": "mdash", "\u2015": "horbar", ",": "comma", ";": "semi", "\u204F": "bsemi", ":": "colon", "\u2A74": "Colone", "!": "excl", "\xA1": "iexcl", "?": "quest", "\xBF": "iquest", ".": "period", "\u2025": "nldr", "\u2026": "mldr", "\xB7": "middot", "'": "apos", "\u2018": "lsquo", "\u2019": "rsquo", "\u201A": "sbquo", "\u2039": "lsaquo", "\u203A": "rsaquo", '"': "quot", "\u201C": "ldquo", "\u201D": "rdquo", "\u201E": "bdquo", "\xAB": "laquo", "\xBB": "raquo", "(": "lpar", ")": "rpar", "[": "lsqb", "]": "rsqb", "{": "lcub", "}": "rcub", "\u2308": "lceil", "\u2309": "rceil", "\u230A": "lfloor", "\u230B": "rfloor", "\u2985": "lopar", "\u2986": "ropar", "\u298B": "lbrke", "\u298C": "rbrke", "\u298D": "lbrkslu", "\u298E": "rbrksld", "\u298F": "lbrksld", "\u2990": "rbrkslu", "\u2991": "langd", "\u2992": "rangd", "\u2993": "lparlt", "\u2994": "rpargt", "\u2995": "gtlPar", "\u2996": "ltrPar", "\u27E6": "lobrk", "\u27E7": "robrk", "\u27E8": "lang", "\u27E9": "rang", "\u27EA": "Lang", "\u27EB": "Rang", "\u27EC": "loang", "\u27ED": "roang", "\u2772": "lbbrk", "\u2773": "rbbrk", "\u2016": "Vert", "\xA7": "sect", "\xB6": "para", "@": "commat", "*": "ast", "/": "sol", "undefined": null, "&": "amp", "#": "num", "%": "percnt", "\u2030": "permil", "\u2031": "pertenk", "\u2020": "dagger", "\u2021": "Dagger", "\u2022": "bull", "\u2043": "hybull", "\u2032": "prime", "\u2033": "Prime", "\u2034": "tprime", "\u2057": "qprime", "\u2035": "bprime", "\u2041": "caret", "`": "grave", "\xB4": "acute", "\u02DC": "tilde", "^": "Hat", "\xAF": "macr", "\u02D8": "breve", "\u02D9": "dot", "\xA8": "die", "\u02DA": "ring", "\u02DD": "dblac", "\xB8": "cedil", "\u02DB": "ogon", "\u02C6": "circ", "\u02C7": "caron", "\xB0": "deg", "\xA9": "copy", "\xAE": "reg", "\u2117": "copysr", "\u2118": "wp", "\u211E": "rx", "\u2127": "mho", "\u2129": "iiota", "\u2190": "larr", "\u219A": "nlarr", "\u2192": "rarr", "\u219B": "nrarr", "\u2191": "uarr", "\u2193": "darr", "\u2194": "harr", "\u21AE": "nharr", "\u2195": "varr", "\u2196": "nwarr", "\u2197": "nearr", "\u2198": "searr", "\u2199": "swarr", "\u219D": "rarrw", "\u219D\u0338": "nrarrw", "\u219E": "Larr", "\u219F": "Uarr", "\u21A0": "Rarr", "\u21A1": "Darr", "\u21A2": "larrtl", "\u21A3": "rarrtl", "\u21A4": "mapstoleft", "\u21A5": "mapstoup", "\u21A6": "map", "\u21A7": "mapstodown", "\u21A9": "larrhk", "\u21AA": "rarrhk", "\u21AB": "larrlp", "\u21AC": "rarrlp", "\u21AD": "harrw", "\u21B0": "lsh", "\u21B1": "rsh", "\u21B2": "ldsh", "\u21B3": "rdsh", "\u21B5": "crarr", "\u21B6": "cularr", "\u21B7": "curarr", "\u21BA": "olarr", "\u21BB": "orarr", "\u21BC": "lharu", "\u21BD": "lhard", "\u21BE": "uharr", "\u21BF": "uharl", "\u21C0": "rharu", "\u21C1": "rhard", "\u21C2": "dharr", "\u21C3": "dharl", "\u21C4": "rlarr", "\u21C5": "udarr", "\u21C6": "lrarr", "\u21C7": "llarr", "\u21C8": "uuarr", "\u21C9": "rrarr", "\u21CA": "ddarr", "\u21CB": "lrhar", "\u21CC": "rlhar", "\u21D0": "lArr", "\u21CD": "nlArr", "\u21D1": "uArr", "\u21D2": "rArr", "\u21CF": "nrArr", "\u21D3": "dArr", "\u21D4": "iff", "\u21CE": "nhArr", "\u21D5": "vArr", "\u21D6": "nwArr", "\u21D7": "neArr", "\u21D8": "seArr", "\u21D9": "swArr", "\u21DA": "lAarr", "\u21DB": "rAarr", "\u21DD": "zigrarr", "\u21E4": "larrb", "\u21E5": "rarrb", "\u21F5": "duarr", "\u21FD": "loarr", "\u21FE": "roarr", "\u21FF": "hoarr", "\u2200": "forall", "\u2201": "comp", "\u2202": "part", "\u2202\u0338": "npart", "\u2203": "exist", "\u2204": "nexist", "\u2205": "empty", "\u2207": "Del", "\u2208": "in", "\u2209": "notin", "\u220B": "ni", "\u220C": "notni", "\u03F6": "bepsi", "\u220F": "prod", "\u2210": "coprod", "\u2211": "sum", "+": "plus", "\xB1": "pm", "\xF7": "div", "\xD7": "times", "<": "lt", "\u226E": "nlt", "<\u20D2": "nvlt", "=": "equals", "\u2260": "ne", "=\u20E5": "bne", "\u2A75": "Equal", ">": "gt", "\u226F": "ngt", ">\u20D2": "nvgt", "\xAC": "not", "|": "vert", "\xA6": "brvbar", "\u2212": "minus", "\u2213": "mp", "\u2214": "plusdo", "\u2044": "frasl", "\u2216": "setmn", "\u2217": "lowast", "\u2218": "compfn", "\u221A": "Sqrt", "\u221D": "prop", "\u221E": "infin", "\u221F": "angrt", "\u2220": "ang", "\u2220\u20D2": "nang", "\u2221": "angmsd", "\u2222": "angsph", "\u2223": "mid", "\u2224": "nmid", "\u2225": "par", "\u2226": "npar", "\u2227": "and", "\u2228": "or", "\u2229": "cap", "\u2229\uFE00": "caps", "\u222A": "cup", "\u222A\uFE00": "cups", "\u222B": "int", "\u222C": "Int", "\u222D": "tint", "\u2A0C": "qint", "\u222E": "oint", "\u222F": "Conint", "\u2230": "Cconint", "\u2231": "cwint", "\u2232": "cwconint", "\u2233": "awconint", "\u2234": "there4", "\u2235": "becaus", "\u2236": "ratio", "\u2237": "Colon", "\u2238": "minusd", "\u223A": "mDDot", "\u223B": "homtht", "\u223C": "sim", "\u2241": "nsim", "\u223C\u20D2": "nvsim", "\u223D": "bsim", "\u223D\u0331": "race", "\u223E": "ac", "\u223E\u0333": "acE", "\u223F": "acd", "\u2240": "wr", "\u2242": "esim", "\u2242\u0338": "nesim", "\u2243": "sime", "\u2244": "nsime", "\u2245": "cong", "\u2247": "ncong", "\u2246": "simne", "\u2248": "ap", "\u2249": "nap", "\u224A": "ape", "\u224B": "apid", "\u224B\u0338": "napid", "\u224C": "bcong", "\u224D": "CupCap", "\u226D": "NotCupCap", "\u224D\u20D2": "nvap", "\u224E": "bump", "\u224E\u0338": "nbump", "\u224F": "bumpe", "\u224F\u0338": "nbumpe", "\u2250": "doteq", "\u2250\u0338": "nedot", "\u2251": "eDot", "\u2252": "efDot", "\u2253": "erDot", "\u2254": "colone", "\u2255": "ecolon", "\u2256": "ecir", "\u2257": "cire", "\u2259": "wedgeq", "\u225A": "veeeq", "\u225C": "trie", "\u225F": "equest", "\u2261": "equiv", "\u2262": "nequiv", "\u2261\u20E5": "bnequiv", "\u2264": "le", "\u2270": "nle", "\u2264\u20D2": "nvle", "\u2265": "ge", "\u2271": "nge", "\u2265\u20D2": "nvge", "\u2266": "lE", "\u2266\u0338": "nlE", "\u2267": "gE", "\u2267\u0338": "ngE", "\u2268\uFE00": "lvnE", "\u2268": "lnE", "\u2269": "gnE", "\u2269\uFE00": "gvnE", "\u226A": "ll", "\u226A\u0338": "nLtv", "\u226A\u20D2": "nLt", "\u226B": "gg", "\u226B\u0338": "nGtv", "\u226B\u20D2": "nGt", "\u226C": "twixt", "\u2272": "lsim", "\u2274": "nlsim", "\u2273": "gsim", "\u2275": "ngsim", "\u2276": "lg", "\u2278": "ntlg", "\u2277": "gl", "\u2279": "ntgl", "\u227A": "pr", "\u2280": "npr", "\u227B": "sc", "\u2281": "nsc", "\u227C": "prcue", "\u22E0": "nprcue", "\u227D": "sccue", "\u22E1": "nsccue", "\u227E": "prsim", "\u227F": "scsim", "\u227F\u0338": "NotSucceedsTilde", "\u2282": "sub", "\u2284": "nsub", "\u2282\u20D2": "vnsub", "\u2283": "sup", "\u2285": "nsup", "\u2283\u20D2": "vnsup", "\u2286": "sube", "\u2288": "nsube", "\u2287": "supe", "\u2289": "nsupe", "\u228A\uFE00": "vsubne", "\u228A": "subne", "\u228B\uFE00": "vsupne", "\u228B": "supne", "\u228D": "cupdot", "\u228E": "uplus", "\u228F": "sqsub", "\u228F\u0338": "NotSquareSubset", "\u2290": "sqsup", "\u2290\u0338": "NotSquareSuperset", "\u2291": "sqsube", "\u22E2": "nsqsube", "\u2292": "sqsupe", "\u22E3": "nsqsupe", "\u2293": "sqcap", "\u2293\uFE00": "sqcaps", "\u2294": "sqcup", "\u2294\uFE00": "sqcups", "\u2295": "oplus", "\u2296": "ominus", "\u2297": "otimes", "\u2298": "osol", "\u2299": "odot", "\u229A": "ocir", "\u229B": "oast", "\u229D": "odash", "\u229E": "plusb", "\u229F": "minusb", "\u22A0": "timesb", "\u22A1": "sdotb", "\u22A2": "vdash", "\u22AC": "nvdash", "\u22A3": "dashv", "\u22A4": "top", "\u22A5": "bot", "\u22A7": "models", "\u22A8": "vDash", "\u22AD": "nvDash", "\u22A9": "Vdash", "\u22AE": "nVdash", "\u22AA": "Vvdash", "\u22AB": "VDash", "\u22AF": "nVDash", "\u22B0": "prurel", "\u22B2": "vltri", "\u22EA": "nltri", "\u22B3": "vrtri", "\u22EB": "nrtri", "\u22B4": "ltrie", "\u22EC": "nltrie", "\u22B4\u20D2": "nvltrie", "\u22B5": "rtrie", "\u22ED": "nrtrie", "\u22B5\u20D2": "nvrtrie", "\u22B6": "origof", "\u22B7": "imof", "\u22B8": "mumap", "\u22B9": "hercon", "\u22BA": "intcal", "\u22BB": "veebar", "\u22BD": "barvee", "\u22BE": "angrtvb", "\u22BF": "lrtri", "\u22C0": "Wedge", "\u22C1": "Vee", "\u22C2": "xcap", "\u22C3": "xcup", "\u22C4": "diam", "\u22C5": "sdot", "\u22C6": "Star", "\u22C7": "divonx", "\u22C8": "bowtie", "\u22C9": "ltimes", "\u22CA": "rtimes", "\u22CB": "lthree", "\u22CC": "rthree", "\u22CD": "bsime", "\u22CE": "cuvee", "\u22CF": "cuwed", "\u22D0": "Sub", "\u22D1": "Sup", "\u22D2": "Cap", "\u22D3": "Cup", "\u22D4": "fork", "\u22D5": "epar", "\u22D6": "ltdot", "\u22D7": "gtdot", "\u22D8": "Ll", "\u22D8\u0338": "nLl", "\u22D9": "Gg", "\u22D9\u0338": "nGg", "\u22DA\uFE00": "lesg", "\u22DA": "leg", "\u22DB": "gel", "\u22DB\uFE00": "gesl", "\u22DE": "cuepr", "\u22DF": "cuesc", "\u22E6": "lnsim", "\u22E7": "gnsim", "\u22E8": "prnsim", "\u22E9": "scnsim", "\u22EE": "vellip", "\u22EF": "ctdot", "\u22F0": "utdot", "\u22F1": "dtdot", "\u22F2": "disin", "\u22F3": "isinsv", "\u22F4": "isins", "\u22F5": "isindot", "\u22F5\u0338": "notindot", "\u22F6": "notinvc", "\u22F7": "notinvb", "\u22F9": "isinE", "\u22F9\u0338": "notinE", "\u22FA": "nisd", "\u22FB": "xnis", "\u22FC": "nis", "\u22FD": "notnivc", "\u22FE": "notnivb", "\u2305": "barwed", "\u2306": "Barwed", "\u230C": "drcrop", "\u230D": "dlcrop", "\u230E": "urcrop", "\u230F": "ulcrop", "\u2310": "bnot", "\u2312": "profline", "\u2313": "profsurf", "\u2315": "telrec", "\u2316": "target", "\u231C": "ulcorn", "\u231D": "urcorn", "\u231E": "dlcorn", "\u231F": "drcorn", "\u2322": "frown", "\u2323": "smile", "\u232D": "cylcty", "\u232E": "profalar", "\u2336": "topbot", "\u233D": "ovbar", "\u233F": "solbar", "\u237C": "angzarr", "\u23B0": "lmoust", "\u23B1": "rmoust", "\u23B4": "tbrk", "\u23B5": "bbrk", "\u23B6": "bbrktbrk", "\u23DC": "OverParenthesis", "\u23DD": "UnderParenthesis", "\u23DE": "OverBrace", "\u23DF": "UnderBrace", "\u23E2": "trpezium", "\u23E7": "elinters", "\u2423": "blank", "\u2500": "boxh", "\u2502": "boxv", "\u250C": "boxdr", "\u2510": "boxdl", "\u2514": "boxur", "\u2518": "boxul", "\u251C": "boxvr", "\u2524": "boxvl", "\u252C": "boxhd", "\u2534": "boxhu", "\u253C": "boxvh", "\u2550": "boxH", "\u2551": "boxV", "\u2552": "boxdR", "\u2553": "boxDr", "\u2554": "boxDR", "\u2555": "boxdL", "\u2556": "boxDl", "\u2557": "boxDL", "\u2558": "boxuR", "\u2559": "boxUr", "\u255A": "boxUR", "\u255B": "boxuL", "\u255C": "boxUl", "\u255D": "boxUL", "\u255E": "boxvR", "\u255F": "boxVr", "\u2560": "boxVR", "\u2561": "boxvL", "\u2562": "boxVl", "\u2563": "boxVL", "\u2564": "boxHd", "\u2565": "boxhD", "\u2566": "boxHD", "\u2567": "boxHu", "\u2568": "boxhU", "\u2569": "boxHU", "\u256A": "boxvH", "\u256B": "boxVh", "\u256C": "boxVH", "\u2580": "uhblk", "\u2584": "lhblk", "\u2588": "block", "\u2591": "blk14", "\u2592": "blk12", "\u2593": "blk34", "\u25A1": "squ", "\u25AA": "squf", "\u25AB": "EmptyVerySmallSquare", "\u25AD": "rect", "\u25AE": "marker", "\u25B1": "fltns", "\u25B3": "xutri", "\u25B4": "utrif", "\u25B5": "utri", "\u25B8": "rtrif", "\u25B9": "rtri", "\u25BD": "xdtri", "\u25BE": "dtrif", "\u25BF": "dtri", "\u25C2": "ltrif", "\u25C3": "ltri", "\u25CA": "loz", "\u25CB": "cir", "\u25EC": "tridot", "\u25EF": "xcirc", "\u25F8": "ultri", "\u25F9": "urtri", "\u25FA": "lltri", "\u25FB": "EmptySmallSquare", "\u25FC": "FilledSmallSquare", "\u2605": "starf", "\u2606": "star", "\u260E": "phone", "\u2640": "female", "\u2642": "male", "\u2660": "spades", "\u2663": "clubs", "\u2665": "hearts", "\u2666": "diams", "\u266A": "sung", "\u2713": "check", "\u2717": "cross", "\u2720": "malt", "\u2736": "sext", "\u2758": "VerticalSeparator", "\u27C8": "bsolhsub", "\u27C9": "suphsol", "\u27F5": "xlarr", "\u27F6": "xrarr", "\u27F7": "xharr", "\u27F8": "xlArr", "\u27F9": "xrArr", "\u27FA": "xhArr", "\u27FC": "xmap", "\u27FF": "dzigrarr", "\u2902": "nvlArr", "\u2903": "nvrArr", "\u2904": "nvHarr", "\u2905": "Map", "\u290C": "lbarr", "\u290D": "rbarr", "\u290E": "lBarr", "\u290F": "rBarr", "\u2910": "RBarr", "\u2911": "DDotrahd", "\u2912": "UpArrowBar", "\u2913": "DownArrowBar", "\u2916": "Rarrtl", "\u2919": "latail", "\u291A": "ratail", "\u291B": "lAtail", "\u291C": "rAtail", "\u291D": "larrfs", "\u291E": "rarrfs", "\u291F": "larrbfs", "\u2920": "rarrbfs", "\u2923": "nwarhk", "\u2924": "nearhk", "\u2925": "searhk", "\u2926": "swarhk", "\u2927": "nwnear", "\u2928": "toea", "\u2929": "tosa", "\u292A": "swnwar", "\u2933": "rarrc", "\u2933\u0338": "nrarrc", "\u2935": "cudarrr", "\u2936": "ldca", "\u2937": "rdca", "\u2938": "cudarrl", "\u2939": "larrpl", "\u293C": "curarrm", "\u293D": "cularrp", "\u2945": "rarrpl", "\u2948": "harrcir", "\u2949": "Uarrocir", "\u294A": "lurdshar", "\u294B": "ldrushar", "\u294E": "LeftRightVector", "\u294F": "RightUpDownVector", "\u2950": "DownLeftRightVector", "\u2951": "LeftUpDownVector", "\u2952": "LeftVectorBar", "\u2953": "RightVectorBar", "\u2954": "RightUpVectorBar", "\u2955": "RightDownVectorBar", "\u2956": "DownLeftVectorBar", "\u2957": "DownRightVectorBar", "\u2958": "LeftUpVectorBar", "\u2959": "LeftDownVectorBar", "\u295A": "LeftTeeVector", "\u295B": "RightTeeVector", "\u295C": "RightUpTeeVector", "\u295D": "RightDownTeeVector", "\u295E": "DownLeftTeeVector", "\u295F": "DownRightTeeVector", "\u2960": "LeftUpTeeVector", "\u2961": "LeftDownTeeVector", "\u2962": "lHar", "\u2963": "uHar", "\u2964": "rHar", "\u2965": "dHar", "\u2966": "luruhar", "\u2967": "ldrdhar", "\u2968": "ruluhar", "\u2969": "rdldhar", "\u296A": "lharul", "\u296B": "llhard", "\u296C": "rharul", "\u296D": "lrhard", "\u296E": "udhar", "\u296F": "duhar", "\u2970": "RoundImplies", "\u2971": "erarr", "\u2972": "simrarr", "\u2973": "larrsim", "\u2974": "rarrsim", "\u2975": "rarrap", "\u2976": "ltlarr", "\u2978": "gtrarr", "\u2979": "subrarr", "\u297B": "suplarr", "\u297C": "lfisht", "\u297D": "rfisht", "\u297E": "ufisht", "\u297F": "dfisht", "\u299A": "vzigzag", "\u299C": "vangrt", "\u299D": "angrtvbd", "\u29A4": "ange", "\u29A5": "range", "\u29A6": "dwangle", "\u29A7": "uwangle", "\u29A8": "angmsdaa", "\u29A9": "angmsdab", "\u29AA": "angmsdac", "\u29AB": "angmsdad", "\u29AC": "angmsdae", "\u29AD": "angmsdaf", "\u29AE": "angmsdag", "\u29AF": "angmsdah", "\u29B0": "bemptyv", "\u29B1": "demptyv", "\u29B2": "cemptyv", "\u29B3": "raemptyv", "\u29B4": "laemptyv", "\u29B5": "ohbar", "\u29B6": "omid", "\u29B7": "opar", "\u29B9": "operp", "\u29BB": "olcross", "\u29BC": "odsold", "\u29BE": "olcir", "\u29BF": "ofcir", "\u29C0": "olt", "\u29C1": "ogt", "\u29C2": "cirscir", "\u29C3": "cirE", "\u29C4": "solb", "\u29C5": "bsolb", "\u29C9": "boxbox", "\u29CD": "trisb", "\u29CE": "rtriltri", "\u29CF": "LeftTriangleBar", "\u29CF\u0338": "NotLeftTriangleBar", "\u29D0": "RightTriangleBar", "\u29D0\u0338": "NotRightTriangleBar", "\u29DC": "iinfin", "\u29DD": "infintie", "\u29DE": "nvinfin", "\u29E3": "eparsl", "\u29E4": "smeparsl", "\u29E5": "eqvparsl", "\u29EB": "lozf", "\u29F4": "RuleDelayed", "\u29F6": "dsol", "\u2A00": "xodot", "\u2A01": "xoplus", "\u2A02": "xotime", "\u2A04": "xuplus", "\u2A06": "xsqcup", "\u2A0D": "fpartint", "\u2A10": "cirfnint", "\u2A11": "awint", "\u2A12": "rppolint", "\u2A13": "scpolint", "\u2A14": "npolint", "\u2A15": "pointint", "\u2A16": "quatint", "\u2A17": "intlarhk", "\u2A22": "pluscir", "\u2A23": "plusacir", "\u2A24": "simplus", "\u2A25": "plusdu", "\u2A26": "plussim", "\u2A27": "plustwo", "\u2A29": "mcomma", "\u2A2A": "minusdu", "\u2A2D": "loplus", "\u2A2E": "roplus", "\u2A2F": "Cross", "\u2A30": "timesd", "\u2A31": "timesbar", "\u2A33": "smashp", "\u2A34": "lotimes", "\u2A35": "rotimes", "\u2A36": "otimesas", "\u2A37": "Otimes", "\u2A38": "odiv", "\u2A39": "triplus", "\u2A3A": "triminus", "\u2A3B": "tritime", "\u2A3C": "iprod", "\u2A3F": "amalg", "\u2A40": "capdot", "\u2A42": "ncup", "\u2A43": "ncap", "\u2A44": "capand", "\u2A45": "cupor", "\u2A46": "cupcap", "\u2A47": "capcup", "\u2A48": "cupbrcap", "\u2A49": "capbrcup", "\u2A4A": "cupcup", "\u2A4B": "capcap", "\u2A4C": "ccups", "\u2A4D": "ccaps", "\u2A50": "ccupssm", "\u2A53": "And", "\u2A54": "Or", "\u2A55": "andand", "\u2A56": "oror", "\u2A57": "orslope", "\u2A58": "andslope", "\u2A5A": "andv", "\u2A5B": "orv", "\u2A5C": "andd", "\u2A5D": "ord", "\u2A5F": "wedbar", "\u2A66": "sdote", "\u2A6A": "simdot", "\u2A6D": "congdot", "\u2A6D\u0338": "ncongdot", "\u2A6E": "easter", "\u2A6F": "apacir", "\u2A70": "apE", "\u2A70\u0338": "napE", "\u2A71": "eplus", "\u2A72": "pluse", "\u2A73": "Esim", "\u2A77": "eDDot", "\u2A78": "equivDD", "\u2A79": "ltcir", "\u2A7A": "gtcir", "\u2A7B": "ltquest", "\u2A7C": "gtquest", "\u2A7D": "les", "\u2A7D\u0338": "nles", "\u2A7E": "ges", "\u2A7E\u0338": "nges", "\u2A7F": "lesdot", "\u2A80": "gesdot", "\u2A81": "lesdoto", "\u2A82": "gesdoto", "\u2A83": "lesdotor", "\u2A84": "gesdotol", "\u2A85": "lap", "\u2A86": "gap", "\u2A87": "lne", "\u2A88": "gne", "\u2A89": "lnap", "\u2A8A": "gnap", "\u2A8B": "lEg", "\u2A8C": "gEl", "\u2A8D": "lsime", "\u2A8E": "gsime", "\u2A8F": "lsimg", "\u2A90": "gsiml", "\u2A91": "lgE", "\u2A92": "glE", "\u2A93": "lesges", "\u2A94": "gesles", "\u2A95": "els", "\u2A96": "egs", "\u2A97": "elsdot", "\u2A98": "egsdot", "\u2A99": "el", "\u2A9A": "eg", "\u2A9D": "siml", "\u2A9E": "simg", "\u2A9F": "simlE", "\u2AA0": "simgE", "\u2AA1": "LessLess", "\u2AA1\u0338": "NotNestedLessLess", "\u2AA2": "GreaterGreater", "\u2AA2\u0338": "NotNestedGreaterGreater", "\u2AA4": "glj", "\u2AA5": "gla", "\u2AA6": "ltcc", "\u2AA7": "gtcc", "\u2AA8": "lescc", "\u2AA9": "gescc", "\u2AAA": "smt", "\u2AAB": "lat", "\u2AAC": "smte", "\u2AAC\uFE00": "smtes", "\u2AAD": "late", "\u2AAD\uFE00": "lates", "\u2AAE": "bumpE", "\u2AAF": "pre", "\u2AAF\u0338": "npre", "\u2AB0": "sce", "\u2AB0\u0338": "nsce", "\u2AB3": "prE", "\u2AB4": "scE", "\u2AB5": "prnE", "\u2AB6": "scnE", "\u2AB7": "prap", "\u2AB8": "scap", "\u2AB9": "prnap", "\u2ABA": "scnap", "\u2ABB": "Pr", "\u2ABC": "Sc", "\u2ABD": "subdot", "\u2ABE": "supdot", "\u2ABF": "subplus", "\u2AC0": "supplus", "\u2AC1": "submult", "\u2AC2": "supmult", "\u2AC3": "subedot", "\u2AC4": "supedot", "\u2AC5": "subE", "\u2AC5\u0338": "nsubE", "\u2AC6": "supE", "\u2AC6\u0338": "nsupE", "\u2AC7": "subsim", "\u2AC8": "supsim", "\u2ACB\uFE00": "vsubnE", "\u2ACB": "subnE", "\u2ACC\uFE00": "vsupnE", "\u2ACC": "supnE", "\u2ACF": "csub", "\u2AD0": "csup", "\u2AD1": "csube", "\u2AD2": "csupe", "\u2AD3": "subsup", "\u2AD4": "supsub", "\u2AD5": "subsub", "\u2AD6": "supsup", "\u2AD7": "suphsub", "\u2AD8": "supdsub", "\u2AD9": "forkv", "\u2ADA": "topfork", "\u2ADB": "mlcp", "\u2AE4": "Dashv", "\u2AE6": "Vdashl", "\u2AE7": "Barv", "\u2AE8": "vBar", "\u2AE9": "vBarv", "\u2AEB": "Vbar", "\u2AEC": "Not", "\u2AED": "bNot", "\u2AEE": "rnmid", "\u2AEF": "cirmid", "\u2AF0": "midcir", "\u2AF1": "topcir", "\u2AF2": "nhpar", "\u2AF3": "parsim", "\u2AFD": "parsl", "\u2AFD\u20E5": "nparsl", "\u266D": "flat", "\u266E": "natur", "\u266F": "sharp", "\xA4": "curren", "\xA2": "cent", "$": "dollar", "\xA3": "pound", "\xA5": "yen", "\u20AC": "euro", "\xB9": "sup1", "\xBD": "half", "\u2153": "frac13", "\xBC": "frac14", "\u2155": "frac15", "\u2159": "frac16", "\u215B": "frac18", "\xB2": "sup2", "\u2154": "frac23", "\u2156": "frac25", "\xB3": "sup3", "\xBE": "frac34", "\u2157": "frac35", "\u215C": "frac38", "\u2158": "frac45", "\u215A": "frac56", "\u215D": "frac58", "\u215E": "frac78", "\u{1D4B6}": "ascr", "\u{1D552}": "aopf", "\u{1D51E}": "afr", "\u{1D538}": "Aopf", "\u{1D504}": "Afr", "\u{1D49C}": "Ascr", "\xAA": "ordf", "\xE1": "aacute", "\xC1": "Aacute", "\xE0": "agrave", "\xC0": "Agrave", "\u0103": "abreve", "\u0102": "Abreve", "\xE2": "acirc", "\xC2": "Acirc", "\xE5": "aring", "\xC5": "angst", "\xE4": "auml", "\xC4": "Auml", "\xE3": "atilde", "\xC3": "Atilde", "\u0105": "aogon", "\u0104": "Aogon", "\u0101": "amacr", "\u0100": "Amacr", "\xE6": "aelig", "\xC6": "AElig", "\u{1D4B7}": "bscr", "\u{1D553}": "bopf", "\u{1D51F}": "bfr", "\u{1D539}": "Bopf", "\u212C": "Bscr", "\u{1D505}": "Bfr", "\u{1D520}": "cfr", "\u{1D4B8}": "cscr", "\u{1D554}": "copf", "\u212D": "Cfr", "\u{1D49E}": "Cscr", "\u2102": "Copf", "\u0107": "cacute", "\u0106": "Cacute", "\u0109": "ccirc", "\u0108": "Ccirc", "\u010D": "ccaron", "\u010C": "Ccaron", "\u010B": "cdot", "\u010A": "Cdot", "\xE7": "ccedil", "\xC7": "Ccedil", "\u2105": "incare", "\u{1D521}": "dfr", "\u2146": "dd", "\u{1D555}": "dopf", "\u{1D4B9}": "dscr", "\u{1D49F}": "Dscr", "\u{1D507}": "Dfr", "\u2145": "DD", "\u{1D53B}": "Dopf", "\u010F": "dcaron", "\u010E": "Dcaron", "\u0111": "dstrok", "\u0110": "Dstrok", "\xF0": "eth", "\xD0": "ETH", "\u2147": "ee", "\u212F": "escr", "\u{1D522}": "efr", "\u{1D556}": "eopf", "\u2130": "Escr", "\u{1D508}": "Efr", "\u{1D53C}": "Eopf", "\xE9": "eacute", "\xC9": "Eacute", "\xE8": "egrave", "\xC8": "Egrave", "\xEA": "ecirc", "\xCA": "Ecirc", "\u011B": "ecaron", "\u011A": "Ecaron", "\xEB": "euml", "\xCB": "Euml", "\u0117": "edot", "\u0116": "Edot", "\u0119": "eogon", "\u0118": "Eogon", "\u0113": "emacr", "\u0112": "Emacr", "\u{1D523}": "ffr", "\u{1D557}": "fopf", "\u{1D4BB}": "fscr", "\u{1D509}": "Ffr", "\u{1D53D}": "Fopf", "\u2131": "Fscr", "\uFB00": "fflig", "\uFB03": "ffilig", "\uFB04": "ffllig", "\uFB01": "filig", "fj": "fjlig", "\uFB02": "fllig", "\u0192": "fnof", "\u210A": "gscr", "\u{1D558}": "gopf", "\u{1D524}": "gfr", "\u{1D4A2}": "Gscr", "\u{1D53E}": "Gopf", "\u{1D50A}": "Gfr", "\u01F5": "gacute", "\u011F": "gbreve", "\u011E": "Gbreve", "\u011D": "gcirc", "\u011C": "Gcirc", "\u0121": "gdot", "\u0120": "Gdot", "\u0122": "Gcedil", "\u{1D525}": "hfr", "\u210E": "planckh", "\u{1D4BD}": "hscr", "\u{1D559}": "hopf", "\u210B": "Hscr", "\u210C": "Hfr", "\u210D": "Hopf", "\u0125": "hcirc", "\u0124": "Hcirc", "\u210F": "hbar", "\u0127": "hstrok", "\u0126": "Hstrok", "\u{1D55A}": "iopf", "\u{1D526}": "ifr", "\u{1D4BE}": "iscr", "\u2148": "ii", "\u{1D540}": "Iopf", "\u2110": "Iscr", "\u2111": "Im", "\xED": "iacute", "\xCD": "Iacute", "\xEC": "igrave", "\xCC": "Igrave", "\xEE": "icirc", "\xCE": "Icirc", "\xEF": "iuml", "\xCF": "Iuml", "\u0129": "itilde", "\u0128": "Itilde", "\u0130": "Idot", "\u012F": "iogon", "\u012E": "Iogon", "\u012B": "imacr", "\u012A": "Imacr", "\u0133": "ijlig", "\u0132": "IJlig", "\u0131": "imath", "\u{1D4BF}": "jscr", "\u{1D55B}": "jopf", "\u{1D527}": "jfr", "\u{1D4A5}": "Jscr", "\u{1D50D}": "Jfr", "\u{1D541}": "Jopf", "\u0135": "jcirc", "\u0134": "Jcirc", "\u0237": "jmath", "\u{1D55C}": "kopf", "\u{1D4C0}": "kscr", "\u{1D528}": "kfr", "\u{1D4A6}": "Kscr", "\u{1D542}": "Kopf", "\u{1D50E}": "Kfr", "\u0137": "kcedil", "\u0136": "Kcedil", "\u{1D529}": "lfr", "\u{1D4C1}": "lscr", "\u2113": "ell", "\u{1D55D}": "lopf", "\u2112": "Lscr", "\u{1D50F}": "Lfr", "\u{1D543}": "Lopf", "\u013A": "lacute", "\u0139": "Lacute", "\u013E": "lcaron", "\u013D": "Lcaron", "\u013C": "lcedil", "\u013B": "Lcedil", "\u0142": "lstrok", "\u0141": "Lstrok", "\u0140": "lmidot", "\u013F": "Lmidot", "\u{1D52A}": "mfr", "\u{1D55E}": "mopf", "\u{1D4C2}": "mscr", "\u{1D510}": "Mfr", "\u{1D544}": "Mopf", "\u2133": "Mscr", "\u{1D52B}": "nfr", "\u{1D55F}": "nopf", "\u{1D4C3}": "nscr", "\u2115": "Nopf", "\u{1D4A9}": "Nscr", "\u{1D511}": "Nfr", "\u0144": "nacute", "\u0143": "Nacute", "\u0148": "ncaron", "\u0147": "Ncaron", "\xF1": "ntilde", "\xD1": "Ntilde", "\u0146": "ncedil", "\u0145": "Ncedil", "\u2116": "numero", "\u014B": "eng", "\u014A": "ENG", "\u{1D560}": "oopf", "\u{1D52C}": "ofr", "\u2134": "oscr", "\u{1D4AA}": "Oscr", "\u{1D512}": "Ofr", "\u{1D546}": "Oopf", "\xBA": "ordm", "\xF3": "oacute", "\xD3": "Oacute", "\xF2": "ograve", "\xD2": "Ograve", "\xF4": "ocirc", "\xD4": "Ocirc", "\xF6": "ouml", "\xD6": "Ouml", "\u0151": "odblac", "\u0150": "Odblac", "\xF5": "otilde", "\xD5": "Otilde", "\xF8": "oslash", "\xD8": "Oslash", "\u014D": "omacr", "\u014C": "Omacr", "\u0153": "oelig", "\u0152": "OElig", "\u{1D52D}": "pfr", "\u{1D4C5}": "pscr", "\u{1D561}": "popf", "\u2119": "Popf", "\u{1D513}": "Pfr", "\u{1D4AB}": "Pscr", "\u{1D562}": "qopf", "\u{1D52E}": "qfr", "\u{1D4C6}": "qscr", "\u{1D4AC}": "Qscr", "\u{1D514}": "Qfr", "\u211A": "Qopf", "\u0138": "kgreen", "\u{1D52F}": "rfr", "\u{1D563}": "ropf", "\u{1D4C7}": "rscr", "\u211B": "Rscr", "\u211C": "Re", "\u211D": "Ropf", "\u0155": "racute", "\u0154": "Racute", "\u0159": "rcaron", "\u0158": "Rcaron", "\u0157": "rcedil", "\u0156": "Rcedil", "\u{1D564}": "sopf", "\u{1D4C8}": "sscr", "\u{1D530}": "sfr", "\u{1D54A}": "Sopf", "\u{1D516}": "Sfr", "\u{1D4AE}": "Sscr", "\u24C8": "oS", "\u015B": "sacute", "\u015A": "Sacute", "\u015D": "scirc", "\u015C": "Scirc", "\u0161": "scaron", "\u0160": "Scaron", "\u015F": "scedil", "\u015E": "Scedil", "\xDF": "szlig", "\u{1D531}": "tfr", "\u{1D4C9}": "tscr", "\u{1D565}": "topf", "\u{1D4AF}": "Tscr", "\u{1D517}": "Tfr", "\u{1D54B}": "Topf", "\u0165": "tcaron", "\u0164": "Tcaron", "\u0163": "tcedil", "\u0162": "Tcedil", "\u2122": "trade", "\u0167": "tstrok", "\u0166": "Tstrok", "\u{1D4CA}": "uscr", "\u{1D566}": "uopf", "\u{1D532}": "ufr", "\u{1D54C}": "Uopf", "\u{1D518}": "Ufr", "\u{1D4B0}": "Uscr", "\xFA": "uacute", "\xDA": "Uacute", "\xF9": "ugrave", "\xD9": "Ugrave", "\u016D": "ubreve", "\u016C": "Ubreve", "\xFB": "ucirc", "\xDB": "Ucirc", "\u016F": "uring", "\u016E": "Uring", "\xFC": "uuml", "\xDC": "Uuml", "\u0171": "udblac", "\u0170": "Udblac", "\u0169": "utilde", "\u0168": "Utilde", "\u0173": "uogon", "\u0172": "Uogon", "\u016B": "umacr", "\u016A": "Umacr", "\u{1D533}": "vfr", "\u{1D567}": "vopf", "\u{1D4CB}": "vscr", "\u{1D519}": "Vfr", "\u{1D54D}": "Vopf", "\u{1D4B1}": "Vscr", "\u{1D568}": "wopf", "\u{1D4CC}": "wscr", "\u{1D534}": "wfr", "\u{1D4B2}": "Wscr", "\u{1D54E}": "Wopf", "\u{1D51A}": "Wfr", "\u0175": "wcirc", "\u0174": "Wcirc", "\u{1D535}": "xfr", "\u{1D4CD}": "xscr", "\u{1D569}": "xopf", "\u{1D54F}": "Xopf", "\u{1D51B}": "Xfr", "\u{1D4B3}": "Xscr", "\u{1D536}": "yfr", "\u{1D4CE}": "yscr", "\u{1D56A}": "yopf", "\u{1D4B4}": "Yscr", "\u{1D51C}": "Yfr", "\u{1D550}": "Yopf", "\xFD": "yacute", "\xDD": "Yacute", "\u0177": "ycirc", "\u0176": "Ycirc", "\xFF": "yuml", "\u0178": "Yuml", "\u{1D4CF}": "zscr", "\u{1D537}": "zfr", "\u{1D56B}": "zopf", "\u2128": "Zfr", "\u2124": "Zopf", "\u{1D4B5}": "Zscr", "\u017A": "zacute", "\u0179": "Zacute", "\u017E": "zcaron", "\u017D": "Zcaron", "\u017C": "zdot", "\u017B": "Zdot", "\u01B5": "imped", "\xFE": "thorn", "\xDE": "THORN", "\u0149": "napos", "\u03B1": "alpha", "\u0391": "Alpha", "\u03B2": "beta", "\u0392": "Beta", "\u03B3": "gamma", "\u0393": "Gamma", "\u03B4": "delta", "\u0394": "Delta", "\u03B5": "epsi", "\u03F5": "epsiv", "\u0395": "Epsilon", "\u03DD": "gammad", "\u03DC": "Gammad", "\u03B6": "zeta", "\u0396": "Zeta", "\u03B7": "eta", "\u0397": "Eta", "\u03B8": "theta", "\u03D1": "thetav", "\u0398": "Theta", "\u03B9": "iota", "\u0399": "Iota", "\u03BA": "kappa", "\u03F0": "kappav", "\u039A": "Kappa", "\u03BB": "lambda", "\u039B": "Lambda", "\u03BC": "mu", "\xB5": "micro", "\u039C": "Mu", "\u03BD": "nu", "\u039D": "Nu", "\u03BE": "xi", "\u039E": "Xi", "\u03BF": "omicron", "\u039F": "Omicron", "\u03C0": "pi", "\u03D6": "piv", "\u03A0": "Pi", "\u03C1": "rho", "\u03F1": "rhov", "\u03A1": "Rho", "\u03C3": "sigma", "\u03A3": "Sigma", "\u03C2": "sigmaf", "\u03C4": "tau", "\u03A4": "Tau", "\u03C5": "upsi", "\u03A5": "Upsilon", "\u03D2": "Upsi", "\u03C6": "phi", "\u03D5": "phiv", "\u03A6": "Phi", "\u03C7": "chi", "\u03A7": "Chi", "\u03C8": "psi", "\u03A8": "Psi", "\u03C9": "omega", "\u03A9": "ohm", "\u0430": "acy", "\u0410": "Acy", "\u0431": "bcy", "\u0411": "Bcy", "\u0432": "vcy", "\u0412": "Vcy", "\u0433": "gcy", "\u0413": "Gcy", "\u0453": "gjcy", "\u0403": "GJcy", "\u0434": "dcy", "\u0414": "Dcy", "\u0452": "djcy", "\u0402": "DJcy", "\u0435": "iecy", "\u0415": "IEcy", "\u0451": "iocy", "\u0401": "IOcy", "\u0454": "jukcy", "\u0404": "Jukcy", "\u0436": "zhcy", "\u0416": "ZHcy", "\u0437": "zcy", "\u0417": "Zcy", "\u0455": "dscy", "\u0405": "DScy", "\u0438": "icy", "\u0418": "Icy", "\u0456": "iukcy", "\u0406": "Iukcy", "\u0457": "yicy", "\u0407": "YIcy", "\u0439": "jcy", "\u0419": "Jcy", "\u0458": "jsercy", "\u0408": "Jsercy", "\u043A": "kcy", "\u041A": "Kcy", "\u045C": "kjcy", "\u040C": "KJcy", "\u043B": "lcy", "\u041B": "Lcy", "\u0459": "ljcy", "\u0409": "LJcy", "\u043C": "mcy", "\u041C": "Mcy", "\u043D": "ncy", "\u041D": "Ncy", "\u045A": "njcy", "\u040A": "NJcy", "\u043E": "ocy", "\u041E": "Ocy", "\u043F": "pcy", "\u041F": "Pcy", "\u0440": "rcy", "\u0420": "Rcy", "\u0441": "scy", "\u0421": "Scy", "\u0442": "tcy", "\u0422": "Tcy", "\u045B": "tshcy", "\u040B": "TSHcy", "\u0443": "ucy", "\u0423": "Ucy", "\u045E": "ubrcy", "\u040E": "Ubrcy", "\u0444": "fcy", "\u0424": "Fcy", "\u0445": "khcy", "\u0425": "KHcy", "\u0446": "tscy", "\u0426": "TScy", "\u0447": "chcy", "\u0427": "CHcy", "\u045F": "dzcy", "\u040F": "DZcy", "\u0448": "shcy", "\u0428": "SHcy", "\u0449": "shchcy", "\u0429": "SHCHcy", "\u044A": "hardcy", "\u042A": "HARDcy", "\u044B": "ycy", "\u042B": "Ycy", "\u044C": "softcy", "\u042C": "SOFTcy", "\u044D": "ecy", "\u042D": "Ecy", "\u044E": "yucy", "\u042E": "YUcy", "\u044F": "yacy", "\u042F": "YAcy", "\u2135": "aleph", "\u2136": "beth", "\u2137": "gimel", "\u2138": "daleth" };
+      var regexEscape = /["&'<>`]/g;
+      var escapeMap = {
+        '"': "&quot;",
+        "&": "&amp;",
+        "'": "&#x27;",
+        "<": "&lt;",
+        // See https://mathiasbynens.be/notes/ambiguous-ampersands: in HTML, the
+        // following is not strictly necessary unless it’s part of a tag or an
+        // unquoted attribute value. We’re only escaping it to support those
+        // situations, and for XML support.
+        ">": "&gt;",
+        // In Internet Explorer ≤ 8, the backtick character can be used
+        // to break out of (un)quoted attribute values or HTML comments.
+        // See http://html5sec.org/#102, http://html5sec.org/#108, and
+        // http://html5sec.org/#133.
+        "`": "&#x60;"
+      };
+      var regexInvalidEntity = /&#(?:[xX][^a-fA-F0-9]|[^0-9xX])/;
+      var regexInvalidRawCodePoint = /[\0-\x08\x0B\x0E-\x1F\x7F-\x9F\uFDD0-\uFDEF\uFFFE\uFFFF]|[\uD83F\uD87F\uD8BF\uD8FF\uD93F\uD97F\uD9BF\uD9FF\uDA3F\uDA7F\uDABF\uDAFF\uDB3F\uDB7F\uDBBF\uDBFF][\uDFFE\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
+      var regexDecode = /&(CounterClockwiseContourIntegral|DoubleLongLeftRightArrow|ClockwiseContourIntegral|NotNestedGreaterGreater|NotSquareSupersetEqual|DiacriticalDoubleAcute|NotRightTriangleEqual|NotSucceedsSlantEqual|NotPrecedesSlantEqual|CloseCurlyDoubleQuote|NegativeVeryThinSpace|DoubleContourIntegral|FilledVerySmallSquare|CapitalDifferentialD|OpenCurlyDoubleQuote|EmptyVerySmallSquare|NestedGreaterGreater|DoubleLongRightArrow|NotLeftTriangleEqual|NotGreaterSlantEqual|ReverseUpEquilibrium|DoubleLeftRightArrow|NotSquareSubsetEqual|NotDoubleVerticalBar|RightArrowLeftArrow|NotGreaterFullEqual|NotRightTriangleBar|SquareSupersetEqual|DownLeftRightVector|DoubleLongLeftArrow|leftrightsquigarrow|LeftArrowRightArrow|NegativeMediumSpace|blacktriangleright|RightDownVectorBar|PrecedesSlantEqual|RightDoubleBracket|SucceedsSlantEqual|NotLeftTriangleBar|RightTriangleEqual|SquareIntersection|RightDownTeeVector|ReverseEquilibrium|NegativeThickSpace|longleftrightarrow|Longleftrightarrow|LongLeftRightArrow|DownRightTeeVector|DownRightVectorBar|GreaterSlantEqual|SquareSubsetEqual|LeftDownVectorBar|LeftDoubleBracket|VerticalSeparator|rightleftharpoons|NotGreaterGreater|NotSquareSuperset|blacktriangleleft|blacktriangledown|NegativeThinSpace|LeftDownTeeVector|NotLessSlantEqual|leftrightharpoons|DoubleUpDownArrow|DoubleVerticalBar|LeftTriangleEqual|FilledSmallSquare|twoheadrightarrow|NotNestedLessLess|DownLeftTeeVector|DownLeftVectorBar|RightAngleBracket|NotTildeFullEqual|NotReverseElement|RightUpDownVector|DiacriticalTilde|NotSucceedsTilde|circlearrowright|NotPrecedesEqual|rightharpoondown|DoubleRightArrow|NotSucceedsEqual|NonBreakingSpace|NotRightTriangle|LessEqualGreater|RightUpTeeVector|LeftAngleBracket|GreaterFullEqual|DownArrowUpArrow|RightUpVectorBar|twoheadleftarrow|GreaterEqualLess|downharpoonright|RightTriangleBar|ntrianglerighteq|NotSupersetEqual|LeftUpDownVector|DiacriticalAcute|rightrightarrows|vartriangleright|UpArrowDownArrow|DiacriticalGrave|UnderParenthesis|EmptySmallSquare|LeftUpVectorBar|leftrightarrows|DownRightVector|downharpoonleft|trianglerighteq|ShortRightArrow|OverParenthesis|DoubleLeftArrow|DoubleDownArrow|NotSquareSubset|bigtriangledown|ntrianglelefteq|UpperRightArrow|curvearrowright|vartriangleleft|NotLeftTriangle|nleftrightarrow|LowerRightArrow|NotHumpDownHump|NotGreaterTilde|rightthreetimes|LeftUpTeeVector|NotGreaterEqual|straightepsilon|LeftTriangleBar|rightsquigarrow|ContourIntegral|rightleftarrows|CloseCurlyQuote|RightDownVector|LeftRightVector|nLeftrightarrow|leftharpoondown|circlearrowleft|SquareSuperset|OpenCurlyQuote|hookrightarrow|HorizontalLine|DiacriticalDot|NotLessGreater|ntriangleright|DoubleRightTee|InvisibleComma|InvisibleTimes|LowerLeftArrow|DownLeftVector|NotSubsetEqual|curvearrowleft|trianglelefteq|NotVerticalBar|TildeFullEqual|downdownarrows|NotGreaterLess|RightTeeVector|ZeroWidthSpace|looparrowright|LongRightArrow|doublebarwedge|ShortLeftArrow|ShortDownArrow|RightVectorBar|GreaterGreater|ReverseElement|rightharpoonup|LessSlantEqual|leftthreetimes|upharpoonright|rightarrowtail|LeftDownVector|Longrightarrow|NestedLessLess|UpperLeftArrow|nshortparallel|leftleftarrows|leftrightarrow|Leftrightarrow|LeftRightArrow|longrightarrow|upharpoonleft|RightArrowBar|ApplyFunction|LeftTeeVector|leftarrowtail|NotEqualTilde|varsubsetneqq|varsupsetneqq|RightTeeArrow|SucceedsEqual|SucceedsTilde|LeftVectorBar|SupersetEqual|hookleftarrow|DifferentialD|VerticalTilde|VeryThinSpace|blacktriangle|bigtriangleup|LessFullEqual|divideontimes|leftharpoonup|UpEquilibrium|ntriangleleft|RightTriangle|measuredangle|shortparallel|longleftarrow|Longleftarrow|LongLeftArrow|DoubleLeftTee|Poincareplane|PrecedesEqual|triangleright|DoubleUpArrow|RightUpVector|fallingdotseq|looparrowleft|PrecedesTilde|NotTildeEqual|NotTildeTilde|smallsetminus|Proportional|triangleleft|triangledown|UnderBracket|NotHumpEqual|exponentiale|ExponentialE|NotLessTilde|HilbertSpace|RightCeiling|blacklozenge|varsupsetneq|HumpDownHump|GreaterEqual|VerticalLine|LeftTeeArrow|NotLessEqual|DownTeeArrow|LeftTriangle|varsubsetneq|Intersection|NotCongruent|DownArrowBar|LeftUpVector|LeftArrowBar|risingdotseq|GreaterTilde|RoundImplies|SquareSubset|ShortUpArrow|NotSuperset|quaternions|precnapprox|backepsilon|preccurlyeq|OverBracket|blacksquare|MediumSpace|VerticalBar|circledcirc|circleddash|CircleMinus|CircleTimes|LessGreater|curlyeqprec|curlyeqsucc|diamondsuit|UpDownArrow|Updownarrow|RuleDelayed|Rrightarrow|updownarrow|RightVector|nRightarrow|nrightarrow|eqslantless|LeftCeiling|Equilibrium|SmallCircle|expectation|NotSucceeds|thickapprox|GreaterLess|SquareUnion|NotPrecedes|NotLessLess|straightphi|succnapprox|succcurlyeq|SubsetEqual|sqsupseteq|Proportion|Laplacetrf|ImaginaryI|supsetneqq|NotGreater|gtreqqless|NotElement|ThickSpace|TildeEqual|TildeTilde|Fouriertrf|rmoustache|EqualTilde|eqslantgtr|UnderBrace|LeftVector|UpArrowBar|nLeftarrow|nsubseteqq|subsetneqq|nsupseteqq|nleftarrow|succapprox|lessapprox|UpTeeArrow|upuparrows|curlywedge|lesseqqgtr|varepsilon|varnothing|RightFloor|complement|CirclePlus|sqsubseteq|Lleftarrow|circledast|RightArrow|Rightarrow|rightarrow|lmoustache|Bernoullis|precapprox|mapstoleft|mapstodown|longmapsto|dotsquare|downarrow|DoubleDot|nsubseteq|supsetneq|leftarrow|nsupseteq|subsetneq|ThinSpace|ngeqslant|subseteqq|HumpEqual|NotSubset|triangleq|NotCupCap|lesseqgtr|heartsuit|TripleDot|Leftarrow|Coproduct|Congruent|varpropto|complexes|gvertneqq|LeftArrow|LessTilde|supseteqq|MinusPlus|CircleDot|nleqslant|NotExists|gtreqless|nparallel|UnionPlus|LeftFloor|checkmark|CenterDot|centerdot|Mellintrf|gtrapprox|bigotimes|OverBrace|spadesuit|therefore|pitchfork|rationals|PlusMinus|Backslash|Therefore|DownBreve|backsimeq|backprime|DownArrow|nshortmid|Downarrow|lvertneqq|eqvparsl|imagline|imagpart|infintie|integers|Integral|intercal|LessLess|Uarrocir|intlarhk|sqsupset|angmsdaf|sqsubset|llcorner|vartheta|cupbrcap|lnapprox|Superset|SuchThat|succnsim|succneqq|angmsdag|biguplus|curlyvee|trpezium|Succeeds|NotTilde|bigwedge|angmsdah|angrtvbd|triminus|cwconint|fpartint|lrcorner|smeparsl|subseteq|urcorner|lurdshar|laemptyv|DDotrahd|approxeq|ldrushar|awconint|mapstoup|backcong|shortmid|triangle|geqslant|gesdotol|timesbar|circledR|circledS|setminus|multimap|naturals|scpolint|ncongdot|RightTee|boxminus|gnapprox|boxtimes|andslope|thicksim|angmsdaa|varsigma|cirfnint|rtriltri|angmsdab|rppolint|angmsdac|barwedge|drbkarow|clubsuit|thetasym|bsolhsub|capbrcup|dzigrarr|doteqdot|DotEqual|dotminus|UnderBar|NotEqual|realpart|otimesas|ulcorner|hksearow|hkswarow|parallel|PartialD|elinters|emptyset|plusacir|bbrktbrk|angmsdad|pointint|bigoplus|angmsdae|Precedes|bigsqcup|varkappa|notindot|supseteq|precneqq|precnsim|profalar|profline|profsurf|leqslant|lesdotor|raemptyv|subplus|notnivb|notnivc|subrarr|zigrarr|vzigzag|submult|subedot|Element|between|cirscir|larrbfs|larrsim|lotimes|lbrksld|lbrkslu|lozenge|ldrdhar|dbkarow|bigcirc|epsilon|simrarr|simplus|ltquest|Epsilon|luruhar|gtquest|maltese|npolint|eqcolon|npreceq|bigodot|ddagger|gtrless|bnequiv|harrcir|ddotseq|equivDD|backsim|demptyv|nsqsube|nsqsupe|Upsilon|nsubset|upsilon|minusdu|nsucceq|swarrow|nsupset|coloneq|searrow|boxplus|napprox|natural|asympeq|alefsym|congdot|nearrow|bigstar|diamond|supplus|tritime|LeftTee|nvinfin|triplus|NewLine|nvltrie|nvrtrie|nwarrow|nexists|Diamond|ruluhar|Implies|supmult|angzarr|suplarr|suphsub|questeq|because|digamma|Because|olcross|bemptyv|omicron|Omicron|rotimes|NoBreak|intprod|angrtvb|orderof|uwangle|suphsol|lesdoto|orslope|DownTee|realine|cudarrl|rdldhar|OverBar|supedot|lessdot|supdsub|topfork|succsim|rbrkslu|rbrksld|pertenk|cudarrr|isindot|planckh|lessgtr|pluscir|gesdoto|plussim|plustwo|lesssim|cularrp|rarrsim|Cayleys|notinva|notinvb|notinvc|UpArrow|Uparrow|uparrow|NotLess|dwangle|precsim|Product|curarrm|Cconint|dotplus|rarrbfs|ccupssm|Cedilla|cemptyv|notniva|quatint|frac35|frac38|frac45|frac56|frac58|frac78|tridot|xoplus|gacute|gammad|Gammad|lfisht|lfloor|bigcup|sqsupe|gbreve|Gbreve|lharul|sqsube|sqcups|Gcedil|apacir|llhard|lmidot|Lmidot|lmoust|andand|sqcaps|approx|Abreve|spades|circeq|tprime|divide|topcir|Assign|topbot|gesdot|divonx|xuplus|timesd|gesles|atilde|solbar|SOFTcy|loplus|timesb|lowast|lowbar|dlcorn|dlcrop|softcy|dollar|lparlt|thksim|lrhard|Atilde|lsaquo|smashp|bigvee|thinsp|wreath|bkarow|lsquor|lstrok|Lstrok|lthree|ltimes|ltlarr|DotDot|simdot|ltrPar|weierp|xsqcup|angmsd|sigmav|sigmaf|zeetrf|Zcaron|zcaron|mapsto|vsupne|thetav|cirmid|marker|mcomma|Zacute|vsubnE|there4|gtlPar|vsubne|bottom|gtrarr|SHCHcy|shchcy|midast|midcir|middot|minusb|minusd|gtrdot|bowtie|sfrown|mnplus|models|colone|seswar|Colone|mstpos|searhk|gtrsim|nacute|Nacute|boxbox|telrec|hairsp|Tcedil|nbumpe|scnsim|ncaron|Ncaron|ncedil|Ncedil|hamilt|Scedil|nearhk|hardcy|HARDcy|tcedil|Tcaron|commat|nequiv|nesear|tcaron|target|hearts|nexist|varrho|scedil|Scaron|scaron|hellip|Sacute|sacute|hercon|swnwar|compfn|rtimes|rthree|rsquor|rsaquo|zacute|wedgeq|homtht|barvee|barwed|Barwed|rpargt|horbar|conint|swarhk|roplus|nltrie|hslash|hstrok|Hstrok|rmoust|Conint|bprime|hybull|hyphen|iacute|Iacute|supsup|supsub|supsim|varphi|coprod|brvbar|agrave|Supset|supset|igrave|Igrave|notinE|Agrave|iiiint|iinfin|copysr|wedbar|Verbar|vangrt|becaus|incare|verbar|inodot|bullet|drcorn|intcal|drcrop|cularr|vellip|Utilde|bumpeq|cupcap|dstrok|Dstrok|CupCap|cupcup|cupdot|eacute|Eacute|supdot|iquest|easter|ecaron|Ecaron|ecolon|isinsv|utilde|itilde|Itilde|curarr|succeq|Bumpeq|cacute|ulcrop|nparsl|Cacute|nprcue|egrave|Egrave|nrarrc|nrarrw|subsup|subsub|nrtrie|jsercy|nsccue|Jsercy|kappav|kcedil|Kcedil|subsim|ulcorn|nsimeq|egsdot|veebar|kgreen|capand|elsdot|Subset|subset|curren|aacute|lacute|Lacute|emptyv|ntilde|Ntilde|lagran|lambda|Lambda|capcap|Ugrave|langle|subdot|emsp13|numero|emsp14|nvdash|nvDash|nVdash|nVDash|ugrave|ufisht|nvHarr|larrfs|nvlArr|larrhk|larrlp|larrpl|nvrArr|Udblac|nwarhk|larrtl|nwnear|oacute|Oacute|latail|lAtail|sstarf|lbrace|odblac|Odblac|lbrack|udblac|odsold|eparsl|lcaron|Lcaron|ograve|Ograve|lcedil|Lcedil|Aacute|ssmile|ssetmn|squarf|ldquor|capcup|ominus|cylcty|rharul|eqcirc|dagger|rfloor|rfisht|Dagger|daleth|equals|origof|capdot|equest|dcaron|Dcaron|rdquor|oslash|Oslash|otilde|Otilde|otimes|Otimes|urcrop|Ubreve|ubreve|Yacute|Uacute|uacute|Rcedil|rcedil|urcorn|parsim|Rcaron|Vdashl|rcaron|Tstrok|percnt|period|permil|Exists|yacute|rbrack|rbrace|phmmat|ccaron|Ccaron|planck|ccedil|plankv|tstrok|female|plusdo|plusdu|ffilig|plusmn|ffllig|Ccedil|rAtail|dfisht|bernou|ratail|Rarrtl|rarrtl|angsph|rarrpl|rarrlp|rarrhk|xwedge|xotime|forall|ForAll|Vvdash|vsupnE|preceq|bigcap|frac12|frac13|frac14|primes|rarrfs|prnsim|frac15|Square|frac16|square|lesdot|frac18|frac23|propto|prurel|rarrap|rangle|puncsp|frac25|Racute|qprime|racute|lesges|frac34|abreve|AElig|eqsim|utdot|setmn|urtri|Equal|Uring|seArr|uring|searr|dashv|Dashv|mumap|nabla|iogon|Iogon|sdote|sdotb|scsim|napid|napos|equiv|natur|Acirc|dblac|erarr|nbump|iprod|erDot|ucirc|awint|esdot|angrt|ncong|isinE|scnap|Scirc|scirc|ndash|isins|Ubrcy|nearr|neArr|isinv|nedot|ubrcy|acute|Ycirc|iukcy|Iukcy|xutri|nesim|caret|jcirc|Jcirc|caron|twixt|ddarr|sccue|exist|jmath|sbquo|ngeqq|angst|ccaps|lceil|ngsim|UpTee|delta|Delta|rtrif|nharr|nhArr|nhpar|rtrie|jukcy|Jukcy|kappa|rsquo|Kappa|nlarr|nlArr|TSHcy|rrarr|aogon|Aogon|fflig|xrarr|tshcy|ccirc|nleqq|filig|upsih|nless|dharl|nlsim|fjlig|ropar|nltri|dharr|robrk|roarr|fllig|fltns|roang|rnmid|subnE|subne|lAarr|trisb|Ccirc|acirc|ccups|blank|VDash|forkv|Vdash|langd|cedil|blk12|blk14|laquo|strns|diams|notin|vDash|larrb|blk34|block|disin|uplus|vdash|vBarv|aelig|starf|Wedge|check|xrArr|lates|lbarr|lBarr|notni|lbbrk|bcong|frasl|lbrke|frown|vrtri|vprop|vnsup|gamma|Gamma|wedge|xodot|bdquo|srarr|doteq|ldquo|boxdl|boxdL|gcirc|Gcirc|boxDl|boxDL|boxdr|boxdR|boxDr|TRADE|trade|rlhar|boxDR|vnsub|npart|vltri|rlarr|boxhd|boxhD|nprec|gescc|nrarr|nrArr|boxHd|boxHD|boxhu|boxhU|nrtri|boxHu|clubs|boxHU|times|colon|Colon|gimel|xlArr|Tilde|nsime|tilde|nsmid|nspar|THORN|thorn|xlarr|nsube|nsubE|thkap|xhArr|comma|nsucc|boxul|boxuL|nsupe|nsupE|gneqq|gnsim|boxUl|boxUL|grave|boxur|boxuR|boxUr|boxUR|lescc|angle|bepsi|boxvh|varpi|boxvH|numsp|Theta|gsime|gsiml|theta|boxVh|boxVH|boxvl|gtcir|gtdot|boxvL|boxVl|boxVL|crarr|cross|Cross|nvsim|boxvr|nwarr|nwArr|sqsup|dtdot|Uogon|lhard|lharu|dtrif|ocirc|Ocirc|lhblk|duarr|odash|sqsub|Hacek|sqcup|llarr|duhar|oelig|OElig|ofcir|boxvR|uogon|lltri|boxVr|csube|uuarr|ohbar|csupe|ctdot|olarr|olcir|harrw|oline|sqcap|omacr|Omacr|omega|Omega|boxVR|aleph|lneqq|lnsim|loang|loarr|rharu|lobrk|hcirc|operp|oplus|rhard|Hcirc|orarr|Union|order|ecirc|Ecirc|cuepr|szlig|cuesc|breve|reals|eDDot|Breve|hoarr|lopar|utrif|rdquo|Umacr|umacr|efDot|swArr|ultri|alpha|rceil|ovbar|swarr|Wcirc|wcirc|smtes|smile|bsemi|lrarr|aring|parsl|lrhar|bsime|uhblk|lrtri|cupor|Aring|uharr|uharl|slarr|rbrke|bsolb|lsime|rbbrk|RBarr|lsimg|phone|rBarr|rbarr|icirc|lsquo|Icirc|emacr|Emacr|ratio|simne|plusb|simlE|simgE|simeq|pluse|ltcir|ltdot|empty|xharr|xdtri|iexcl|Alpha|ltrie|rarrw|pound|ltrif|xcirc|bumpe|prcue|bumpE|asymp|amacr|cuvee|Sigma|sigma|iiint|udhar|iiota|ijlig|IJlig|supnE|imacr|Imacr|prime|Prime|image|prnap|eogon|Eogon|rarrc|mdash|mDDot|cuwed|imath|supne|imped|Amacr|udarr|prsim|micro|rarrb|cwint|raquo|infin|eplus|range|rangd|Ucirc|radic|minus|amalg|veeeq|rAarr|epsiv|ycirc|quest|sharp|quot|zwnj|Qscr|race|qscr|Qopf|qopf|qint|rang|Rang|Zscr|zscr|Zopf|zopf|rarr|rArr|Rarr|Pscr|pscr|prop|prod|prnE|prec|ZHcy|zhcy|prap|Zeta|zeta|Popf|popf|Zdot|plus|zdot|Yuml|yuml|phiv|YUcy|yucy|Yscr|yscr|perp|Yopf|yopf|part|para|YIcy|Ouml|rcub|yicy|YAcy|rdca|ouml|osol|Oscr|rdsh|yacy|real|oscr|xvee|andd|rect|andv|Xscr|oror|ordm|ordf|xscr|ange|aopf|Aopf|rHar|Xopf|opar|Oopf|xopf|xnis|rhov|oopf|omid|xmap|oint|apid|apos|ogon|ascr|Ascr|odot|odiv|xcup|xcap|ocir|oast|nvlt|nvle|nvgt|nvge|nvap|Wscr|wscr|auml|ntlg|ntgl|nsup|nsub|nsim|Nscr|nscr|nsce|Wopf|ring|npre|wopf|npar|Auml|Barv|bbrk|Nopf|nopf|nmid|nLtv|beta|ropf|Ropf|Beta|beth|nles|rpar|nleq|bnot|bNot|nldr|NJcy|rscr|Rscr|Vscr|vscr|rsqb|njcy|bopf|nisd|Bopf|rtri|Vopf|nGtv|ngtr|vopf|boxh|boxH|boxv|nges|ngeq|boxV|bscr|scap|Bscr|bsim|Vert|vert|bsol|bull|bump|caps|cdot|ncup|scnE|ncap|nbsp|napE|Cdot|cent|sdot|Vbar|nang|vBar|chcy|Mscr|mscr|sect|semi|CHcy|Mopf|mopf|sext|circ|cire|mldr|mlcp|cirE|comp|shcy|SHcy|vArr|varr|cong|copf|Copf|copy|COPY|malt|male|macr|lvnE|cscr|ltri|sime|ltcc|simg|Cscr|siml|csub|Uuml|lsqb|lsim|uuml|csup|Lscr|lscr|utri|smid|lpar|cups|smte|lozf|darr|Lopf|Uscr|solb|lopf|sopf|Sopf|lneq|uscr|spar|dArr|lnap|Darr|dash|Sqrt|LJcy|ljcy|lHar|dHar|Upsi|upsi|diam|lesg|djcy|DJcy|leqq|dopf|Dopf|dscr|Dscr|dscy|ldsh|ldca|squf|DScy|sscr|Sscr|dsol|lcub|late|star|Star|Uopf|Larr|lArr|larr|uopf|dtri|dzcy|sube|subE|Lang|lang|Kscr|kscr|Kopf|kopf|KJcy|kjcy|KHcy|khcy|DZcy|ecir|edot|eDot|Jscr|jscr|succ|Jopf|jopf|Edot|uHar|emsp|ensp|Iuml|iuml|eopf|isin|Iscr|iscr|Eopf|epar|sung|epsi|escr|sup1|sup2|sup3|Iota|iota|supe|supE|Iopf|iopf|IOcy|iocy|Escr|esim|Esim|imof|Uarr|QUOT|uArr|uarr|euml|IEcy|iecy|Idot|Euml|euro|excl|Hscr|hscr|Hopf|hopf|TScy|tscy|Tscr|hbar|tscr|flat|tbrk|fnof|hArr|harr|half|fopf|Fopf|tdot|gvnE|fork|trie|gtcc|fscr|Fscr|gdot|gsim|Gscr|gscr|Gopf|gopf|gneq|Gdot|tosa|gnap|Topf|topf|geqq|toea|GJcy|gjcy|tint|gesl|mid|Sfr|ggg|top|ges|gla|glE|glj|geq|gne|gEl|gel|gnE|Gcy|gcy|gap|Tfr|tfr|Tcy|tcy|Hat|Tau|Ffr|tau|Tab|hfr|Hfr|ffr|Fcy|fcy|icy|Icy|iff|ETH|eth|ifr|Ifr|Eta|eta|int|Int|Sup|sup|ucy|Ucy|Sum|sum|jcy|ENG|ufr|Ufr|eng|Jcy|jfr|els|ell|egs|Efr|efr|Jfr|uml|kcy|Kcy|Ecy|ecy|kfr|Kfr|lap|Sub|sub|lat|lcy|Lcy|leg|Dot|dot|lEg|leq|les|squ|div|die|lfr|Lfr|lgE|Dfr|dfr|Del|deg|Dcy|dcy|lne|lnE|sol|loz|smt|Cup|lrm|cup|lsh|Lsh|sim|shy|map|Map|mcy|Mcy|mfr|Mfr|mho|gfr|Gfr|sfr|cir|Chi|chi|nap|Cfr|vcy|Vcy|cfr|Scy|scy|ncy|Ncy|vee|Vee|Cap|cap|nfr|scE|sce|Nfr|nge|ngE|nGg|vfr|Vfr|ngt|bot|nGt|nis|niv|Rsh|rsh|nle|nlE|bne|Bfr|bfr|nLl|nlt|nLt|Bcy|bcy|not|Not|rlm|wfr|Wfr|npr|nsc|num|ocy|ast|Ocy|ofr|xfr|Xfr|Ofr|ogt|ohm|apE|olt|Rho|ape|rho|Rfr|rfr|ord|REG|ang|reg|orv|And|and|AMP|Rcy|amp|Afr|ycy|Ycy|yen|yfr|Yfr|rcy|par|pcy|Pcy|pfr|Pfr|phi|Phi|afr|Acy|acy|zcy|Zcy|piv|acE|acd|zfr|Zfr|pre|prE|psi|Psi|qfr|Qfr|zwj|Or|ge|Gg|gt|gg|el|oS|lt|Lt|LT|Re|lg|gl|eg|ne|Im|it|le|DD|wp|wr|nu|Nu|dd|lE|Sc|sc|pi|Pi|ee|af|ll|Ll|rx|gE|xi|pm|Xi|ic|pr|Pr|in|ni|mp|mu|ac|Mu|or|ap|Gt|GT|ii);|&(Aacute|Agrave|Atilde|Ccedil|Eacute|Egrave|Iacute|Igrave|Ntilde|Oacute|Ograve|Oslash|Otilde|Uacute|Ugrave|Yacute|aacute|agrave|atilde|brvbar|ccedil|curren|divide|eacute|egrave|frac12|frac14|frac34|iacute|igrave|iquest|middot|ntilde|oacute|ograve|oslash|otilde|plusmn|uacute|ugrave|yacute|AElig|Acirc|Aring|Ecirc|Icirc|Ocirc|THORN|Ucirc|acirc|acute|aelig|aring|cedil|ecirc|icirc|iexcl|laquo|micro|ocirc|pound|raquo|szlig|thorn|times|ucirc|Auml|COPY|Euml|Iuml|Ouml|QUOT|Uuml|auml|cent|copy|euml|iuml|macr|nbsp|ordf|ordm|ouml|para|quot|sect|sup1|sup2|sup3|uuml|yuml|AMP|ETH|REG|amp|deg|eth|not|reg|shy|uml|yen|GT|LT|gt|lt)(?!;)([=a-zA-Z0-9]?)|&#([0-9]+)(;?)|&#[xX]([a-fA-F0-9]+)(;?)|&([0-9a-zA-Z]+)/g;
+      var decodeMap3 = { "aacute": "\xE1", "Aacute": "\xC1", "abreve": "\u0103", "Abreve": "\u0102", "ac": "\u223E", "acd": "\u223F", "acE": "\u223E\u0333", "acirc": "\xE2", "Acirc": "\xC2", "acute": "\xB4", "acy": "\u0430", "Acy": "\u0410", "aelig": "\xE6", "AElig": "\xC6", "af": "\u2061", "afr": "\u{1D51E}", "Afr": "\u{1D504}", "agrave": "\xE0", "Agrave": "\xC0", "alefsym": "\u2135", "aleph": "\u2135", "alpha": "\u03B1", "Alpha": "\u0391", "amacr": "\u0101", "Amacr": "\u0100", "amalg": "\u2A3F", "amp": "&", "AMP": "&", "and": "\u2227", "And": "\u2A53", "andand": "\u2A55", "andd": "\u2A5C", "andslope": "\u2A58", "andv": "\u2A5A", "ang": "\u2220", "ange": "\u29A4", "angle": "\u2220", "angmsd": "\u2221", "angmsdaa": "\u29A8", "angmsdab": "\u29A9", "angmsdac": "\u29AA", "angmsdad": "\u29AB", "angmsdae": "\u29AC", "angmsdaf": "\u29AD", "angmsdag": "\u29AE", "angmsdah": "\u29AF", "angrt": "\u221F", "angrtvb": "\u22BE", "angrtvbd": "\u299D", "angsph": "\u2222", "angst": "\xC5", "angzarr": "\u237C", "aogon": "\u0105", "Aogon": "\u0104", "aopf": "\u{1D552}", "Aopf": "\u{1D538}", "ap": "\u2248", "apacir": "\u2A6F", "ape": "\u224A", "apE": "\u2A70", "apid": "\u224B", "apos": "'", "ApplyFunction": "\u2061", "approx": "\u2248", "approxeq": "\u224A", "aring": "\xE5", "Aring": "\xC5", "ascr": "\u{1D4B6}", "Ascr": "\u{1D49C}", "Assign": "\u2254", "ast": "*", "asymp": "\u2248", "asympeq": "\u224D", "atilde": "\xE3", "Atilde": "\xC3", "auml": "\xE4", "Auml": "\xC4", "awconint": "\u2233", "awint": "\u2A11", "backcong": "\u224C", "backepsilon": "\u03F6", "backprime": "\u2035", "backsim": "\u223D", "backsimeq": "\u22CD", "Backslash": "\u2216", "Barv": "\u2AE7", "barvee": "\u22BD", "barwed": "\u2305", "Barwed": "\u2306", "barwedge": "\u2305", "bbrk": "\u23B5", "bbrktbrk": "\u23B6", "bcong": "\u224C", "bcy": "\u0431", "Bcy": "\u0411", "bdquo": "\u201E", "becaus": "\u2235", "because": "\u2235", "Because": "\u2235", "bemptyv": "\u29B0", "bepsi": "\u03F6", "bernou": "\u212C", "Bernoullis": "\u212C", "beta": "\u03B2", "Beta": "\u0392", "beth": "\u2136", "between": "\u226C", "bfr": "\u{1D51F}", "Bfr": "\u{1D505}", "bigcap": "\u22C2", "bigcirc": "\u25EF", "bigcup": "\u22C3", "bigodot": "\u2A00", "bigoplus": "\u2A01", "bigotimes": "\u2A02", "bigsqcup": "\u2A06", "bigstar": "\u2605", "bigtriangledown": "\u25BD", "bigtriangleup": "\u25B3", "biguplus": "\u2A04", "bigvee": "\u22C1", "bigwedge": "\u22C0", "bkarow": "\u290D", "blacklozenge": "\u29EB", "blacksquare": "\u25AA", "blacktriangle": "\u25B4", "blacktriangledown": "\u25BE", "blacktriangleleft": "\u25C2", "blacktriangleright": "\u25B8", "blank": "\u2423", "blk12": "\u2592", "blk14": "\u2591", "blk34": "\u2593", "block": "\u2588", "bne": "=\u20E5", "bnequiv": "\u2261\u20E5", "bnot": "\u2310", "bNot": "\u2AED", "bopf": "\u{1D553}", "Bopf": "\u{1D539}", "bot": "\u22A5", "bottom": "\u22A5", "bowtie": "\u22C8", "boxbox": "\u29C9", "boxdl": "\u2510", "boxdL": "\u2555", "boxDl": "\u2556", "boxDL": "\u2557", "boxdr": "\u250C", "boxdR": "\u2552", "boxDr": "\u2553", "boxDR": "\u2554", "boxh": "\u2500", "boxH": "\u2550", "boxhd": "\u252C", "boxhD": "\u2565", "boxHd": "\u2564", "boxHD": "\u2566", "boxhu": "\u2534", "boxhU": "\u2568", "boxHu": "\u2567", "boxHU": "\u2569", "boxminus": "\u229F", "boxplus": "\u229E", "boxtimes": "\u22A0", "boxul": "\u2518", "boxuL": "\u255B", "boxUl": "\u255C", "boxUL": "\u255D", "boxur": "\u2514", "boxuR": "\u2558", "boxUr": "\u2559", "boxUR": "\u255A", "boxv": "\u2502", "boxV": "\u2551", "boxvh": "\u253C", "boxvH": "\u256A", "boxVh": "\u256B", "boxVH": "\u256C", "boxvl": "\u2524", "boxvL": "\u2561", "boxVl": "\u2562", "boxVL": "\u2563", "boxvr": "\u251C", "boxvR": "\u255E", "boxVr": "\u255F", "boxVR": "\u2560", "bprime": "\u2035", "breve": "\u02D8", "Breve": "\u02D8", "brvbar": "\xA6", "bscr": "\u{1D4B7}", "Bscr": "\u212C", "bsemi": "\u204F", "bsim": "\u223D", "bsime": "\u22CD", "bsol": "\\", "bsolb": "\u29C5", "bsolhsub": "\u27C8", "bull": "\u2022", "bullet": "\u2022", "bump": "\u224E", "bumpe": "\u224F", "bumpE": "\u2AAE", "bumpeq": "\u224F", "Bumpeq": "\u224E", "cacute": "\u0107", "Cacute": "\u0106", "cap": "\u2229", "Cap": "\u22D2", "capand": "\u2A44", "capbrcup": "\u2A49", "capcap": "\u2A4B", "capcup": "\u2A47", "capdot": "\u2A40", "CapitalDifferentialD": "\u2145", "caps": "\u2229\uFE00", "caret": "\u2041", "caron": "\u02C7", "Cayleys": "\u212D", "ccaps": "\u2A4D", "ccaron": "\u010D", "Ccaron": "\u010C", "ccedil": "\xE7", "Ccedil": "\xC7", "ccirc": "\u0109", "Ccirc": "\u0108", "Cconint": "\u2230", "ccups": "\u2A4C", "ccupssm": "\u2A50", "cdot": "\u010B", "Cdot": "\u010A", "cedil": "\xB8", "Cedilla": "\xB8", "cemptyv": "\u29B2", "cent": "\xA2", "centerdot": "\xB7", "CenterDot": "\xB7", "cfr": "\u{1D520}", "Cfr": "\u212D", "chcy": "\u0447", "CHcy": "\u0427", "check": "\u2713", "checkmark": "\u2713", "chi": "\u03C7", "Chi": "\u03A7", "cir": "\u25CB", "circ": "\u02C6", "circeq": "\u2257", "circlearrowleft": "\u21BA", "circlearrowright": "\u21BB", "circledast": "\u229B", "circledcirc": "\u229A", "circleddash": "\u229D", "CircleDot": "\u2299", "circledR": "\xAE", "circledS": "\u24C8", "CircleMinus": "\u2296", "CirclePlus": "\u2295", "CircleTimes": "\u2297", "cire": "\u2257", "cirE": "\u29C3", "cirfnint": "\u2A10", "cirmid": "\u2AEF", "cirscir": "\u29C2", "ClockwiseContourIntegral": "\u2232", "CloseCurlyDoubleQuote": "\u201D", "CloseCurlyQuote": "\u2019", "clubs": "\u2663", "clubsuit": "\u2663", "colon": ":", "Colon": "\u2237", "colone": "\u2254", "Colone": "\u2A74", "coloneq": "\u2254", "comma": ",", "commat": "@", "comp": "\u2201", "compfn": "\u2218", "complement": "\u2201", "complexes": "\u2102", "cong": "\u2245", "congdot": "\u2A6D", "Congruent": "\u2261", "conint": "\u222E", "Conint": "\u222F", "ContourIntegral": "\u222E", "copf": "\u{1D554}", "Copf": "\u2102", "coprod": "\u2210", "Coproduct": "\u2210", "copy": "\xA9", "COPY": "\xA9", "copysr": "\u2117", "CounterClockwiseContourIntegral": "\u2233", "crarr": "\u21B5", "cross": "\u2717", "Cross": "\u2A2F", "cscr": "\u{1D4B8}", "Cscr": "\u{1D49E}", "csub": "\u2ACF", "csube": "\u2AD1", "csup": "\u2AD0", "csupe": "\u2AD2", "ctdot": "\u22EF", "cudarrl": "\u2938", "cudarrr": "\u2935", "cuepr": "\u22DE", "cuesc": "\u22DF", "cularr": "\u21B6", "cularrp": "\u293D", "cup": "\u222A", "Cup": "\u22D3", "cupbrcap": "\u2A48", "cupcap": "\u2A46", "CupCap": "\u224D", "cupcup": "\u2A4A", "cupdot": "\u228D", "cupor": "\u2A45", "cups": "\u222A\uFE00", "curarr": "\u21B7", "curarrm": "\u293C", "curlyeqprec": "\u22DE", "curlyeqsucc": "\u22DF", "curlyvee": "\u22CE", "curlywedge": "\u22CF", "curren": "\xA4", "curvearrowleft": "\u21B6", "curvearrowright": "\u21B7", "cuvee": "\u22CE", "cuwed": "\u22CF", "cwconint": "\u2232", "cwint": "\u2231", "cylcty": "\u232D", "dagger": "\u2020", "Dagger": "\u2021", "daleth": "\u2138", "darr": "\u2193", "dArr": "\u21D3", "Darr": "\u21A1", "dash": "\u2010", "dashv": "\u22A3", "Dashv": "\u2AE4", "dbkarow": "\u290F", "dblac": "\u02DD", "dcaron": "\u010F", "Dcaron": "\u010E", "dcy": "\u0434", "Dcy": "\u0414", "dd": "\u2146", "DD": "\u2145", "ddagger": "\u2021", "ddarr": "\u21CA", "DDotrahd": "\u2911", "ddotseq": "\u2A77", "deg": "\xB0", "Del": "\u2207", "delta": "\u03B4", "Delta": "\u0394", "demptyv": "\u29B1", "dfisht": "\u297F", "dfr": "\u{1D521}", "Dfr": "\u{1D507}", "dHar": "\u2965", "dharl": "\u21C3", "dharr": "\u21C2", "DiacriticalAcute": "\xB4", "DiacriticalDot": "\u02D9", "DiacriticalDoubleAcute": "\u02DD", "DiacriticalGrave": "`", "DiacriticalTilde": "\u02DC", "diam": "\u22C4", "diamond": "\u22C4", "Diamond": "\u22C4", "diamondsuit": "\u2666", "diams": "\u2666", "die": "\xA8", "DifferentialD": "\u2146", "digamma": "\u03DD", "disin": "\u22F2", "div": "\xF7", "divide": "\xF7", "divideontimes": "\u22C7", "divonx": "\u22C7", "djcy": "\u0452", "DJcy": "\u0402", "dlcorn": "\u231E", "dlcrop": "\u230D", "dollar": "$", "dopf": "\u{1D555}", "Dopf": "\u{1D53B}", "dot": "\u02D9", "Dot": "\xA8", "DotDot": "\u20DC", "doteq": "\u2250", "doteqdot": "\u2251", "DotEqual": "\u2250", "dotminus": "\u2238", "dotplus": "\u2214", "dotsquare": "\u22A1", "doublebarwedge": "\u2306", "DoubleContourIntegral": "\u222F", "DoubleDot": "\xA8", "DoubleDownArrow": "\u21D3", "DoubleLeftArrow": "\u21D0", "DoubleLeftRightArrow": "\u21D4", "DoubleLeftTee": "\u2AE4", "DoubleLongLeftArrow": "\u27F8", "DoubleLongLeftRightArrow": "\u27FA", "DoubleLongRightArrow": "\u27F9", "DoubleRightArrow": "\u21D2", "DoubleRightTee": "\u22A8", "DoubleUpArrow": "\u21D1", "DoubleUpDownArrow": "\u21D5", "DoubleVerticalBar": "\u2225", "downarrow": "\u2193", "Downarrow": "\u21D3", "DownArrow": "\u2193", "DownArrowBar": "\u2913", "DownArrowUpArrow": "\u21F5", "DownBreve": "\u0311", "downdownarrows": "\u21CA", "downharpoonleft": "\u21C3", "downharpoonright": "\u21C2", "DownLeftRightVector": "\u2950", "DownLeftTeeVector": "\u295E", "DownLeftVector": "\u21BD", "DownLeftVectorBar": "\u2956", "DownRightTeeVector": "\u295F", "DownRightVector": "\u21C1", "DownRightVectorBar": "\u2957", "DownTee": "\u22A4", "DownTeeArrow": "\u21A7", "drbkarow": "\u2910", "drcorn": "\u231F", "drcrop": "\u230C", "dscr": "\u{1D4B9}", "Dscr": "\u{1D49F}", "dscy": "\u0455", "DScy": "\u0405", "dsol": "\u29F6", "dstrok": "\u0111", "Dstrok": "\u0110", "dtdot": "\u22F1", "dtri": "\u25BF", "dtrif": "\u25BE", "duarr": "\u21F5", "duhar": "\u296F", "dwangle": "\u29A6", "dzcy": "\u045F", "DZcy": "\u040F", "dzigrarr": "\u27FF", "eacute": "\xE9", "Eacute": "\xC9", "easter": "\u2A6E", "ecaron": "\u011B", "Ecaron": "\u011A", "ecir": "\u2256", "ecirc": "\xEA", "Ecirc": "\xCA", "ecolon": "\u2255", "ecy": "\u044D", "Ecy": "\u042D", "eDDot": "\u2A77", "edot": "\u0117", "eDot": "\u2251", "Edot": "\u0116", "ee": "\u2147", "efDot": "\u2252", "efr": "\u{1D522}", "Efr": "\u{1D508}", "eg": "\u2A9A", "egrave": "\xE8", "Egrave": "\xC8", "egs": "\u2A96", "egsdot": "\u2A98", "el": "\u2A99", "Element": "\u2208", "elinters": "\u23E7", "ell": "\u2113", "els": "\u2A95", "elsdot": "\u2A97", "emacr": "\u0113", "Emacr": "\u0112", "empty": "\u2205", "emptyset": "\u2205", "EmptySmallSquare": "\u25FB", "emptyv": "\u2205", "EmptyVerySmallSquare": "\u25AB", "emsp": "\u2003", "emsp13": "\u2004", "emsp14": "\u2005", "eng": "\u014B", "ENG": "\u014A", "ensp": "\u2002", "eogon": "\u0119", "Eogon": "\u0118", "eopf": "\u{1D556}", "Eopf": "\u{1D53C}", "epar": "\u22D5", "eparsl": "\u29E3", "eplus": "\u2A71", "epsi": "\u03B5", "epsilon": "\u03B5", "Epsilon": "\u0395", "epsiv": "\u03F5", "eqcirc": "\u2256", "eqcolon": "\u2255", "eqsim": "\u2242", "eqslantgtr": "\u2A96", "eqslantless": "\u2A95", "Equal": "\u2A75", "equals": "=", "EqualTilde": "\u2242", "equest": "\u225F", "Equilibrium": "\u21CC", "equiv": "\u2261", "equivDD": "\u2A78", "eqvparsl": "\u29E5", "erarr": "\u2971", "erDot": "\u2253", "escr": "\u212F", "Escr": "\u2130", "esdot": "\u2250", "esim": "\u2242", "Esim": "\u2A73", "eta": "\u03B7", "Eta": "\u0397", "eth": "\xF0", "ETH": "\xD0", "euml": "\xEB", "Euml": "\xCB", "euro": "\u20AC", "excl": "!", "exist": "\u2203", "Exists": "\u2203", "expectation": "\u2130", "exponentiale": "\u2147", "ExponentialE": "\u2147", "fallingdotseq": "\u2252", "fcy": "\u0444", "Fcy": "\u0424", "female": "\u2640", "ffilig": "\uFB03", "fflig": "\uFB00", "ffllig": "\uFB04", "ffr": "\u{1D523}", "Ffr": "\u{1D509}", "filig": "\uFB01", "FilledSmallSquare": "\u25FC", "FilledVerySmallSquare": "\u25AA", "fjlig": "fj", "flat": "\u266D", "fllig": "\uFB02", "fltns": "\u25B1", "fnof": "\u0192", "fopf": "\u{1D557}", "Fopf": "\u{1D53D}", "forall": "\u2200", "ForAll": "\u2200", "fork": "\u22D4", "forkv": "\u2AD9", "Fouriertrf": "\u2131", "fpartint": "\u2A0D", "frac12": "\xBD", "frac13": "\u2153", "frac14": "\xBC", "frac15": "\u2155", "frac16": "\u2159", "frac18": "\u215B", "frac23": "\u2154", "frac25": "\u2156", "frac34": "\xBE", "frac35": "\u2157", "frac38": "\u215C", "frac45": "\u2158", "frac56": "\u215A", "frac58": "\u215D", "frac78": "\u215E", "frasl": "\u2044", "frown": "\u2322", "fscr": "\u{1D4BB}", "Fscr": "\u2131", "gacute": "\u01F5", "gamma": "\u03B3", "Gamma": "\u0393", "gammad": "\u03DD", "Gammad": "\u03DC", "gap": "\u2A86", "gbreve": "\u011F", "Gbreve": "\u011E", "Gcedil": "\u0122", "gcirc": "\u011D", "Gcirc": "\u011C", "gcy": "\u0433", "Gcy": "\u0413", "gdot": "\u0121", "Gdot": "\u0120", "ge": "\u2265", "gE": "\u2267", "gel": "\u22DB", "gEl": "\u2A8C", "geq": "\u2265", "geqq": "\u2267", "geqslant": "\u2A7E", "ges": "\u2A7E", "gescc": "\u2AA9", "gesdot": "\u2A80", "gesdoto": "\u2A82", "gesdotol": "\u2A84", "gesl": "\u22DB\uFE00", "gesles": "\u2A94", "gfr": "\u{1D524}", "Gfr": "\u{1D50A}", "gg": "\u226B", "Gg": "\u22D9", "ggg": "\u22D9", "gimel": "\u2137", "gjcy": "\u0453", "GJcy": "\u0403", "gl": "\u2277", "gla": "\u2AA5", "glE": "\u2A92", "glj": "\u2AA4", "gnap": "\u2A8A", "gnapprox": "\u2A8A", "gne": "\u2A88", "gnE": "\u2269", "gneq": "\u2A88", "gneqq": "\u2269", "gnsim": "\u22E7", "gopf": "\u{1D558}", "Gopf": "\u{1D53E}", "grave": "`", "GreaterEqual": "\u2265", "GreaterEqualLess": "\u22DB", "GreaterFullEqual": "\u2267", "GreaterGreater": "\u2AA2", "GreaterLess": "\u2277", "GreaterSlantEqual": "\u2A7E", "GreaterTilde": "\u2273", "gscr": "\u210A", "Gscr": "\u{1D4A2}", "gsim": "\u2273", "gsime": "\u2A8E", "gsiml": "\u2A90", "gt": ">", "Gt": "\u226B", "GT": ">", "gtcc": "\u2AA7", "gtcir": "\u2A7A", "gtdot": "\u22D7", "gtlPar": "\u2995", "gtquest": "\u2A7C", "gtrapprox": "\u2A86", "gtrarr": "\u2978", "gtrdot": "\u22D7", "gtreqless": "\u22DB", "gtreqqless": "\u2A8C", "gtrless": "\u2277", "gtrsim": "\u2273", "gvertneqq": "\u2269\uFE00", "gvnE": "\u2269\uFE00", "Hacek": "\u02C7", "hairsp": "\u200A", "half": "\xBD", "hamilt": "\u210B", "hardcy": "\u044A", "HARDcy": "\u042A", "harr": "\u2194", "hArr": "\u21D4", "harrcir": "\u2948", "harrw": "\u21AD", "Hat": "^", "hbar": "\u210F", "hcirc": "\u0125", "Hcirc": "\u0124", "hearts": "\u2665", "heartsuit": "\u2665", "hellip": "\u2026", "hercon": "\u22B9", "hfr": "\u{1D525}", "Hfr": "\u210C", "HilbertSpace": "\u210B", "hksearow": "\u2925", "hkswarow": "\u2926", "hoarr": "\u21FF", "homtht": "\u223B", "hookleftarrow": "\u21A9", "hookrightarrow": "\u21AA", "hopf": "\u{1D559}", "Hopf": "\u210D", "horbar": "\u2015", "HorizontalLine": "\u2500", "hscr": "\u{1D4BD}", "Hscr": "\u210B", "hslash": "\u210F", "hstrok": "\u0127", "Hstrok": "\u0126", "HumpDownHump": "\u224E", "HumpEqual": "\u224F", "hybull": "\u2043", "hyphen": "\u2010", "iacute": "\xED", "Iacute": "\xCD", "ic": "\u2063", "icirc": "\xEE", "Icirc": "\xCE", "icy": "\u0438", "Icy": "\u0418", "Idot": "\u0130", "iecy": "\u0435", "IEcy": "\u0415", "iexcl": "\xA1", "iff": "\u21D4", "ifr": "\u{1D526}", "Ifr": "\u2111", "igrave": "\xEC", "Igrave": "\xCC", "ii": "\u2148", "iiiint": "\u2A0C", "iiint": "\u222D", "iinfin": "\u29DC", "iiota": "\u2129", "ijlig": "\u0133", "IJlig": "\u0132", "Im": "\u2111", "imacr": "\u012B", "Imacr": "\u012A", "image": "\u2111", "ImaginaryI": "\u2148", "imagline": "\u2110", "imagpart": "\u2111", "imath": "\u0131", "imof": "\u22B7", "imped": "\u01B5", "Implies": "\u21D2", "in": "\u2208", "incare": "\u2105", "infin": "\u221E", "infintie": "\u29DD", "inodot": "\u0131", "int": "\u222B", "Int": "\u222C", "intcal": "\u22BA", "integers": "\u2124", "Integral": "\u222B", "intercal": "\u22BA", "Intersection": "\u22C2", "intlarhk": "\u2A17", "intprod": "\u2A3C", "InvisibleComma": "\u2063", "InvisibleTimes": "\u2062", "iocy": "\u0451", "IOcy": "\u0401", "iogon": "\u012F", "Iogon": "\u012E", "iopf": "\u{1D55A}", "Iopf": "\u{1D540}", "iota": "\u03B9", "Iota": "\u0399", "iprod": "\u2A3C", "iquest": "\xBF", "iscr": "\u{1D4BE}", "Iscr": "\u2110", "isin": "\u2208", "isindot": "\u22F5", "isinE": "\u22F9", "isins": "\u22F4", "isinsv": "\u22F3", "isinv": "\u2208", "it": "\u2062", "itilde": "\u0129", "Itilde": "\u0128", "iukcy": "\u0456", "Iukcy": "\u0406", "iuml": "\xEF", "Iuml": "\xCF", "jcirc": "\u0135", "Jcirc": "\u0134", "jcy": "\u0439", "Jcy": "\u0419", "jfr": "\u{1D527}", "Jfr": "\u{1D50D}", "jmath": "\u0237", "jopf": "\u{1D55B}", "Jopf": "\u{1D541}", "jscr": "\u{1D4BF}", "Jscr": "\u{1D4A5}", "jsercy": "\u0458", "Jsercy": "\u0408", "jukcy": "\u0454", "Jukcy": "\u0404", "kappa": "\u03BA", "Kappa": "\u039A", "kappav": "\u03F0", "kcedil": "\u0137", "Kcedil": "\u0136", "kcy": "\u043A", "Kcy": "\u041A", "kfr": "\u{1D528}", "Kfr": "\u{1D50E}", "kgreen": "\u0138", "khcy": "\u0445", "KHcy": "\u0425", "kjcy": "\u045C", "KJcy": "\u040C", "kopf": "\u{1D55C}", "Kopf": "\u{1D542}", "kscr": "\u{1D4C0}", "Kscr": "\u{1D4A6}", "lAarr": "\u21DA", "lacute": "\u013A", "Lacute": "\u0139", "laemptyv": "\u29B4", "lagran": "\u2112", "lambda": "\u03BB", "Lambda": "\u039B", "lang": "\u27E8", "Lang": "\u27EA", "langd": "\u2991", "langle": "\u27E8", "lap": "\u2A85", "Laplacetrf": "\u2112", "laquo": "\xAB", "larr": "\u2190", "lArr": "\u21D0", "Larr": "\u219E", "larrb": "\u21E4", "larrbfs": "\u291F", "larrfs": "\u291D", "larrhk": "\u21A9", "larrlp": "\u21AB", "larrpl": "\u2939", "larrsim": "\u2973", "larrtl": "\u21A2", "lat": "\u2AAB", "latail": "\u2919", "lAtail": "\u291B", "late": "\u2AAD", "lates": "\u2AAD\uFE00", "lbarr": "\u290C", "lBarr": "\u290E", "lbbrk": "\u2772", "lbrace": "{", "lbrack": "[", "lbrke": "\u298B", "lbrksld": "\u298F", "lbrkslu": "\u298D", "lcaron": "\u013E", "Lcaron": "\u013D", "lcedil": "\u013C", "Lcedil": "\u013B", "lceil": "\u2308", "lcub": "{", "lcy": "\u043B", "Lcy": "\u041B", "ldca": "\u2936", "ldquo": "\u201C", "ldquor": "\u201E", "ldrdhar": "\u2967", "ldrushar": "\u294B", "ldsh": "\u21B2", "le": "\u2264", "lE": "\u2266", "LeftAngleBracket": "\u27E8", "leftarrow": "\u2190", "Leftarrow": "\u21D0", "LeftArrow": "\u2190", "LeftArrowBar": "\u21E4", "LeftArrowRightArrow": "\u21C6", "leftarrowtail": "\u21A2", "LeftCeiling": "\u2308", "LeftDoubleBracket": "\u27E6", "LeftDownTeeVector": "\u2961", "LeftDownVector": "\u21C3", "LeftDownVectorBar": "\u2959", "LeftFloor": "\u230A", "leftharpoondown": "\u21BD", "leftharpoonup": "\u21BC", "leftleftarrows": "\u21C7", "leftrightarrow": "\u2194", "Leftrightarrow": "\u21D4", "LeftRightArrow": "\u2194", "leftrightarrows": "\u21C6", "leftrightharpoons": "\u21CB", "leftrightsquigarrow": "\u21AD", "LeftRightVector": "\u294E", "LeftTee": "\u22A3", "LeftTeeArrow": "\u21A4", "LeftTeeVector": "\u295A", "leftthreetimes": "\u22CB", "LeftTriangle": "\u22B2", "LeftTriangleBar": "\u29CF", "LeftTriangleEqual": "\u22B4", "LeftUpDownVector": "\u2951", "LeftUpTeeVector": "\u2960", "LeftUpVector": "\u21BF", "LeftUpVectorBar": "\u2958", "LeftVector": "\u21BC", "LeftVectorBar": "\u2952", "leg": "\u22DA", "lEg": "\u2A8B", "leq": "\u2264", "leqq": "\u2266", "leqslant": "\u2A7D", "les": "\u2A7D", "lescc": "\u2AA8", "lesdot": "\u2A7F", "lesdoto": "\u2A81", "lesdotor": "\u2A83", "lesg": "\u22DA\uFE00", "lesges": "\u2A93", "lessapprox": "\u2A85", "lessdot": "\u22D6", "lesseqgtr": "\u22DA", "lesseqqgtr": "\u2A8B", "LessEqualGreater": "\u22DA", "LessFullEqual": "\u2266", "LessGreater": "\u2276", "lessgtr": "\u2276", "LessLess": "\u2AA1", "lesssim": "\u2272", "LessSlantEqual": "\u2A7D", "LessTilde": "\u2272", "lfisht": "\u297C", "lfloor": "\u230A", "lfr": "\u{1D529}", "Lfr": "\u{1D50F}", "lg": "\u2276", "lgE": "\u2A91", "lHar": "\u2962", "lhard": "\u21BD", "lharu": "\u21BC", "lharul": "\u296A", "lhblk": "\u2584", "ljcy": "\u0459", "LJcy": "\u0409", "ll": "\u226A", "Ll": "\u22D8", "llarr": "\u21C7", "llcorner": "\u231E", "Lleftarrow": "\u21DA", "llhard": "\u296B", "lltri": "\u25FA", "lmidot": "\u0140", "Lmidot": "\u013F", "lmoust": "\u23B0", "lmoustache": "\u23B0", "lnap": "\u2A89", "lnapprox": "\u2A89", "lne": "\u2A87", "lnE": "\u2268", "lneq": "\u2A87", "lneqq": "\u2268", "lnsim": "\u22E6", "loang": "\u27EC", "loarr": "\u21FD", "lobrk": "\u27E6", "longleftarrow": "\u27F5", "Longleftarrow": "\u27F8", "LongLeftArrow": "\u27F5", "longleftrightarrow": "\u27F7", "Longleftrightarrow": "\u27FA", "LongLeftRightArrow": "\u27F7", "longmapsto": "\u27FC", "longrightarrow": "\u27F6", "Longrightarrow": "\u27F9", "LongRightArrow": "\u27F6", "looparrowleft": "\u21AB", "looparrowright": "\u21AC", "lopar": "\u2985", "lopf": "\u{1D55D}", "Lopf": "\u{1D543}", "loplus": "\u2A2D", "lotimes": "\u2A34", "lowast": "\u2217", "lowbar": "_", "LowerLeftArrow": "\u2199", "LowerRightArrow": "\u2198", "loz": "\u25CA", "lozenge": "\u25CA", "lozf": "\u29EB", "lpar": "(", "lparlt": "\u2993", "lrarr": "\u21C6", "lrcorner": "\u231F", "lrhar": "\u21CB", "lrhard": "\u296D", "lrm": "\u200E", "lrtri": "\u22BF", "lsaquo": "\u2039", "lscr": "\u{1D4C1}", "Lscr": "\u2112", "lsh": "\u21B0", "Lsh": "\u21B0", "lsim": "\u2272", "lsime": "\u2A8D", "lsimg": "\u2A8F", "lsqb": "[", "lsquo": "\u2018", "lsquor": "\u201A", "lstrok": "\u0142", "Lstrok": "\u0141", "lt": "<", "Lt": "\u226A", "LT": "<", "ltcc": "\u2AA6", "ltcir": "\u2A79", "ltdot": "\u22D6", "lthree": "\u22CB", "ltimes": "\u22C9", "ltlarr": "\u2976", "ltquest": "\u2A7B", "ltri": "\u25C3", "ltrie": "\u22B4", "ltrif": "\u25C2", "ltrPar": "\u2996", "lurdshar": "\u294A", "luruhar": "\u2966", "lvertneqq": "\u2268\uFE00", "lvnE": "\u2268\uFE00", "macr": "\xAF", "male": "\u2642", "malt": "\u2720", "maltese": "\u2720", "map": "\u21A6", "Map": "\u2905", "mapsto": "\u21A6", "mapstodown": "\u21A7", "mapstoleft": "\u21A4", "mapstoup": "\u21A5", "marker": "\u25AE", "mcomma": "\u2A29", "mcy": "\u043C", "Mcy": "\u041C", "mdash": "\u2014", "mDDot": "\u223A", "measuredangle": "\u2221", "MediumSpace": "\u205F", "Mellintrf": "\u2133", "mfr": "\u{1D52A}", "Mfr": "\u{1D510}", "mho": "\u2127", "micro": "\xB5", "mid": "\u2223", "midast": "*", "midcir": "\u2AF0", "middot": "\xB7", "minus": "\u2212", "minusb": "\u229F", "minusd": "\u2238", "minusdu": "\u2A2A", "MinusPlus": "\u2213", "mlcp": "\u2ADB", "mldr": "\u2026", "mnplus": "\u2213", "models": "\u22A7", "mopf": "\u{1D55E}", "Mopf": "\u{1D544}", "mp": "\u2213", "mscr": "\u{1D4C2}", "Mscr": "\u2133", "mstpos": "\u223E", "mu": "\u03BC", "Mu": "\u039C", "multimap": "\u22B8", "mumap": "\u22B8", "nabla": "\u2207", "nacute": "\u0144", "Nacute": "\u0143", "nang": "\u2220\u20D2", "nap": "\u2249", "napE": "\u2A70\u0338", "napid": "\u224B\u0338", "napos": "\u0149", "napprox": "\u2249", "natur": "\u266E", "natural": "\u266E", "naturals": "\u2115", "nbsp": "\xA0", "nbump": "\u224E\u0338", "nbumpe": "\u224F\u0338", "ncap": "\u2A43", "ncaron": "\u0148", "Ncaron": "\u0147", "ncedil": "\u0146", "Ncedil": "\u0145", "ncong": "\u2247", "ncongdot": "\u2A6D\u0338", "ncup": "\u2A42", "ncy": "\u043D", "Ncy": "\u041D", "ndash": "\u2013", "ne": "\u2260", "nearhk": "\u2924", "nearr": "\u2197", "neArr": "\u21D7", "nearrow": "\u2197", "nedot": "\u2250\u0338", "NegativeMediumSpace": "\u200B", "NegativeThickSpace": "\u200B", "NegativeThinSpace": "\u200B", "NegativeVeryThinSpace": "\u200B", "nequiv": "\u2262", "nesear": "\u2928", "nesim": "\u2242\u0338", "NestedGreaterGreater": "\u226B", "NestedLessLess": "\u226A", "NewLine": "\n", "nexist": "\u2204", "nexists": "\u2204", "nfr": "\u{1D52B}", "Nfr": "\u{1D511}", "nge": "\u2271", "ngE": "\u2267\u0338", "ngeq": "\u2271", "ngeqq": "\u2267\u0338", "ngeqslant": "\u2A7E\u0338", "nges": "\u2A7E\u0338", "nGg": "\u22D9\u0338", "ngsim": "\u2275", "ngt": "\u226F", "nGt": "\u226B\u20D2", "ngtr": "\u226F", "nGtv": "\u226B\u0338", "nharr": "\u21AE", "nhArr": "\u21CE", "nhpar": "\u2AF2", "ni": "\u220B", "nis": "\u22FC", "nisd": "\u22FA", "niv": "\u220B", "njcy": "\u045A", "NJcy": "\u040A", "nlarr": "\u219A", "nlArr": "\u21CD", "nldr": "\u2025", "nle": "\u2270", "nlE": "\u2266\u0338", "nleftarrow": "\u219A", "nLeftarrow": "\u21CD", "nleftrightarrow": "\u21AE", "nLeftrightarrow": "\u21CE", "nleq": "\u2270", "nleqq": "\u2266\u0338", "nleqslant": "\u2A7D\u0338", "nles": "\u2A7D\u0338", "nless": "\u226E", "nLl": "\u22D8\u0338", "nlsim": "\u2274", "nlt": "\u226E", "nLt": "\u226A\u20D2", "nltri": "\u22EA", "nltrie": "\u22EC", "nLtv": "\u226A\u0338", "nmid": "\u2224", "NoBreak": "\u2060", "NonBreakingSpace": "\xA0", "nopf": "\u{1D55F}", "Nopf": "\u2115", "not": "\xAC", "Not": "\u2AEC", "NotCongruent": "\u2262", "NotCupCap": "\u226D", "NotDoubleVerticalBar": "\u2226", "NotElement": "\u2209", "NotEqual": "\u2260", "NotEqualTilde": "\u2242\u0338", "NotExists": "\u2204", "NotGreater": "\u226F", "NotGreaterEqual": "\u2271", "NotGreaterFullEqual": "\u2267\u0338", "NotGreaterGreater": "\u226B\u0338", "NotGreaterLess": "\u2279", "NotGreaterSlantEqual": "\u2A7E\u0338", "NotGreaterTilde": "\u2275", "NotHumpDownHump": "\u224E\u0338", "NotHumpEqual": "\u224F\u0338", "notin": "\u2209", "notindot": "\u22F5\u0338", "notinE": "\u22F9\u0338", "notinva": "\u2209", "notinvb": "\u22F7", "notinvc": "\u22F6", "NotLeftTriangle": "\u22EA", "NotLeftTriangleBar": "\u29CF\u0338", "NotLeftTriangleEqual": "\u22EC", "NotLess": "\u226E", "NotLessEqual": "\u2270", "NotLessGreater": "\u2278", "NotLessLess": "\u226A\u0338", "NotLessSlantEqual": "\u2A7D\u0338", "NotLessTilde": "\u2274", "NotNestedGreaterGreater": "\u2AA2\u0338", "NotNestedLessLess": "\u2AA1\u0338", "notni": "\u220C", "notniva": "\u220C", "notnivb": "\u22FE", "notnivc": "\u22FD", "NotPrecedes": "\u2280", "NotPrecedesEqual": "\u2AAF\u0338", "NotPrecedesSlantEqual": "\u22E0", "NotReverseElement": "\u220C", "NotRightTriangle": "\u22EB", "NotRightTriangleBar": "\u29D0\u0338", "NotRightTriangleEqual": "\u22ED", "NotSquareSubset": "\u228F\u0338", "NotSquareSubsetEqual": "\u22E2", "NotSquareSuperset": "\u2290\u0338", "NotSquareSupersetEqual": "\u22E3", "NotSubset": "\u2282\u20D2", "NotSubsetEqual": "\u2288", "NotSucceeds": "\u2281", "NotSucceedsEqual": "\u2AB0\u0338", "NotSucceedsSlantEqual": "\u22E1", "NotSucceedsTilde": "\u227F\u0338", "NotSuperset": "\u2283\u20D2", "NotSupersetEqual": "\u2289", "NotTilde": "\u2241", "NotTildeEqual": "\u2244", "NotTildeFullEqual": "\u2247", "NotTildeTilde": "\u2249", "NotVerticalBar": "\u2224", "npar": "\u2226", "nparallel": "\u2226", "nparsl": "\u2AFD\u20E5", "npart": "\u2202\u0338", "npolint": "\u2A14", "npr": "\u2280", "nprcue": "\u22E0", "npre": "\u2AAF\u0338", "nprec": "\u2280", "npreceq": "\u2AAF\u0338", "nrarr": "\u219B", "nrArr": "\u21CF", "nrarrc": "\u2933\u0338", "nrarrw": "\u219D\u0338", "nrightarrow": "\u219B", "nRightarrow": "\u21CF", "nrtri": "\u22EB", "nrtrie": "\u22ED", "nsc": "\u2281", "nsccue": "\u22E1", "nsce": "\u2AB0\u0338", "nscr": "\u{1D4C3}", "Nscr": "\u{1D4A9}", "nshortmid": "\u2224", "nshortparallel": "\u2226", "nsim": "\u2241", "nsime": "\u2244", "nsimeq": "\u2244", "nsmid": "\u2224", "nspar": "\u2226", "nsqsube": "\u22E2", "nsqsupe": "\u22E3", "nsub": "\u2284", "nsube": "\u2288", "nsubE": "\u2AC5\u0338", "nsubset": "\u2282\u20D2", "nsubseteq": "\u2288", "nsubseteqq": "\u2AC5\u0338", "nsucc": "\u2281", "nsucceq": "\u2AB0\u0338", "nsup": "\u2285", "nsupe": "\u2289", "nsupE": "\u2AC6\u0338", "nsupset": "\u2283\u20D2", "nsupseteq": "\u2289", "nsupseteqq": "\u2AC6\u0338", "ntgl": "\u2279", "ntilde": "\xF1", "Ntilde": "\xD1", "ntlg": "\u2278", "ntriangleleft": "\u22EA", "ntrianglelefteq": "\u22EC", "ntriangleright": "\u22EB", "ntrianglerighteq": "\u22ED", "nu": "\u03BD", "Nu": "\u039D", "num": "#", "numero": "\u2116", "numsp": "\u2007", "nvap": "\u224D\u20D2", "nvdash": "\u22AC", "nvDash": "\u22AD", "nVdash": "\u22AE", "nVDash": "\u22AF", "nvge": "\u2265\u20D2", "nvgt": ">\u20D2", "nvHarr": "\u2904", "nvinfin": "\u29DE", "nvlArr": "\u2902", "nvle": "\u2264\u20D2", "nvlt": "<\u20D2", "nvltrie": "\u22B4\u20D2", "nvrArr": "\u2903", "nvrtrie": "\u22B5\u20D2", "nvsim": "\u223C\u20D2", "nwarhk": "\u2923", "nwarr": "\u2196", "nwArr": "\u21D6", "nwarrow": "\u2196", "nwnear": "\u2927", "oacute": "\xF3", "Oacute": "\xD3", "oast": "\u229B", "ocir": "\u229A", "ocirc": "\xF4", "Ocirc": "\xD4", "ocy": "\u043E", "Ocy": "\u041E", "odash": "\u229D", "odblac": "\u0151", "Odblac": "\u0150", "odiv": "\u2A38", "odot": "\u2299", "odsold": "\u29BC", "oelig": "\u0153", "OElig": "\u0152", "ofcir": "\u29BF", "ofr": "\u{1D52C}", "Ofr": "\u{1D512}", "ogon": "\u02DB", "ograve": "\xF2", "Ograve": "\xD2", "ogt": "\u29C1", "ohbar": "\u29B5", "ohm": "\u03A9", "oint": "\u222E", "olarr": "\u21BA", "olcir": "\u29BE", "olcross": "\u29BB", "oline": "\u203E", "olt": "\u29C0", "omacr": "\u014D", "Omacr": "\u014C", "omega": "\u03C9", "Omega": "\u03A9", "omicron": "\u03BF", "Omicron": "\u039F", "omid": "\u29B6", "ominus": "\u2296", "oopf": "\u{1D560}", "Oopf": "\u{1D546}", "opar": "\u29B7", "OpenCurlyDoubleQuote": "\u201C", "OpenCurlyQuote": "\u2018", "operp": "\u29B9", "oplus": "\u2295", "or": "\u2228", "Or": "\u2A54", "orarr": "\u21BB", "ord": "\u2A5D", "order": "\u2134", "orderof": "\u2134", "ordf": "\xAA", "ordm": "\xBA", "origof": "\u22B6", "oror": "\u2A56", "orslope": "\u2A57", "orv": "\u2A5B", "oS": "\u24C8", "oscr": "\u2134", "Oscr": "\u{1D4AA}", "oslash": "\xF8", "Oslash": "\xD8", "osol": "\u2298", "otilde": "\xF5", "Otilde": "\xD5", "otimes": "\u2297", "Otimes": "\u2A37", "otimesas": "\u2A36", "ouml": "\xF6", "Ouml": "\xD6", "ovbar": "\u233D", "OverBar": "\u203E", "OverBrace": "\u23DE", "OverBracket": "\u23B4", "OverParenthesis": "\u23DC", "par": "\u2225", "para": "\xB6", "parallel": "\u2225", "parsim": "\u2AF3", "parsl": "\u2AFD", "part": "\u2202", "PartialD": "\u2202", "pcy": "\u043F", "Pcy": "\u041F", "percnt": "%", "period": ".", "permil": "\u2030", "perp": "\u22A5", "pertenk": "\u2031", "pfr": "\u{1D52D}", "Pfr": "\u{1D513}", "phi": "\u03C6", "Phi": "\u03A6", "phiv": "\u03D5", "phmmat": "\u2133", "phone": "\u260E", "pi": "\u03C0", "Pi": "\u03A0", "pitchfork": "\u22D4", "piv": "\u03D6", "planck": "\u210F", "planckh": "\u210E", "plankv": "\u210F", "plus": "+", "plusacir": "\u2A23", "plusb": "\u229E", "pluscir": "\u2A22", "plusdo": "\u2214", "plusdu": "\u2A25", "pluse": "\u2A72", "PlusMinus": "\xB1", "plusmn": "\xB1", "plussim": "\u2A26", "plustwo": "\u2A27", "pm": "\xB1", "Poincareplane": "\u210C", "pointint": "\u2A15", "popf": "\u{1D561}", "Popf": "\u2119", "pound": "\xA3", "pr": "\u227A", "Pr": "\u2ABB", "prap": "\u2AB7", "prcue": "\u227C", "pre": "\u2AAF", "prE": "\u2AB3", "prec": "\u227A", "precapprox": "\u2AB7", "preccurlyeq": "\u227C", "Precedes": "\u227A", "PrecedesEqual": "\u2AAF", "PrecedesSlantEqual": "\u227C", "PrecedesTilde": "\u227E", "preceq": "\u2AAF", "precnapprox": "\u2AB9", "precneqq": "\u2AB5", "precnsim": "\u22E8", "precsim": "\u227E", "prime": "\u2032", "Prime": "\u2033", "primes": "\u2119", "prnap": "\u2AB9", "prnE": "\u2AB5", "prnsim": "\u22E8", "prod": "\u220F", "Product": "\u220F", "profalar": "\u232E", "profline": "\u2312", "profsurf": "\u2313", "prop": "\u221D", "Proportion": "\u2237", "Proportional": "\u221D", "propto": "\u221D", "prsim": "\u227E", "prurel": "\u22B0", "pscr": "\u{1D4C5}", "Pscr": "\u{1D4AB}", "psi": "\u03C8", "Psi": "\u03A8", "puncsp": "\u2008", "qfr": "\u{1D52E}", "Qfr": "\u{1D514}", "qint": "\u2A0C", "qopf": "\u{1D562}", "Qopf": "\u211A", "qprime": "\u2057", "qscr": "\u{1D4C6}", "Qscr": "\u{1D4AC}", "quaternions": "\u210D", "quatint": "\u2A16", "quest": "?", "questeq": "\u225F", "quot": '"', "QUOT": '"', "rAarr": "\u21DB", "race": "\u223D\u0331", "racute": "\u0155", "Racute": "\u0154", "radic": "\u221A", "raemptyv": "\u29B3", "rang": "\u27E9", "Rang": "\u27EB", "rangd": "\u2992", "range": "\u29A5", "rangle": "\u27E9", "raquo": "\xBB", "rarr": "\u2192", "rArr": "\u21D2", "Rarr": "\u21A0", "rarrap": "\u2975", "rarrb": "\u21E5", "rarrbfs": "\u2920", "rarrc": "\u2933", "rarrfs": "\u291E", "rarrhk": "\u21AA", "rarrlp": "\u21AC", "rarrpl": "\u2945", "rarrsim": "\u2974", "rarrtl": "\u21A3", "Rarrtl": "\u2916", "rarrw": "\u219D", "ratail": "\u291A", "rAtail": "\u291C", "ratio": "\u2236", "rationals": "\u211A", "rbarr": "\u290D", "rBarr": "\u290F", "RBarr": "\u2910", "rbbrk": "\u2773", "rbrace": "}", "rbrack": "]", "rbrke": "\u298C", "rbrksld": "\u298E", "rbrkslu": "\u2990", "rcaron": "\u0159", "Rcaron": "\u0158", "rcedil": "\u0157", "Rcedil": "\u0156", "rceil": "\u2309", "rcub": "}", "rcy": "\u0440", "Rcy": "\u0420", "rdca": "\u2937", "rdldhar": "\u2969", "rdquo": "\u201D", "rdquor": "\u201D", "rdsh": "\u21B3", "Re": "\u211C", "real": "\u211C", "realine": "\u211B", "realpart": "\u211C", "reals": "\u211D", "rect": "\u25AD", "reg": "\xAE", "REG": "\xAE", "ReverseElement": "\u220B", "ReverseEquilibrium": "\u21CB", "ReverseUpEquilibrium": "\u296F", "rfisht": "\u297D", "rfloor": "\u230B", "rfr": "\u{1D52F}", "Rfr": "\u211C", "rHar": "\u2964", "rhard": "\u21C1", "rharu": "\u21C0", "rharul": "\u296C", "rho": "\u03C1", "Rho": "\u03A1", "rhov": "\u03F1", "RightAngleBracket": "\u27E9", "rightarrow": "\u2192", "Rightarrow": "\u21D2", "RightArrow": "\u2192", "RightArrowBar": "\u21E5", "RightArrowLeftArrow": "\u21C4", "rightarrowtail": "\u21A3", "RightCeiling": "\u2309", "RightDoubleBracket": "\u27E7", "RightDownTeeVector": "\u295D", "RightDownVector": "\u21C2", "RightDownVectorBar": "\u2955", "RightFloor": "\u230B", "rightharpoondown": "\u21C1", "rightharpoonup": "\u21C0", "rightleftarrows": "\u21C4", "rightleftharpoons": "\u21CC", "rightrightarrows": "\u21C9", "rightsquigarrow": "\u219D", "RightTee": "\u22A2", "RightTeeArrow": "\u21A6", "RightTeeVector": "\u295B", "rightthreetimes": "\u22CC", "RightTriangle": "\u22B3", "RightTriangleBar": "\u29D0", "RightTriangleEqual": "\u22B5", "RightUpDownVector": "\u294F", "RightUpTeeVector": "\u295C", "RightUpVector": "\u21BE", "RightUpVectorBar": "\u2954", "RightVector": "\u21C0", "RightVectorBar": "\u2953", "ring": "\u02DA", "risingdotseq": "\u2253", "rlarr": "\u21C4", "rlhar": "\u21CC", "rlm": "\u200F", "rmoust": "\u23B1", "rmoustache": "\u23B1", "rnmid": "\u2AEE", "roang": "\u27ED", "roarr": "\u21FE", "robrk": "\u27E7", "ropar": "\u2986", "ropf": "\u{1D563}", "Ropf": "\u211D", "roplus": "\u2A2E", "rotimes": "\u2A35", "RoundImplies": "\u2970", "rpar": ")", "rpargt": "\u2994", "rppolint": "\u2A12", "rrarr": "\u21C9", "Rrightarrow": "\u21DB", "rsaquo": "\u203A", "rscr": "\u{1D4C7}", "Rscr": "\u211B", "rsh": "\u21B1", "Rsh": "\u21B1", "rsqb": "]", "rsquo": "\u2019", "rsquor": "\u2019", "rthree": "\u22CC", "rtimes": "\u22CA", "rtri": "\u25B9", "rtrie": "\u22B5", "rtrif": "\u25B8", "rtriltri": "\u29CE", "RuleDelayed": "\u29F4", "ruluhar": "\u2968", "rx": "\u211E", "sacute": "\u015B", "Sacute": "\u015A", "sbquo": "\u201A", "sc": "\u227B", "Sc": "\u2ABC", "scap": "\u2AB8", "scaron": "\u0161", "Scaron": "\u0160", "sccue": "\u227D", "sce": "\u2AB0", "scE": "\u2AB4", "scedil": "\u015F", "Scedil": "\u015E", "scirc": "\u015D", "Scirc": "\u015C", "scnap": "\u2ABA", "scnE": "\u2AB6", "scnsim": "\u22E9", "scpolint": "\u2A13", "scsim": "\u227F", "scy": "\u0441", "Scy": "\u0421", "sdot": "\u22C5", "sdotb": "\u22A1", "sdote": "\u2A66", "searhk": "\u2925", "searr": "\u2198", "seArr": "\u21D8", "searrow": "\u2198", "sect": "\xA7", "semi": ";", "seswar": "\u2929", "setminus": "\u2216", "setmn": "\u2216", "sext": "\u2736", "sfr": "\u{1D530}", "Sfr": "\u{1D516}", "sfrown": "\u2322", "sharp": "\u266F", "shchcy": "\u0449", "SHCHcy": "\u0429", "shcy": "\u0448", "SHcy": "\u0428", "ShortDownArrow": "\u2193", "ShortLeftArrow": "\u2190", "shortmid": "\u2223", "shortparallel": "\u2225", "ShortRightArrow": "\u2192", "ShortUpArrow": "\u2191", "shy": "\xAD", "sigma": "\u03C3", "Sigma": "\u03A3", "sigmaf": "\u03C2", "sigmav": "\u03C2", "sim": "\u223C", "simdot": "\u2A6A", "sime": "\u2243", "simeq": "\u2243", "simg": "\u2A9E", "simgE": "\u2AA0", "siml": "\u2A9D", "simlE": "\u2A9F", "simne": "\u2246", "simplus": "\u2A24", "simrarr": "\u2972", "slarr": "\u2190", "SmallCircle": "\u2218", "smallsetminus": "\u2216", "smashp": "\u2A33", "smeparsl": "\u29E4", "smid": "\u2223", "smile": "\u2323", "smt": "\u2AAA", "smte": "\u2AAC", "smtes": "\u2AAC\uFE00", "softcy": "\u044C", "SOFTcy": "\u042C", "sol": "/", "solb": "\u29C4", "solbar": "\u233F", "sopf": "\u{1D564}", "Sopf": "\u{1D54A}", "spades": "\u2660", "spadesuit": "\u2660", "spar": "\u2225", "sqcap": "\u2293", "sqcaps": "\u2293\uFE00", "sqcup": "\u2294", "sqcups": "\u2294\uFE00", "Sqrt": "\u221A", "sqsub": "\u228F", "sqsube": "\u2291", "sqsubset": "\u228F", "sqsubseteq": "\u2291", "sqsup": "\u2290", "sqsupe": "\u2292", "sqsupset": "\u2290", "sqsupseteq": "\u2292", "squ": "\u25A1", "square": "\u25A1", "Square": "\u25A1", "SquareIntersection": "\u2293", "SquareSubset": "\u228F", "SquareSubsetEqual": "\u2291", "SquareSuperset": "\u2290", "SquareSupersetEqual": "\u2292", "SquareUnion": "\u2294", "squarf": "\u25AA", "squf": "\u25AA", "srarr": "\u2192", "sscr": "\u{1D4C8}", "Sscr": "\u{1D4AE}", "ssetmn": "\u2216", "ssmile": "\u2323", "sstarf": "\u22C6", "star": "\u2606", "Star": "\u22C6", "starf": "\u2605", "straightepsilon": "\u03F5", "straightphi": "\u03D5", "strns": "\xAF", "sub": "\u2282", "Sub": "\u22D0", "subdot": "\u2ABD", "sube": "\u2286", "subE": "\u2AC5", "subedot": "\u2AC3", "submult": "\u2AC1", "subne": "\u228A", "subnE": "\u2ACB", "subplus": "\u2ABF", "subrarr": "\u2979", "subset": "\u2282", "Subset": "\u22D0", "subseteq": "\u2286", "subseteqq": "\u2AC5", "SubsetEqual": "\u2286", "subsetneq": "\u228A", "subsetneqq": "\u2ACB", "subsim": "\u2AC7", "subsub": "\u2AD5", "subsup": "\u2AD3", "succ": "\u227B", "succapprox": "\u2AB8", "succcurlyeq": "\u227D", "Succeeds": "\u227B", "SucceedsEqual": "\u2AB0", "SucceedsSlantEqual": "\u227D", "SucceedsTilde": "\u227F", "succeq": "\u2AB0", "succnapprox": "\u2ABA", "succneqq": "\u2AB6", "succnsim": "\u22E9", "succsim": "\u227F", "SuchThat": "\u220B", "sum": "\u2211", "Sum": "\u2211", "sung": "\u266A", "sup": "\u2283", "Sup": "\u22D1", "sup1": "\xB9", "sup2": "\xB2", "sup3": "\xB3", "supdot": "\u2ABE", "supdsub": "\u2AD8", "supe": "\u2287", "supE": "\u2AC6", "supedot": "\u2AC4", "Superset": "\u2283", "SupersetEqual": "\u2287", "suphsol": "\u27C9", "suphsub": "\u2AD7", "suplarr": "\u297B", "supmult": "\u2AC2", "supne": "\u228B", "supnE": "\u2ACC", "supplus": "\u2AC0", "supset": "\u2283", "Supset": "\u22D1", "supseteq": "\u2287", "supseteqq": "\u2AC6", "supsetneq": "\u228B", "supsetneqq": "\u2ACC", "supsim": "\u2AC8", "supsub": "\u2AD4", "supsup": "\u2AD6", "swarhk": "\u2926", "swarr": "\u2199", "swArr": "\u21D9", "swarrow": "\u2199", "swnwar": "\u292A", "szlig": "\xDF", "Tab": "	", "target": "\u2316", "tau": "\u03C4", "Tau": "\u03A4", "tbrk": "\u23B4", "tcaron": "\u0165", "Tcaron": "\u0164", "tcedil": "\u0163", "Tcedil": "\u0162", "tcy": "\u0442", "Tcy": "\u0422", "tdot": "\u20DB", "telrec": "\u2315", "tfr": "\u{1D531}", "Tfr": "\u{1D517}", "there4": "\u2234", "therefore": "\u2234", "Therefore": "\u2234", "theta": "\u03B8", "Theta": "\u0398", "thetasym": "\u03D1", "thetav": "\u03D1", "thickapprox": "\u2248", "thicksim": "\u223C", "ThickSpace": "\u205F\u200A", "thinsp": "\u2009", "ThinSpace": "\u2009", "thkap": "\u2248", "thksim": "\u223C", "thorn": "\xFE", "THORN": "\xDE", "tilde": "\u02DC", "Tilde": "\u223C", "TildeEqual": "\u2243", "TildeFullEqual": "\u2245", "TildeTilde": "\u2248", "times": "\xD7", "timesb": "\u22A0", "timesbar": "\u2A31", "timesd": "\u2A30", "tint": "\u222D", "toea": "\u2928", "top": "\u22A4", "topbot": "\u2336", "topcir": "\u2AF1", "topf": "\u{1D565}", "Topf": "\u{1D54B}", "topfork": "\u2ADA", "tosa": "\u2929", "tprime": "\u2034", "trade": "\u2122", "TRADE": "\u2122", "triangle": "\u25B5", "triangledown": "\u25BF", "triangleleft": "\u25C3", "trianglelefteq": "\u22B4", "triangleq": "\u225C", "triangleright": "\u25B9", "trianglerighteq": "\u22B5", "tridot": "\u25EC", "trie": "\u225C", "triminus": "\u2A3A", "TripleDot": "\u20DB", "triplus": "\u2A39", "trisb": "\u29CD", "tritime": "\u2A3B", "trpezium": "\u23E2", "tscr": "\u{1D4C9}", "Tscr": "\u{1D4AF}", "tscy": "\u0446", "TScy": "\u0426", "tshcy": "\u045B", "TSHcy": "\u040B", "tstrok": "\u0167", "Tstrok": "\u0166", "twixt": "\u226C", "twoheadleftarrow": "\u219E", "twoheadrightarrow": "\u21A0", "uacute": "\xFA", "Uacute": "\xDA", "uarr": "\u2191", "uArr": "\u21D1", "Uarr": "\u219F", "Uarrocir": "\u2949", "ubrcy": "\u045E", "Ubrcy": "\u040E", "ubreve": "\u016D", "Ubreve": "\u016C", "ucirc": "\xFB", "Ucirc": "\xDB", "ucy": "\u0443", "Ucy": "\u0423", "udarr": "\u21C5", "udblac": "\u0171", "Udblac": "\u0170", "udhar": "\u296E", "ufisht": "\u297E", "ufr": "\u{1D532}", "Ufr": "\u{1D518}", "ugrave": "\xF9", "Ugrave": "\xD9", "uHar": "\u2963", "uharl": "\u21BF", "uharr": "\u21BE", "uhblk": "\u2580", "ulcorn": "\u231C", "ulcorner": "\u231C", "ulcrop": "\u230F", "ultri": "\u25F8", "umacr": "\u016B", "Umacr": "\u016A", "uml": "\xA8", "UnderBar": "_", "UnderBrace": "\u23DF", "UnderBracket": "\u23B5", "UnderParenthesis": "\u23DD", "Union": "\u22C3", "UnionPlus": "\u228E", "uogon": "\u0173", "Uogon": "\u0172", "uopf": "\u{1D566}", "Uopf": "\u{1D54C}", "uparrow": "\u2191", "Uparrow": "\u21D1", "UpArrow": "\u2191", "UpArrowBar": "\u2912", "UpArrowDownArrow": "\u21C5", "updownarrow": "\u2195", "Updownarrow": "\u21D5", "UpDownArrow": "\u2195", "UpEquilibrium": "\u296E", "upharpoonleft": "\u21BF", "upharpoonright": "\u21BE", "uplus": "\u228E", "UpperLeftArrow": "\u2196", "UpperRightArrow": "\u2197", "upsi": "\u03C5", "Upsi": "\u03D2", "upsih": "\u03D2", "upsilon": "\u03C5", "Upsilon": "\u03A5", "UpTee": "\u22A5", "UpTeeArrow": "\u21A5", "upuparrows": "\u21C8", "urcorn": "\u231D", "urcorner": "\u231D", "urcrop": "\u230E", "uring": "\u016F", "Uring": "\u016E", "urtri": "\u25F9", "uscr": "\u{1D4CA}", "Uscr": "\u{1D4B0}", "utdot": "\u22F0", "utilde": "\u0169", "Utilde": "\u0168", "utri": "\u25B5", "utrif": "\u25B4", "uuarr": "\u21C8", "uuml": "\xFC", "Uuml": "\xDC", "uwangle": "\u29A7", "vangrt": "\u299C", "varepsilon": "\u03F5", "varkappa": "\u03F0", "varnothing": "\u2205", "varphi": "\u03D5", "varpi": "\u03D6", "varpropto": "\u221D", "varr": "\u2195", "vArr": "\u21D5", "varrho": "\u03F1", "varsigma": "\u03C2", "varsubsetneq": "\u228A\uFE00", "varsubsetneqq": "\u2ACB\uFE00", "varsupsetneq": "\u228B\uFE00", "varsupsetneqq": "\u2ACC\uFE00", "vartheta": "\u03D1", "vartriangleleft": "\u22B2", "vartriangleright": "\u22B3", "vBar": "\u2AE8", "Vbar": "\u2AEB", "vBarv": "\u2AE9", "vcy": "\u0432", "Vcy": "\u0412", "vdash": "\u22A2", "vDash": "\u22A8", "Vdash": "\u22A9", "VDash": "\u22AB", "Vdashl": "\u2AE6", "vee": "\u2228", "Vee": "\u22C1", "veebar": "\u22BB", "veeeq": "\u225A", "vellip": "\u22EE", "verbar": "|", "Verbar": "\u2016", "vert": "|", "Vert": "\u2016", "VerticalBar": "\u2223", "VerticalLine": "|", "VerticalSeparator": "\u2758", "VerticalTilde": "\u2240", "VeryThinSpace": "\u200A", "vfr": "\u{1D533}", "Vfr": "\u{1D519}", "vltri": "\u22B2", "vnsub": "\u2282\u20D2", "vnsup": "\u2283\u20D2", "vopf": "\u{1D567}", "Vopf": "\u{1D54D}", "vprop": "\u221D", "vrtri": "\u22B3", "vscr": "\u{1D4CB}", "Vscr": "\u{1D4B1}", "vsubne": "\u228A\uFE00", "vsubnE": "\u2ACB\uFE00", "vsupne": "\u228B\uFE00", "vsupnE": "\u2ACC\uFE00", "Vvdash": "\u22AA", "vzigzag": "\u299A", "wcirc": "\u0175", "Wcirc": "\u0174", "wedbar": "\u2A5F", "wedge": "\u2227", "Wedge": "\u22C0", "wedgeq": "\u2259", "weierp": "\u2118", "wfr": "\u{1D534}", "Wfr": "\u{1D51A}", "wopf": "\u{1D568}", "Wopf": "\u{1D54E}", "wp": "\u2118", "wr": "\u2240", "wreath": "\u2240", "wscr": "\u{1D4CC}", "Wscr": "\u{1D4B2}", "xcap": "\u22C2", "xcirc": "\u25EF", "xcup": "\u22C3", "xdtri": "\u25BD", "xfr": "\u{1D535}", "Xfr": "\u{1D51B}", "xharr": "\u27F7", "xhArr": "\u27FA", "xi": "\u03BE", "Xi": "\u039E", "xlarr": "\u27F5", "xlArr": "\u27F8", "xmap": "\u27FC", "xnis": "\u22FB", "xodot": "\u2A00", "xopf": "\u{1D569}", "Xopf": "\u{1D54F}", "xoplus": "\u2A01", "xotime": "\u2A02", "xrarr": "\u27F6", "xrArr": "\u27F9", "xscr": "\u{1D4CD}", "Xscr": "\u{1D4B3}", "xsqcup": "\u2A06", "xuplus": "\u2A04", "xutri": "\u25B3", "xvee": "\u22C1", "xwedge": "\u22C0", "yacute": "\xFD", "Yacute": "\xDD", "yacy": "\u044F", "YAcy": "\u042F", "ycirc": "\u0177", "Ycirc": "\u0176", "ycy": "\u044B", "Ycy": "\u042B", "yen": "\xA5", "yfr": "\u{1D536}", "Yfr": "\u{1D51C}", "yicy": "\u0457", "YIcy": "\u0407", "yopf": "\u{1D56A}", "Yopf": "\u{1D550}", "yscr": "\u{1D4CE}", "Yscr": "\u{1D4B4}", "yucy": "\u044E", "YUcy": "\u042E", "yuml": "\xFF", "Yuml": "\u0178", "zacute": "\u017A", "Zacute": "\u0179", "zcaron": "\u017E", "Zcaron": "\u017D", "zcy": "\u0437", "Zcy": "\u0417", "zdot": "\u017C", "Zdot": "\u017B", "zeetrf": "\u2128", "ZeroWidthSpace": "\u200B", "zeta": "\u03B6", "Zeta": "\u0396", "zfr": "\u{1D537}", "Zfr": "\u2128", "zhcy": "\u0436", "ZHcy": "\u0416", "zigrarr": "\u21DD", "zopf": "\u{1D56B}", "Zopf": "\u2124", "zscr": "\u{1D4CF}", "Zscr": "\u{1D4B5}", "zwj": "\u200D", "zwnj": "\u200C" };
+      var decodeMapLegacy = { "aacute": "\xE1", "Aacute": "\xC1", "acirc": "\xE2", "Acirc": "\xC2", "acute": "\xB4", "aelig": "\xE6", "AElig": "\xC6", "agrave": "\xE0", "Agrave": "\xC0", "amp": "&", "AMP": "&", "aring": "\xE5", "Aring": "\xC5", "atilde": "\xE3", "Atilde": "\xC3", "auml": "\xE4", "Auml": "\xC4", "brvbar": "\xA6", "ccedil": "\xE7", "Ccedil": "\xC7", "cedil": "\xB8", "cent": "\xA2", "copy": "\xA9", "COPY": "\xA9", "curren": "\xA4", "deg": "\xB0", "divide": "\xF7", "eacute": "\xE9", "Eacute": "\xC9", "ecirc": "\xEA", "Ecirc": "\xCA", "egrave": "\xE8", "Egrave": "\xC8", "eth": "\xF0", "ETH": "\xD0", "euml": "\xEB", "Euml": "\xCB", "frac12": "\xBD", "frac14": "\xBC", "frac34": "\xBE", "gt": ">", "GT": ">", "iacute": "\xED", "Iacute": "\xCD", "icirc": "\xEE", "Icirc": "\xCE", "iexcl": "\xA1", "igrave": "\xEC", "Igrave": "\xCC", "iquest": "\xBF", "iuml": "\xEF", "Iuml": "\xCF", "laquo": "\xAB", "lt": "<", "LT": "<", "macr": "\xAF", "micro": "\xB5", "middot": "\xB7", "nbsp": "\xA0", "not": "\xAC", "ntilde": "\xF1", "Ntilde": "\xD1", "oacute": "\xF3", "Oacute": "\xD3", "ocirc": "\xF4", "Ocirc": "\xD4", "ograve": "\xF2", "Ograve": "\xD2", "ordf": "\xAA", "ordm": "\xBA", "oslash": "\xF8", "Oslash": "\xD8", "otilde": "\xF5", "Otilde": "\xD5", "ouml": "\xF6", "Ouml": "\xD6", "para": "\xB6", "plusmn": "\xB1", "pound": "\xA3", "quot": '"', "QUOT": '"', "raquo": "\xBB", "reg": "\xAE", "REG": "\xAE", "sect": "\xA7", "shy": "\xAD", "sup1": "\xB9", "sup2": "\xB2", "sup3": "\xB3", "szlig": "\xDF", "thorn": "\xFE", "THORN": "\xDE", "times": "\xD7", "uacute": "\xFA", "Uacute": "\xDA", "ucirc": "\xFB", "Ucirc": "\xDB", "ugrave": "\xF9", "Ugrave": "\xD9", "uml": "\xA8", "uuml": "\xFC", "Uuml": "\xDC", "yacute": "\xFD", "Yacute": "\xDD", "yen": "\xA5", "yuml": "\xFF" };
+      var decodeMapNumeric = { "0": "\uFFFD", "128": "\u20AC", "130": "\u201A", "131": "\u0192", "132": "\u201E", "133": "\u2026", "134": "\u2020", "135": "\u2021", "136": "\u02C6", "137": "\u2030", "138": "\u0160", "139": "\u2039", "140": "\u0152", "142": "\u017D", "145": "\u2018", "146": "\u2019", "147": "\u201C", "148": "\u201D", "149": "\u2022", "150": "\u2013", "151": "\u2014", "152": "\u02DC", "153": "\u2122", "154": "\u0161", "155": "\u203A", "156": "\u0153", "158": "\u017E", "159": "\u0178" };
+      var invalidReferenceCodePoints = [1, 2, 3, 4, 5, 6, 7, 8, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 64976, 64977, 64978, 64979, 64980, 64981, 64982, 64983, 64984, 64985, 64986, 64987, 64988, 64989, 64990, 64991, 64992, 64993, 64994, 64995, 64996, 64997, 64998, 64999, 65e3, 65001, 65002, 65003, 65004, 65005, 65006, 65007, 65534, 65535, 131070, 131071, 196606, 196607, 262142, 262143, 327678, 327679, 393214, 393215, 458750, 458751, 524286, 524287, 589822, 589823, 655358, 655359, 720894, 720895, 786430, 786431, 851966, 851967, 917502, 917503, 983038, 983039, 1048574, 1048575, 1114110, 1114111];
+      var stringFromCharCode2 = String.fromCharCode;
+      var object = {};
+      var hasOwnProperty = object.hasOwnProperty;
+      var has = function(object2, propertyName) {
+        return hasOwnProperty.call(object2, propertyName);
+      };
+      var contains = function(array, value) {
+        var index = -1;
+        var length = array.length;
+        while (++index < length) {
+          if (array[index] == value) {
+            return true;
+          }
+        }
+        return false;
+      };
+      var merge = function(options, defaults) {
+        if (!options) {
+          return defaults;
+        }
+        var result = {};
+        var key2;
+        for (key2 in defaults) {
+          result[key2] = has(options, key2) ? options[key2] : defaults[key2];
+        }
+        return result;
+      };
+      var codePointToSymbol = function(codePoint, strict) {
+        var output = "";
+        if (codePoint >= 55296 && codePoint <= 57343 || codePoint > 1114111) {
+          if (strict) {
+            parseError("character reference outside the permissible Unicode range");
+          }
+          return "\uFFFD";
+        }
+        if (has(decodeMapNumeric, codePoint)) {
+          if (strict) {
+            parseError("disallowed character reference");
+          }
+          return decodeMapNumeric[codePoint];
+        }
+        if (strict && contains(invalidReferenceCodePoints, codePoint)) {
+          parseError("disallowed character reference");
+        }
+        if (codePoint > 65535) {
+          codePoint -= 65536;
+          output += stringFromCharCode2(codePoint >>> 10 & 1023 | 55296);
+          codePoint = 56320 | codePoint & 1023;
+        }
+        output += stringFromCharCode2(codePoint);
+        return output;
+      };
+      var hexEscape = function(codePoint) {
+        return "&#x" + codePoint.toString(16).toUpperCase() + ";";
+      };
+      var decEscape = function(codePoint) {
+        return "&#" + codePoint + ";";
+      };
+      var parseError = function(message) {
+        throw Error("Parse error: " + message);
+      };
+      var encode7 = function(string, options) {
+        options = merge(options, encode7.options);
+        var strict = options.strict;
+        if (strict && regexInvalidRawCodePoint.test(string)) {
+          parseError("forbidden code point");
+        }
+        var encodeEverything = options.encodeEverything;
+        var useNamedReferences = options.useNamedReferences;
+        var allowUnsafeSymbols = options.allowUnsafeSymbols;
+        var escapeCodePoint = options.decimal ? decEscape : hexEscape;
+        var escapeBmpSymbol = function(symbol) {
+          return escapeCodePoint(symbol.charCodeAt(0));
+        };
+        if (encodeEverything) {
+          string = string.replace(regexAsciiWhitelist, function(symbol) {
+            if (useNamedReferences && has(encodeMap, symbol)) {
+              return "&" + encodeMap[symbol] + ";";
+            }
+            return escapeBmpSymbol(symbol);
+          });
+          if (useNamedReferences) {
+            string = string.replace(/&gt;\u20D2/g, "&nvgt;").replace(/&lt;\u20D2/g, "&nvlt;").replace(/&#x66;&#x6A;/g, "&fjlig;");
+          }
+          if (useNamedReferences) {
+            string = string.replace(regexEncodeNonAscii, function(string3) {
+              return "&" + encodeMap[string3] + ";";
+            });
+          }
+        } else if (useNamedReferences) {
+          if (!allowUnsafeSymbols) {
+            string = string.replace(regexEscape, function(string3) {
+              return "&" + encodeMap[string3] + ";";
+            });
+          }
+          string = string.replace(/&gt;\u20D2/g, "&nvgt;").replace(/&lt;\u20D2/g, "&nvlt;");
+          string = string.replace(regexEncodeNonAscii, function(string3) {
+            return "&" + encodeMap[string3] + ";";
+          });
+        } else if (!allowUnsafeSymbols) {
+          string = string.replace(regexEscape, escapeBmpSymbol);
+        }
+        return string.replace(regexAstralSymbols, function($0) {
+          var high = $0.charCodeAt(0);
+          var low = $0.charCodeAt(1);
+          var codePoint = (high - 55296) * 1024 + low - 56320 + 65536;
+          return escapeCodePoint(codePoint);
+        }).replace(regexBmpWhitelist, escapeBmpSymbol);
+      };
+      encode7.options = {
+        "allowUnsafeSymbols": false,
+        "encodeEverything": false,
+        "strict": false,
+        "useNamedReferences": false,
+        "decimal": false
+      };
+      var decode5 = function(html, options) {
+        options = merge(options, decode5.options);
+        var strict = options.strict;
+        if (strict && regexInvalidEntity.test(html)) {
+          parseError("malformed character reference");
+        }
+        return html.replace(regexDecode, function($0, $1, $2, $3, $4, $5, $6, $7, $8) {
+          var codePoint;
+          var semicolon;
+          var decDigits;
+          var hexDigits;
+          var reference;
+          var next;
+          if ($1) {
+            reference = $1;
+            return decodeMap3[reference];
+          }
+          if ($2) {
+            reference = $2;
+            next = $3;
+            if (next && options.isAttributeValue) {
+              if (strict && next == "=") {
+                parseError("`&` did not start a character reference");
+              }
+              return $0;
+            } else {
+              if (strict) {
+                parseError(
+                  "named character reference was not terminated by a semicolon"
+                );
+              }
+              return decodeMapLegacy[reference] + (next || "");
+            }
+          }
+          if ($4) {
+            decDigits = $4;
+            semicolon = $5;
+            if (strict && !semicolon) {
+              parseError("character reference was not terminated by a semicolon");
+            }
+            codePoint = parseInt(decDigits, 10);
+            return codePointToSymbol(codePoint, strict);
+          }
+          if ($6) {
+            hexDigits = $6;
+            semicolon = $7;
+            if (strict && !semicolon) {
+              parseError("character reference was not terminated by a semicolon");
+            }
+            codePoint = parseInt(hexDigits, 16);
+            return codePointToSymbol(codePoint, strict);
+          }
+          if (strict) {
+            parseError(
+              "named character reference was not terminated by a semicolon"
+            );
+          }
+          return $0;
+        });
+      };
+      decode5.options = {
+        "isAttributeValue": false,
+        "strict": false
+      };
+      var escape3 = function(string) {
+        return string.replace(regexEscape, function($0) {
+          return escapeMap[$0];
+        });
+      };
+      var he3 = {
+        "version": "1.2.0",
+        "encode": encode7,
+        "decode": decode5,
+        "escape": escape3,
+        "unescape": decode5
+      };
+      if (typeof define == "function" && typeof define.amd == "object" && define.amd) {
+        define(function() {
+          return he3;
+        });
+      } else if (freeExports && !freeExports.nodeType) {
+        if (freeModule) {
+          freeModule.exports = he3;
+        } else {
+          for (var key in he3) {
+            has(he3, key) && (freeExports[key] = he3[key]);
+          }
+        }
+      } else {
+        root.he = he3;
+      }
+    })(exports2);
+  }
+});
+
+// node_modules/tlds/index.json
+var require_tlds = __commonJS({
+  "node_modules/tlds/index.json"(exports2, module2) {
+    module2.exports = [
+      "aaa",
+      "aarp",
+      "abb",
+      "abbott",
+      "abbvie",
+      "abc",
+      "able",
+      "abogado",
+      "abudhabi",
+      "ac",
+      "academy",
+      "accenture",
+      "accountant",
+      "accountants",
+      "aco",
+      "actor",
+      "ad",
+      "ads",
+      "adult",
+      "ae",
+      "aeg",
+      "aero",
+      "aetna",
+      "af",
+      "afl",
+      "africa",
+      "ag",
+      "agakhan",
+      "agency",
+      "ai",
+      "aig",
+      "airbus",
+      "airforce",
+      "airtel",
+      "akdn",
+      "al",
+      "alibaba",
+      "alipay",
+      "allfinanz",
+      "allstate",
+      "ally",
+      "alsace",
+      "alstom",
+      "am",
+      "amazon",
+      "americanexpress",
+      "americanfamily",
+      "amex",
+      "amfam",
+      "amica",
+      "amsterdam",
+      "analytics",
+      "android",
+      "anquan",
+      "anz",
+      "ao",
+      "aol",
+      "apartments",
+      "app",
+      "apple",
+      "aq",
+      "aquarelle",
+      "ar",
+      "arab",
+      "aramco",
+      "archi",
+      "army",
+      "arpa",
+      "art",
+      "arte",
+      "as",
+      "asda",
+      "asia",
+      "associates",
+      "at",
+      "athleta",
+      "attorney",
+      "au",
+      "auction",
+      "audi",
+      "audible",
+      "audio",
+      "auspost",
+      "author",
+      "auto",
+      "autos",
+      "aw",
+      "aws",
+      "ax",
+      "axa",
+      "az",
+      "azure",
+      "ba",
+      "baby",
+      "baidu",
+      "banamex",
+      "band",
+      "bank",
+      "bar",
+      "barcelona",
+      "barclaycard",
+      "barclays",
+      "barefoot",
+      "bargains",
+      "baseball",
+      "basketball",
+      "bauhaus",
+      "bayern",
+      "bb",
+      "bbc",
+      "bbt",
+      "bbva",
+      "bcg",
+      "bcn",
+      "bd",
+      "be",
+      "beats",
+      "beauty",
+      "beer",
+      "berlin",
+      "best",
+      "bestbuy",
+      "bet",
+      "bf",
+      "bg",
+      "bh",
+      "bharti",
+      "bi",
+      "bible",
+      "bid",
+      "bike",
+      "bing",
+      "bingo",
+      "bio",
+      "biz",
+      "bj",
+      "black",
+      "blackfriday",
+      "blockbuster",
+      "blog",
+      "bloomberg",
+      "blue",
+      "bm",
+      "bms",
+      "bmw",
+      "bn",
+      "bnpparibas",
+      "bo",
+      "boats",
+      "boehringer",
+      "bofa",
+      "bom",
+      "bond",
+      "boo",
+      "book",
+      "booking",
+      "bosch",
+      "bostik",
+      "boston",
+      "bot",
+      "boutique",
+      "box",
+      "br",
+      "bradesco",
+      "bridgestone",
+      "broadway",
+      "broker",
+      "brother",
+      "brussels",
+      "bs",
+      "bt",
+      "build",
+      "builders",
+      "business",
+      "buy",
+      "buzz",
+      "bv",
+      "bw",
+      "by",
+      "bz",
+      "bzh",
+      "ca",
+      "cab",
+      "cafe",
+      "cal",
+      "call",
+      "calvinklein",
+      "cam",
+      "camera",
+      "camp",
+      "canon",
+      "capetown",
+      "capital",
+      "capitalone",
+      "car",
+      "caravan",
+      "cards",
+      "care",
+      "career",
+      "careers",
+      "cars",
+      "casa",
+      "case",
+      "cash",
+      "casino",
+      "cat",
+      "catering",
+      "catholic",
+      "cba",
+      "cbn",
+      "cbre",
+      "cc",
+      "cd",
+      "center",
+      "ceo",
+      "cern",
+      "cf",
+      "cfa",
+      "cfd",
+      "cg",
+      "ch",
+      "chanel",
+      "channel",
+      "charity",
+      "chase",
+      "chat",
+      "cheap",
+      "chintai",
+      "christmas",
+      "chrome",
+      "church",
+      "ci",
+      "cipriani",
+      "circle",
+      "cisco",
+      "citadel",
+      "citi",
+      "citic",
+      "city",
+      "ck",
+      "cl",
+      "claims",
+      "cleaning",
+      "click",
+      "clinic",
+      "clinique",
+      "clothing",
+      "cloud",
+      "club",
+      "clubmed",
+      "cm",
+      "cn",
+      "co",
+      "coach",
+      "codes",
+      "coffee",
+      "college",
+      "cologne",
+      "com",
+      "commbank",
+      "community",
+      "company",
+      "compare",
+      "computer",
+      "comsec",
+      "condos",
+      "construction",
+      "consulting",
+      "contact",
+      "contractors",
+      "cooking",
+      "cool",
+      "coop",
+      "corsica",
+      "country",
+      "coupon",
+      "coupons",
+      "courses",
+      "cpa",
+      "cr",
+      "credit",
+      "creditcard",
+      "creditunion",
+      "cricket",
+      "crown",
+      "crs",
+      "cruise",
+      "cruises",
+      "cu",
+      "cuisinella",
+      "cv",
+      "cw",
+      "cx",
+      "cy",
+      "cymru",
+      "cyou",
+      "cz",
+      "dad",
+      "dance",
+      "data",
+      "date",
+      "dating",
+      "datsun",
+      "day",
+      "dclk",
+      "dds",
+      "de",
+      "deal",
+      "dealer",
+      "deals",
+      "degree",
+      "delivery",
+      "dell",
+      "deloitte",
+      "delta",
+      "democrat",
+      "dental",
+      "dentist",
+      "desi",
+      "design",
+      "dev",
+      "dhl",
+      "diamonds",
+      "diet",
+      "digital",
+      "direct",
+      "directory",
+      "discount",
+      "discover",
+      "dish",
+      "diy",
+      "dj",
+      "dk",
+      "dm",
+      "dnp",
+      "do",
+      "docs",
+      "doctor",
+      "dog",
+      "domains",
+      "dot",
+      "download",
+      "drive",
+      "dtv",
+      "dubai",
+      "dupont",
+      "durban",
+      "dvag",
+      "dvr",
+      "dz",
+      "earth",
+      "eat",
+      "ec",
+      "eco",
+      "edeka",
+      "edu",
+      "education",
+      "ee",
+      "eg",
+      "email",
+      "emerck",
+      "energy",
+      "engineer",
+      "engineering",
+      "enterprises",
+      "epson",
+      "equipment",
+      "er",
+      "ericsson",
+      "erni",
+      "es",
+      "esq",
+      "estate",
+      "et",
+      "eu",
+      "eurovision",
+      "eus",
+      "events",
+      "exchange",
+      "expert",
+      "exposed",
+      "express",
+      "extraspace",
+      "fage",
+      "fail",
+      "fairwinds",
+      "faith",
+      "family",
+      "fan",
+      "fans",
+      "farm",
+      "farmers",
+      "fashion",
+      "fast",
+      "fedex",
+      "feedback",
+      "ferrari",
+      "ferrero",
+      "fi",
+      "fidelity",
+      "fido",
+      "film",
+      "final",
+      "finance",
+      "financial",
+      "fire",
+      "firestone",
+      "firmdale",
+      "fish",
+      "fishing",
+      "fit",
+      "fitness",
+      "fj",
+      "fk",
+      "flickr",
+      "flights",
+      "flir",
+      "florist",
+      "flowers",
+      "fly",
+      "fm",
+      "fo",
+      "foo",
+      "food",
+      "football",
+      "ford",
+      "forex",
+      "forsale",
+      "forum",
+      "foundation",
+      "fox",
+      "fr",
+      "free",
+      "fresenius",
+      "frl",
+      "frogans",
+      "frontier",
+      "ftr",
+      "fujitsu",
+      "fun",
+      "fund",
+      "furniture",
+      "futbol",
+      "fyi",
+      "ga",
+      "gal",
+      "gallery",
+      "gallo",
+      "gallup",
+      "game",
+      "games",
+      "gap",
+      "garden",
+      "gay",
+      "gb",
+      "gbiz",
+      "gd",
+      "gdn",
+      "ge",
+      "gea",
+      "gent",
+      "genting",
+      "george",
+      "gf",
+      "gg",
+      "ggee",
+      "gh",
+      "gi",
+      "gift",
+      "gifts",
+      "gives",
+      "giving",
+      "gl",
+      "glass",
+      "gle",
+      "global",
+      "globo",
+      "gm",
+      "gmail",
+      "gmbh",
+      "gmo",
+      "gmx",
+      "gn",
+      "godaddy",
+      "gold",
+      "goldpoint",
+      "golf",
+      "goo",
+      "goodyear",
+      "goog",
+      "google",
+      "gop",
+      "got",
+      "gov",
+      "gp",
+      "gq",
+      "gr",
+      "grainger",
+      "graphics",
+      "gratis",
+      "green",
+      "gripe",
+      "grocery",
+      "group",
+      "gs",
+      "gt",
+      "gu",
+      "gucci",
+      "guge",
+      "guide",
+      "guitars",
+      "guru",
+      "gw",
+      "gy",
+      "hair",
+      "hamburg",
+      "hangout",
+      "haus",
+      "hbo",
+      "hdfc",
+      "hdfcbank",
+      "health",
+      "healthcare",
+      "help",
+      "helsinki",
+      "here",
+      "hermes",
+      "hiphop",
+      "hisamitsu",
+      "hitachi",
+      "hiv",
+      "hk",
+      "hkt",
+      "hm",
+      "hn",
+      "hockey",
+      "holdings",
+      "holiday",
+      "homedepot",
+      "homegoods",
+      "homes",
+      "homesense",
+      "honda",
+      "horse",
+      "hospital",
+      "host",
+      "hosting",
+      "hot",
+      "hotels",
+      "hotmail",
+      "house",
+      "how",
+      "hr",
+      "hsbc",
+      "ht",
+      "hu",
+      "hughes",
+      "hyatt",
+      "hyundai",
+      "ibm",
+      "icbc",
+      "ice",
+      "icu",
+      "id",
+      "ie",
+      "ieee",
+      "ifm",
+      "ikano",
+      "il",
+      "im",
+      "imamat",
+      "imdb",
+      "immo",
+      "immobilien",
+      "in",
+      "inc",
+      "industries",
+      "infiniti",
+      "info",
+      "ing",
+      "ink",
+      "institute",
+      "insurance",
+      "insure",
+      "int",
+      "international",
+      "intuit",
+      "investments",
+      "io",
+      "ipiranga",
+      "iq",
+      "ir",
+      "irish",
+      "is",
+      "ismaili",
+      "ist",
+      "istanbul",
+      "it",
+      "itau",
+      "itv",
+      "jaguar",
+      "java",
+      "jcb",
+      "je",
+      "jeep",
+      "jetzt",
+      "jewelry",
+      "jio",
+      "jll",
+      "jm",
+      "jmp",
+      "jnj",
+      "jo",
+      "jobs",
+      "joburg",
+      "jot",
+      "joy",
+      "jp",
+      "jpmorgan",
+      "jprs",
+      "juegos",
+      "juniper",
+      "kaufen",
+      "kddi",
+      "ke",
+      "kerryhotels",
+      "kerryproperties",
+      "kfh",
+      "kg",
+      "kh",
+      "ki",
+      "kia",
+      "kids",
+      "kim",
+      "kindle",
+      "kitchen",
+      "kiwi",
+      "km",
+      "kn",
+      "koeln",
+      "komatsu",
+      "kosher",
+      "kp",
+      "kpmg",
+      "kpn",
+      "kr",
+      "krd",
+      "kred",
+      "kuokgroup",
+      "kw",
+      "ky",
+      "kyoto",
+      "kz",
+      "la",
+      "lacaixa",
+      "lamborghini",
+      "lamer",
+      "land",
+      "landrover",
+      "lanxess",
+      "lasalle",
+      "lat",
+      "latino",
+      "latrobe",
+      "law",
+      "lawyer",
+      "lb",
+      "lc",
+      "lds",
+      "lease",
+      "leclerc",
+      "lefrak",
+      "legal",
+      "lego",
+      "lexus",
+      "lgbt",
+      "li",
+      "lidl",
+      "life",
+      "lifeinsurance",
+      "lifestyle",
+      "lighting",
+      "like",
+      "lilly",
+      "limited",
+      "limo",
+      "lincoln",
+      "link",
+      "live",
+      "living",
+      "lk",
+      "llc",
+      "llp",
+      "loan",
+      "loans",
+      "locker",
+      "locus",
+      "lol",
+      "london",
+      "lotte",
+      "lotto",
+      "love",
+      "lpl",
+      "lplfinancial",
+      "lr",
+      "ls",
+      "lt",
+      "ltd",
+      "ltda",
+      "lu",
+      "lundbeck",
+      "luxe",
+      "luxury",
+      "lv",
+      "ly",
+      "ma",
+      "madrid",
+      "maif",
+      "maison",
+      "makeup",
+      "man",
+      "management",
+      "mango",
+      "map",
+      "market",
+      "marketing",
+      "markets",
+      "marriott",
+      "marshalls",
+      "mattel",
+      "mba",
+      "mc",
+      "mckinsey",
+      "md",
+      "me",
+      "med",
+      "media",
+      "meet",
+      "melbourne",
+      "meme",
+      "memorial",
+      "men",
+      "menu",
+      "merckmsd",
+      "mg",
+      "mh",
+      "miami",
+      "microsoft",
+      "mil",
+      "mini",
+      "mint",
+      "mit",
+      "mitsubishi",
+      "mk",
+      "ml",
+      "mlb",
+      "mls",
+      "mm",
+      "mma",
+      "mn",
+      "mo",
+      "mobi",
+      "mobile",
+      "moda",
+      "moe",
+      "moi",
+      "mom",
+      "monash",
+      "money",
+      "monster",
+      "mormon",
+      "mortgage",
+      "moscow",
+      "moto",
+      "motorcycles",
+      "mov",
+      "movie",
+      "mp",
+      "mq",
+      "mr",
+      "ms",
+      "msd",
+      "mt",
+      "mtn",
+      "mtr",
+      "mu",
+      "museum",
+      "music",
+      "mv",
+      "mw",
+      "mx",
+      "my",
+      "mz",
+      "na",
+      "nab",
+      "nagoya",
+      "name",
+      "navy",
+      "nba",
+      "nc",
+      "ne",
+      "nec",
+      "net",
+      "netbank",
+      "netflix",
+      "network",
+      "neustar",
+      "new",
+      "news",
+      "next",
+      "nextdirect",
+      "nexus",
+      "nf",
+      "nfl",
+      "ng",
+      "ngo",
+      "nhk",
+      "ni",
+      "nico",
+      "nike",
+      "nikon",
+      "ninja",
+      "nissan",
+      "nissay",
+      "nl",
+      "no",
+      "nokia",
+      "norton",
+      "now",
+      "nowruz",
+      "nowtv",
+      "np",
+      "nr",
+      "nra",
+      "nrw",
+      "ntt",
+      "nu",
+      "nyc",
+      "nz",
+      "obi",
+      "observer",
+      "office",
+      "okinawa",
+      "olayan",
+      "olayangroup",
+      "ollo",
+      "om",
+      "omega",
+      "one",
+      "ong",
+      "onl",
+      "online",
+      "ooo",
+      "open",
+      "oracle",
+      "orange",
+      "org",
+      "organic",
+      "origins",
+      "osaka",
+      "otsuka",
+      "ott",
+      "ovh",
+      "pa",
+      "page",
+      "panasonic",
+      "paris",
+      "pars",
+      "partners",
+      "parts",
+      "party",
+      "pay",
+      "pccw",
+      "pe",
+      "pet",
+      "pf",
+      "pfizer",
+      "pg",
+      "ph",
+      "pharmacy",
+      "phd",
+      "philips",
+      "phone",
+      "photo",
+      "photography",
+      "photos",
+      "physio",
+      "pics",
+      "pictet",
+      "pictures",
+      "pid",
+      "pin",
+      "ping",
+      "pink",
+      "pioneer",
+      "pizza",
+      "pk",
+      "pl",
+      "place",
+      "play",
+      "playstation",
+      "plumbing",
+      "plus",
+      "pm",
+      "pn",
+      "pnc",
+      "pohl",
+      "poker",
+      "politie",
+      "porn",
+      "post",
+      "pr",
+      "praxi",
+      "press",
+      "prime",
+      "pro",
+      "prod",
+      "productions",
+      "prof",
+      "progressive",
+      "promo",
+      "properties",
+      "property",
+      "protection",
+      "pru",
+      "prudential",
+      "ps",
+      "pt",
+      "pub",
+      "pw",
+      "pwc",
+      "py",
+      "qa",
+      "qpon",
+      "quebec",
+      "quest",
+      "racing",
+      "radio",
+      "re",
+      "read",
+      "realestate",
+      "realtor",
+      "realty",
+      "recipes",
+      "red",
+      "redumbrella",
+      "rehab",
+      "reise",
+      "reisen",
+      "reit",
+      "reliance",
+      "ren",
+      "rent",
+      "rentals",
+      "repair",
+      "report",
+      "republican",
+      "rest",
+      "restaurant",
+      "review",
+      "reviews",
+      "rexroth",
+      "rich",
+      "richardli",
+      "ricoh",
+      "ril",
+      "rio",
+      "rip",
+      "ro",
+      "rocks",
+      "rodeo",
+      "rogers",
+      "room",
+      "rs",
+      "rsvp",
+      "ru",
+      "rugby",
+      "ruhr",
+      "run",
+      "rw",
+      "rwe",
+      "ryukyu",
+      "sa",
+      "saarland",
+      "safe",
+      "safety",
+      "sakura",
+      "sale",
+      "salon",
+      "samsclub",
+      "samsung",
+      "sandvik",
+      "sandvikcoromant",
+      "sanofi",
+      "sap",
+      "sarl",
+      "sas",
+      "save",
+      "saxo",
+      "sb",
+      "sbi",
+      "sbs",
+      "sc",
+      "scb",
+      "schaeffler",
+      "schmidt",
+      "scholarships",
+      "school",
+      "schule",
+      "schwarz",
+      "science",
+      "scot",
+      "sd",
+      "se",
+      "search",
+      "seat",
+      "secure",
+      "security",
+      "seek",
+      "select",
+      "sener",
+      "services",
+      "seven",
+      "sew",
+      "sex",
+      "sexy",
+      "sfr",
+      "sg",
+      "sh",
+      "shangrila",
+      "sharp",
+      "shell",
+      "shia",
+      "shiksha",
+      "shoes",
+      "shop",
+      "shopping",
+      "shouji",
+      "show",
+      "si",
+      "silk",
+      "sina",
+      "singles",
+      "site",
+      "sj",
+      "sk",
+      "ski",
+      "skin",
+      "sky",
+      "skype",
+      "sl",
+      "sling",
+      "sm",
+      "smart",
+      "smile",
+      "sn",
+      "sncf",
+      "so",
+      "soccer",
+      "social",
+      "softbank",
+      "software",
+      "sohu",
+      "solar",
+      "solutions",
+      "song",
+      "sony",
+      "soy",
+      "spa",
+      "space",
+      "sport",
+      "spot",
+      "sr",
+      "srl",
+      "ss",
+      "st",
+      "stada",
+      "staples",
+      "star",
+      "statebank",
+      "statefarm",
+      "stc",
+      "stcgroup",
+      "stockholm",
+      "storage",
+      "store",
+      "stream",
+      "studio",
+      "study",
+      "style",
+      "su",
+      "sucks",
+      "supplies",
+      "supply",
+      "support",
+      "surf",
+      "surgery",
+      "suzuki",
+      "sv",
+      "swatch",
+      "swiss",
+      "sx",
+      "sy",
+      "sydney",
+      "systems",
+      "sz",
+      "tab",
+      "taipei",
+      "talk",
+      "taobao",
+      "target",
+      "tatamotors",
+      "tatar",
+      "tattoo",
+      "tax",
+      "taxi",
+      "tc",
+      "tci",
+      "td",
+      "tdk",
+      "team",
+      "tech",
+      "technology",
+      "tel",
+      "temasek",
+      "tennis",
+      "teva",
+      "tf",
+      "tg",
+      "th",
+      "thd",
+      "theater",
+      "theatre",
+      "tiaa",
+      "tickets",
+      "tienda",
+      "tips",
+      "tires",
+      "tirol",
+      "tj",
+      "tjmaxx",
+      "tjx",
+      "tk",
+      "tkmaxx",
+      "tl",
+      "tm",
+      "tmall",
+      "tn",
+      "to",
+      "today",
+      "tokyo",
+      "tools",
+      "top",
+      "toray",
+      "toshiba",
+      "total",
+      "tours",
+      "town",
+      "toyota",
+      "toys",
+      "tr",
+      "trade",
+      "trading",
+      "training",
+      "travel",
+      "travelers",
+      "travelersinsurance",
+      "trust",
+      "trv",
+      "tt",
+      "tube",
+      "tui",
+      "tunes",
+      "tushu",
+      "tv",
+      "tvs",
+      "tw",
+      "tz",
+      "ua",
+      "ubank",
+      "ubs",
+      "ug",
+      "uk",
+      "unicom",
+      "university",
+      "uno",
+      "uol",
+      "ups",
+      "us",
+      "uy",
+      "uz",
+      "va",
+      "vacations",
+      "vana",
+      "vanguard",
+      "vc",
+      "ve",
+      "vegas",
+      "ventures",
+      "verisign",
+      "verm\xF6gensberater",
+      "verm\xF6gensberatung",
+      "versicherung",
+      "vet",
+      "vg",
+      "vi",
+      "viajes",
+      "video",
+      "vig",
+      "viking",
+      "villas",
+      "vin",
+      "vip",
+      "virgin",
+      "visa",
+      "vision",
+      "viva",
+      "vivo",
+      "vlaanderen",
+      "vn",
+      "vodka",
+      "volvo",
+      "vote",
+      "voting",
+      "voto",
+      "voyage",
+      "vu",
+      "wales",
+      "walmart",
+      "walter",
+      "wang",
+      "wanggou",
+      "watch",
+      "watches",
+      "weather",
+      "weatherchannel",
+      "webcam",
+      "weber",
+      "website",
+      "wed",
+      "wedding",
+      "weibo",
+      "weir",
+      "wf",
+      "whoswho",
+      "wien",
+      "wiki",
+      "williamhill",
+      "win",
+      "windows",
+      "wine",
+      "winners",
+      "wme",
+      "wolterskluwer",
+      "woodside",
+      "work",
+      "works",
+      "world",
+      "wow",
+      "ws",
+      "wtc",
+      "wtf",
+      "xbox",
+      "xerox",
+      "xihuan",
+      "xin",
+      "xxx",
+      "xyz",
+      "yachts",
+      "yahoo",
+      "yamaxun",
+      "yandex",
+      "ye",
+      "yodobashi",
+      "yoga",
+      "yokohama",
+      "you",
+      "youtube",
+      "yt",
+      "yun",
+      "za",
+      "zappos",
+      "zara",
+      "zero",
+      "zip",
+      "zm",
+      "zone",
+      "zuerich",
+      "zw",
+      "\u03B5\u03BB",
+      "\u03B5\u03C5",
+      "\u0431\u0433",
+      "\u0431\u0435\u043B",
+      "\u0434\u0435\u0442\u0438",
+      "\u0435\u044E",
+      "\u043A\u0430\u0442\u043E\u043B\u0438\u043A",
+      "\u043A\u043E\u043C",
+      "\u043C\u043A\u0434",
+      "\u043C\u043E\u043D",
+      "\u043C\u043E\u0441\u043A\u0432\u0430",
+      "\u043E\u043D\u043B\u0430\u0439\u043D",
+      "\u043E\u0440\u0433",
+      "\u0440\u0443\u0441",
+      "\u0440\u0444",
+      "\u0441\u0430\u0439\u0442",
+      "\u0441\u0440\u0431",
+      "\u0443\u043A\u0440",
+      "\u049B\u0430\u0437",
+      "\u0570\u0561\u0575",
+      "\u05D9\u05E9\u05E8\u05D0\u05DC",
+      "\u05E7\u05D5\u05DD",
+      "\u0627\u0628\u0648\u0638\u0628\u064A",
+      "\u0627\u0631\u0627\u0645\u0643\u0648",
+      "\u0627\u0644\u0627\u0631\u062F\u0646",
+      "\u0627\u0644\u0628\u062D\u0631\u064A\u0646",
+      "\u0627\u0644\u062C\u0632\u0627\u0626\u0631",
+      "\u0627\u0644\u0633\u0639\u0648\u062F\u064A\u0629",
+      "\u0627\u0644\u0639\u0644\u064A\u0627\u0646",
+      "\u0627\u0644\u0645\u063A\u0631\u0628",
+      "\u0627\u0645\u0627\u0631\u0627\u062A",
+      "\u0627\u06CC\u0631\u0627\u0646",
+      "\u0628\u0627\u0631\u062A",
+      "\u0628\u0627\u0632\u0627\u0631",
+      "\u0628\u064A\u062A\u0643",
+      "\u0628\u06BE\u0627\u0631\u062A",
+      "\u062A\u0648\u0646\u0633",
+      "\u0633\u0648\u062F\u0627\u0646",
+      "\u0633\u0648\u0631\u064A\u0629",
+      "\u0634\u0628\u0643\u0629",
+      "\u0639\u0631\u0627\u0642",
+      "\u0639\u0631\u0628",
+      "\u0639\u0645\u0627\u0646",
+      "\u0641\u0644\u0633\u0637\u064A\u0646",
+      "\u0642\u0637\u0631",
+      "\u0643\u0627\u062B\u0648\u0644\u064A\u0643",
+      "\u0643\u0648\u0645",
+      "\u0645\u0635\u0631",
+      "\u0645\u0644\u064A\u0633\u064A\u0627",
+      "\u0645\u0648\u0631\u064A\u062A\u0627\u0646\u064A\u0627",
+      "\u0645\u0648\u0642\u0639",
+      "\u0647\u0645\u0631\u0627\u0647",
+      "\u067E\u0627\u06A9\u0633\u062A\u0627\u0646",
+      "\u0680\u0627\u0631\u062A",
+      "\u0915\u0949\u092E",
+      "\u0928\u0947\u091F",
+      "\u092D\u093E\u0930\u0924",
+      "\u092D\u093E\u0930\u0924\u092E\u094D",
+      "\u092D\u093E\u0930\u094B\u0924",
+      "\u0938\u0902\u0917\u0920\u0928",
+      "\u09AC\u09BE\u0982\u09B2\u09BE",
+      "\u09AD\u09BE\u09B0\u09A4",
+      "\u09AD\u09BE\u09F0\u09A4",
+      "\u0A2D\u0A3E\u0A30\u0A24",
+      "\u0AAD\u0ABE\u0AB0\u0AA4",
+      "\u0B2D\u0B3E\u0B30\u0B24",
+      "\u0B87\u0BA8\u0BCD\u0BA4\u0BBF\u0BAF\u0BBE",
+      "\u0B87\u0BB2\u0B99\u0BCD\u0B95\u0BC8",
+      "\u0B9A\u0BBF\u0B99\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0BC2\u0BB0\u0BCD",
+      "\u0C2D\u0C3E\u0C30\u0C24\u0C4D",
+      "\u0CAD\u0CBE\u0CB0\u0CA4",
+      "\u0D2D\u0D3E\u0D30\u0D24\u0D02",
+      "\u0DBD\u0D82\u0D9A\u0DCF",
+      "\u0E04\u0E2D\u0E21",
+      "\u0E44\u0E17\u0E22",
+      "\u0EA5\u0EB2\u0EA7",
+      "\u10D2\u10D4",
+      "\u307F\u3093\u306A",
+      "\u30A2\u30DE\u30BE\u30F3",
+      "\u30AF\u30E9\u30A6\u30C9",
+      "\u30B0\u30FC\u30B0\u30EB",
+      "\u30B3\u30E0",
+      "\u30B9\u30C8\u30A2",
+      "\u30BB\u30FC\u30EB",
+      "\u30D5\u30A1\u30C3\u30B7\u30E7\u30F3",
+      "\u30DD\u30A4\u30F3\u30C8",
+      "\u4E16\u754C",
+      "\u4E2D\u4FE1",
+      "\u4E2D\u56FD",
+      "\u4E2D\u570B",
+      "\u4E2D\u6587\u7F51",
+      "\u4E9A\u9A6C\u900A",
+      "\u4F01\u4E1A",
+      "\u4F5B\u5C71",
+      "\u4FE1\u606F",
+      "\u5065\u5EB7",
+      "\u516B\u5366",
+      "\u516C\u53F8",
+      "\u516C\u76CA",
+      "\u53F0\u6E7E",
+      "\u53F0\u7063",
+      "\u5546\u57CE",
+      "\u5546\u5E97",
+      "\u5546\u6807",
+      "\u5609\u91CC",
+      "\u5609\u91CC\u5927\u9152\u5E97",
+      "\u5728\u7EBF",
+      "\u5927\u62FF",
+      "\u5929\u4E3B\u6559",
+      "\u5A31\u4E50",
+      "\u5BB6\u96FB",
+      "\u5E7F\u4E1C",
+      "\u5FAE\u535A",
+      "\u6148\u5584",
+      "\u6211\u7231\u4F60",
+      "\u624B\u673A",
+      "\u62DB\u8058",
+      "\u653F\u52A1",
+      "\u653F\u5E9C",
+      "\u65B0\u52A0\u5761",
+      "\u65B0\u95FB",
+      "\u65F6\u5C1A",
+      "\u66F8\u7C4D",
+      "\u673A\u6784",
+      "\u6DE1\u9A6C\u9521",
+      "\u6E38\u620F",
+      "\u6FB3\u9580",
+      "\u70B9\u770B",
+      "\u79FB\u52A8",
+      "\u7EC4\u7EC7\u673A\u6784",
+      "\u7F51\u5740",
+      "\u7F51\u5E97",
+      "\u7F51\u7AD9",
+      "\u7F51\u7EDC",
+      "\u8054\u901A",
+      "\u8C37\u6B4C",
+      "\u8D2D\u7269",
+      "\u901A\u8CA9",
+      "\u96C6\u56E2",
+      "\u96FB\u8A0A\u76C8\u79D1",
+      "\u98DE\u5229\u6D66",
+      "\u98DF\u54C1",
+      "\u9910\u5385",
+      "\u9999\u683C\u91CC\u62C9",
+      "\u9999\u6E2F",
+      "\uB2F7\uB137",
+      "\uB2F7\uCEF4",
+      "\uC0BC\uC131",
+      "\uD55C\uAD6D"
+    ];
+  }
+});
+
+// node_modules/mailparser/dist/esm/tlds.cjs
+var require_tlds2 = __commonJS({
+  "node_modules/mailparser/dist/esm/tlds.cjs"(exports2, module2) {
+    "use strict";
+    module2.exports = require_tlds();
+  }
+});
+
+// node_modules/punycode.js/punycode.js
+var require_punycode = __commonJS({
+  "node_modules/punycode.js/punycode.js"(exports2, module2) {
+    "use strict";
+    var maxInt2 = 2147483647;
+    var base2 = 36;
+    var tMin2 = 1;
+    var tMax2 = 26;
+    var skew2 = 38;
+    var damp2 = 700;
+    var initialBias2 = 72;
+    var initialN2 = 128;
+    var delimiter2 = "-";
+    var regexPunycode2 = /^xn--/;
+    var regexNonASCII2 = /[^\0-\x7F]/;
+    var regexSeparators2 = /[\x2E\u3002\uFF0E\uFF61]/g;
+    var errors2 = {
+      "overflow": "Overflow: input needs wider integers to process",
+      "not-basic": "Illegal input >= 0x80 (not a basic code point)",
+      "invalid-input": "Invalid input"
+    };
+    var baseMinusTMin2 = base2 - tMin2;
+    var floor2 = Math.floor;
+    var stringFromCharCode2 = String.fromCharCode;
+    function error3(type) {
+      throw new RangeError(errors2[type]);
+    }
+    function map3(array, callback) {
+      const result = [];
+      let length = array.length;
+      while (length--) {
+        result[length] = callback(array[length]);
+      }
+      return result;
+    }
+    function mapDomain2(domain, callback) {
+      const parts = domain.split("@");
+      let result = "";
+      if (parts.length > 1) {
+        result = parts[0] + "@";
+        domain = parts[1];
+      }
+      domain = domain.replace(regexSeparators2, ".");
+      const labels = domain.split(".");
+      const encoded = map3(labels, callback).join(".");
+      return result + encoded;
+    }
+    function ucs2decode2(string) {
+      const output = [];
+      let counter = 0;
+      const length = string.length;
+      while (counter < length) {
+        const value = string.charCodeAt(counter++);
+        if (value >= 55296 && value <= 56319 && counter < length) {
+          const extra = string.charCodeAt(counter++);
+          if ((extra & 64512) == 56320) {
+            output.push(((value & 1023) << 10) + (extra & 1023) + 65536);
+          } else {
+            output.push(value);
+            counter--;
+          }
+        } else {
+          output.push(value);
+        }
+      }
+      return output;
+    }
+    var ucs2encode = (codePoints) => String.fromCodePoint(...codePoints);
+    var basicToDigit2 = function(codePoint) {
+      if (codePoint >= 48 && codePoint < 58) {
+        return 26 + (codePoint - 48);
+      }
+      if (codePoint >= 65 && codePoint < 91) {
+        return codePoint - 65;
+      }
+      if (codePoint >= 97 && codePoint < 123) {
+        return codePoint - 97;
+      }
+      return base2;
+    };
+    var digitToBasic2 = function(digit, flag) {
+      return digit + 22 + 75 * (digit < 26) - ((flag != 0) << 5);
+    };
+    var adapt2 = function(delta, numPoints, firstTime) {
+      let k = 0;
+      delta = firstTime ? floor2(delta / damp2) : delta >> 1;
+      delta += floor2(delta / numPoints);
+      for (; delta > baseMinusTMin2 * tMax2 >> 1; k += base2) {
+        delta = floor2(delta / baseMinusTMin2);
+      }
+      return floor2(k + (baseMinusTMin2 + 1) * delta / (delta + skew2));
+    };
+    var decode5 = function(input) {
+      const output = [];
+      const inputLength = input.length;
+      let i = 0;
+      let n = initialN2;
+      let bias = initialBias2;
+      let basic = input.lastIndexOf(delimiter2);
+      if (basic < 0) {
+        basic = 0;
+      }
+      for (let j = 0; j < basic; ++j) {
+        if (input.charCodeAt(j) >= 128) {
+          error3("not-basic");
+        }
+        output.push(input.charCodeAt(j));
+      }
+      for (let index = basic > 0 ? basic + 1 : 0; index < inputLength; ) {
+        const oldi = i;
+        for (let w = 1, k = base2; ; k += base2) {
+          if (index >= inputLength) {
+            error3("invalid-input");
+          }
+          const digit = basicToDigit2(input.charCodeAt(index++));
+          if (digit >= base2) {
+            error3("invalid-input");
+          }
+          if (digit > floor2((maxInt2 - i) / w)) {
+            error3("overflow");
+          }
+          i += digit * w;
+          const t = k <= bias ? tMin2 : k >= bias + tMax2 ? tMax2 : k - bias;
+          if (digit < t) {
+            break;
+          }
+          const baseMinusT = base2 - t;
+          if (w > floor2(maxInt2 / baseMinusT)) {
+            error3("overflow");
+          }
+          w *= baseMinusT;
+        }
+        const out = output.length + 1;
+        bias = adapt2(i - oldi, out, oldi == 0);
+        if (floor2(i / out) > maxInt2 - n) {
+          error3("overflow");
+        }
+        n += floor2(i / out);
+        i %= out;
+        output.splice(i++, 0, n);
+      }
+      return String.fromCodePoint(...output);
+    };
+    var encode7 = function(input) {
+      const output = [];
+      input = ucs2decode2(input);
+      const inputLength = input.length;
+      let n = initialN2;
+      let delta = 0;
+      let bias = initialBias2;
+      for (const currentValue of input) {
+        if (currentValue < 128) {
+          output.push(stringFromCharCode2(currentValue));
+        }
+      }
+      const basicLength = output.length;
+      let handledCPCount = basicLength;
+      if (basicLength) {
+        output.push(delimiter2);
+      }
+      while (handledCPCount < inputLength) {
+        let m = maxInt2;
+        for (const currentValue of input) {
+          if (currentValue >= n && currentValue < m) {
+            m = currentValue;
+          }
+        }
+        const handledCPCountPlusOne = handledCPCount + 1;
+        if (m - n > floor2((maxInt2 - delta) / handledCPCountPlusOne)) {
+          error3("overflow");
+        }
+        delta += (m - n) * handledCPCountPlusOne;
+        n = m;
+        for (const currentValue of input) {
+          if (currentValue < n && ++delta > maxInt2) {
+            error3("overflow");
+          }
+          if (currentValue === n) {
+            let q = delta;
+            for (let k = base2; ; k += base2) {
+              const t = k <= bias ? tMin2 : k >= bias + tMax2 ? tMax2 : k - bias;
+              if (q < t) {
+                break;
+              }
+              const qMinusT = q - t;
+              const baseMinusT = base2 - t;
+              output.push(
+                stringFromCharCode2(digitToBasic2(t + qMinusT % baseMinusT, 0))
+              );
+              q = floor2(qMinusT / baseMinusT);
+            }
+            output.push(stringFromCharCode2(digitToBasic2(q, 0)));
+            bias = adapt2(delta, handledCPCountPlusOne, handledCPCount === basicLength);
+            delta = 0;
+            ++handledCPCount;
+          }
+        }
+        ++delta;
+        ++n;
+      }
+      return output.join("");
+    };
+    var toUnicode2 = function(input) {
+      return mapDomain2(input, function(string) {
+        return regexPunycode2.test(string) ? decode5(string.slice(4).toLowerCase()) : string;
+      });
+    };
+    var toASCII2 = function(input) {
+      return mapDomain2(input, function(string) {
+        return regexNonASCII2.test(string) ? "xn--" + encode7(string) : string;
+      });
+    };
+    var punycode2 = {
+      /**
+       * A string representing the current Punycode.js version number.
+       * @memberOf punycode
+       * @type String
+       */
+      "version": "2.3.1",
+      /**
+       * An object of methods to convert from JavaScript's internal character
+       * representation (UCS-2) to Unicode code points, and back.
+       * @see <https://mathiasbynens.be/notes/javascript-encoding>
+       * @memberOf punycode
+       * @type Object
+       */
+      "ucs2": {
+        "decode": ucs2decode2,
+        "encode": ucs2encode
+      },
+      "decode": decode5,
+      "encode": encode7,
+      "toASCII": toASCII2,
+      "toUnicode": toUnicode2
+    };
+    module2.exports = punycode2;
   }
 });
 
@@ -22372,9 +24315,9 @@ var DatabaseService = class {
     const applied = new Set(
       this.db.prepare("SELECT version FROM schema_migrations").all().map((row) => row.version)
     );
-    const apply = this.db.transaction((version3, name3, sql) => {
+    const apply = this.db.transaction((version3, name4, sql) => {
       this.db.exec(sql);
-      this.db.prepare("INSERT INTO schema_migrations(version, name, applied_at) VALUES(?, ?, ?)").run(version3, name3, (/* @__PURE__ */ new Date()).toISOString());
+      this.db.prepare("INSERT INTO schema_migrations(version, name, applied_at) VALUES(?, ?, ?)").run(version3, name4, (/* @__PURE__ */ new Date()).toISOString());
     });
     for (const migration of MIGRATIONS) {
       if (!applied.has(migration.version)) {
@@ -22476,10 +24419,10 @@ function snoozeUntil(days, now = /* @__PURE__ */ new Date()) {
 
 // src/shared/notifications/quiethours.ts
 function parseHHmm(value) {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
-  if (!match) return null;
-  const hours = Number.parseInt(match[1], 10);
-  const minutes = Number.parseInt(match[2], 10);
+  const match2 = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match2) return null;
+  const hours = Number.parseInt(match2[1], 10);
+  const minutes = Number.parseInt(match2[2], 10);
   if (!Number.isFinite(hours) || hours < 0 || hours > 23) return null;
   if (!Number.isFinite(minutes) || minutes < 0 || minutes > 59) return null;
   return { hours, minutes };
@@ -22515,10 +24458,10 @@ function parseISO(value) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 function parseHHmm2(value) {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
-  if (!match) return null;
-  const hours = Number.parseInt(match[1], 10);
-  const minutes = Number.parseInt(match[2], 10);
+  const match2 = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  if (!match2) return null;
+  const hours = Number.parseInt(match2[1], 10);
+  const minutes = Number.parseInt(match2[2], 10);
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   return { hours, minutes };
 }
@@ -23373,7 +25316,7 @@ var CredentialStore = class {
 var import_electron3 = require("electron");
 
 // src/main/email/email-service.ts
-var import_node_crypto11 = __toESM(require("node:crypto"));
+var import_node_crypto12 = __toESM(require("node:crypto"));
 
 // node_modules/imapflow/dist/esm/imap-flow.js
 var import_node_tls2 = __toESM(require("node:tls"), 1);
@@ -23479,12 +25422,12 @@ var AuthenticationFailure = class extends Error {
   }
 };
 function createImapError(message, code, props) {
-  const error2 = new Error(message);
-  error2.code = code;
+  const error3 = new Error(message);
+  error3.code = code;
   if (props) {
-    Object.assign(error2, props);
+    Object.assign(error3, props);
   }
-  return error2;
+  return error3;
 }
 
 // node_modules/imapflow/dist/esm/handler/limits.js
@@ -24141,8 +26084,8 @@ var TokenParser = class {
    */
   isFetchResponse() {
     let command2 = this.parent.command;
-    let first = this.tree.childNodes?.[0];
-    return typeof command2 === "string" && /^\d+$/.test(command2) && !!first && first.type === "ATOM" && typeof first.value === "string" && first.value.toUpperCase() === "FETCH";
+    let first2 = this.tree.childNodes?.[0];
+    return typeof command2 === "string" && /^\d+$/.test(command2) && !!first2 && first2.type === "ATOM" && typeof first2.value === "string" && first2.value.toUpperCase() === "FETCH";
   }
   /**
    * Marks the FETCH data item a too deeply nested node belongs to as truncated and records
@@ -24207,15 +26150,15 @@ var TokenParser = class {
       this.state = STATE_ATOM;
       i--;
     };
-    const startToken = (first) => {
+    const startToken = (first2) => {
       this.currentNode.value = "";
       tokenLength = 0;
       tokenSliced = true;
       tokenLast = tokenPrev = "";
       tokenDigitsOnly = true;
       tokenHasStar = tokenHasDot = false;
-      if (first) {
-        appendToToken(first);
+      if (first2) {
+        appendToToken(first2);
       }
     };
     let literalIndex = 0;
@@ -24509,9 +26452,9 @@ var TokenParser = class {
               let literalLength = this.currentNode.literalLength;
               if (literalLength > this.maxLiteralSize || literalLength > available) {
                 let overMax = literalLength > this.maxLiteralSize;
-                let error2 = createLiteralTooLargeError(literalLength, overMax ? this.maxLiteralSize : available, overMax ? null : `the ${available} bytes available in the input`);
-                error2.parserContext = { ...boundedInput(this.str), pos: this.pos + i, chr };
-                throw error2;
+                let error3 = createLiteralTooLargeError(literalLength, overMax ? this.maxLiteralSize : available, overMax ? null : `the ${available} bytes available in the input`);
+                error3.parserContext = { ...boundedInput(this.str), pos: this.pos + i, chr };
+                throw error3;
               }
               this.currentNode.started = true;
               this.currentNode.chBuffer = Buffer.alloc(this.currentNode.literalLength);
@@ -24671,11 +26614,11 @@ var ParserInstance = class {
       case "PREAUTH":
       case "BYE":
         {
-          let match = this.remainder.match(/^\s+\[/);
-          if (match) {
+          let match2 = this.remainder.match(/^\s+\[/);
+          if (match2) {
             let nesting = 1;
             let end = -1;
-            for (let i = match[0].length; i < this.remainder.length; i++) {
+            for (let i = match2[0].length; i < this.remainder.length; i++) {
               let c = this.remainder[i];
               if (c === "[") {
                 nesting++;
@@ -24688,7 +26631,7 @@ var ParserInstance = class {
               }
             }
             if (end < 0) {
-              end = this.remainder.indexOf("]", match[0].length);
+              end = this.remainder.indexOf("]", match2[0].length);
             }
             if (end >= 0) {
               this.humanReadable = this.remainder.substring(end + 1).trim();
@@ -24712,12 +26655,12 @@ var ParserInstance = class {
    * @throws {Error} If the element contains characters not in the syntax set, or if input ends unexpectedly.
    */
   async getElement(syntax) {
-    let match, element, errPos;
+    let match2, element, errPos;
     if (/^\s/.test(this.remainder)) {
       throw createImapError(`Unexpected whitespace at position ${this.pos} [E1]`, "ParserError1", { parserContext: this.errorContext() });
     }
-    if (match = this.remainder.match(/^\s*[^\s]+(?=\s|$)/)) {
-      element = match[0];
+    if (match2 = this.remainder.match(/^\s*[^\s]+(?=\s|$)/)) {
+      element = match2[0];
       if ((errPos = imap_formal_syntax_default.verify(element, syntax)) >= 0) {
         if (this.tag === "Server" && element === "Unavailable.") {
           throw createImapError(`Server returned an error: ${this.input}`, "ParserErrorExchange", {
@@ -24738,8 +26681,8 @@ var ParserInstance = class {
     } else {
       throw createImapError(`Unexpected end of input at position ${this.pos} [E3]`, "ParserError3", { parserContext: this.errorContext() });
     }
-    this.pos += match[0].length;
-    this.remainder = this.remainder.slice(match[0].length);
+    this.pos += match2[0].length;
+    this.remainder = this.remainder.slice(match2[0].length);
     return element;
   }
   /**
@@ -24840,8 +26783,8 @@ function readSearchResponse(str) {
     return readSearchNumbers(str);
   }
   const open = str.lastIndexOf(" (");
-  const match = open < 0 ? null : RE_SEARCH_MODSEQ.exec(str.slice(open));
-  if (!match) {
+  const match2 = open < 0 ? null : RE_SEARCH_MODSEQ.exec(str.slice(open));
+  if (!match2) {
     return null;
   }
   const search2 = readSearchNumbers(str.slice(0, open));
@@ -24850,7 +26793,7 @@ function readSearchResponse(str) {
     attributes: [
       [
         { type: "ATOM", value: "MODSEQ" },
-        { type: "ATOM", value: match[1] }
+        { type: "ATOM", value: match2[1] }
       ]
     ]
   };
@@ -24905,14 +26848,14 @@ async function parser(command2, options) {
       });
     }
   } catch (err) {
-    let error2 = asParserError(err, command2);
-    if (error2.code === "ParserErrorExchange" && error2.parserContext && error2.parserContext.value) {
-      return error2.parserContext.value;
+    let error3 = asParserError(err, command2);
+    if (error3.code === "ParserErrorExchange" && error3.parserContext && error3.parserContext.value) {
+      return error3.parserContext.value;
     }
     if (response.tag) {
-      error2.parsedTag = response.tag;
+      error3.parsedTag = response.tag;
     }
-    throw error2;
+    throw error3;
   }
   return response;
 }
@@ -25442,9 +27385,9 @@ function wrapLine(str, lineLength) {
       break;
     }
     let line = escapeHyphen ? "=2D" + str.substr(pos + 1, lineLength - 3) : str.substr(pos, lineLength);
-    let match;
-    if (match = line.substr(-lineMargin).match(/[ \t.,!?][^ \t.,!?]*$/)) {
-      line = line.substr(0, line.length - (match[0].length - 1));
+    let match2;
+    if (match2 = line.substr(-lineMargin).match(/[ \t.,!?][^ \t.,!?]*$/)) {
+      line = line.substr(0, line.length - (match2[0].length - 1));
     } else if (/[=][\da-f]{0,2}$/i.test(line)) {
       line = trimUtf8Sequence(line.replace(/[=][\da-f]?$/i, ""));
     }
@@ -25957,10 +27900,10 @@ var charsets_default = charsets;
 
 // node_modules/libmime/dist/esm/charset.js
 var UTF8_COMPATIBLE = /^(?:(?:us-)?ascii|utf-8|7bit)$/i;
-var UNSUPPORTED_CODECS = new Set(["utf7", "utf7imap", "base64", "hex"].map((name3) => import_iconv_lite.default.getCodec(name3)));
-var isUnsupportedCodec = (name3) => {
+var UNSUPPORTED_CODECS = new Set(["utf7", "utf7imap", "base64", "hex"].map((name4) => import_iconv_lite.default.getCodec(name4)));
+var isUnsupportedCodec = (name4) => {
   try {
-    return UNSUPPORTED_CODECS.has(import_iconv_lite.default.getCodec(name3));
+    return UNSUPPORTED_CODECS.has(import_iconv_lite.default.getCodec(name4));
   } catch (_err) {
     return false;
   }
@@ -26011,13 +27954,13 @@ function convert(data, fromCharset) {
   return encode3(data);
 }
 function normalizeCharset(charset) {
-  let name3 = (charset || "UTF-8").toString().toLowerCase().trim();
-  let canonical = CHARSET_ALIASES.get(name3);
+  let name4 = (charset || "UTF-8").toString().toLowerCase().trim();
+  let canonical = CHARSET_ALIASES.get(name4);
   if (canonical) {
     return canonical;
   }
-  name3 = name3.replace(/^utf[-_]?(\d+)/, "utf-$1").replace(/^(?:us[-_]?)ascii/, "windows-1252").replace(/^win(?:dows)?[-_]?(\d+)/, "windows-$1").replace(/^(?:latin|iso[-_]?8859)?[-_]?(\d+)/, "iso-8859-$1").replace(/^l[-_]?(\d+)/, "iso-8859-$1");
-  return CHARSET_ALIASES.get(name3) || name3.toUpperCase();
+  name4 = name4.replace(/^utf[-_]?(\d+)/, "utf-$1").replace(/^(?:us[-_]?)ascii/, "windows-1252").replace(/^win(?:dows)?[-_]?(\d+)/, "windows-$1").replace(/^(?:latin|iso[-_]?8859)?[-_]?(\d+)/, "iso-8859-$1").replace(/^l[-_]?(\d+)/, "iso-8859-$1");
+  return CHARSET_ALIASES.get(name4) || name4.toUpperCase();
 }
 var DBCS_DECODER = import_iconv_lite.default.getCodec("gbk").decoder;
 var BYTE_ORDER_GUESSING = /* @__PURE__ */ new Map([
@@ -28521,16 +30464,16 @@ var Libmime = class {
    * @return {String} Decoded unicode string
    */
   decodeWords(str) {
-    return (str || "").toString().replace(/(=\?([^?]+)\?[Bb]\?[^?]*\?=)\s*(?==\?([^?]+)\?[Bb]\?[^?]*\?=)/g, (match, left, chLeft, chRight) => {
+    return (str || "").toString().replace(/(=\?([^?]+)\?[Bb]\?[^?]*\?=)\s*(?==\?([^?]+)\?[Bb]\?[^?]*\?=)/g, (match2, left2, chLeft, chRight) => {
       if (normalizeCharset(chLeft || "") === normalizeCharset(chRight || "")) {
-        return left + "__\0JOIN\0__";
+        return left2 + "__\0JOIN\0__";
       }
-      return match;
-    }).replace(/(=\?([^?]+)\?[Qq]\?[^?]*\?=)\s*(?==\?([^?]+)\?[Qq]\?[^?]*\?=)/g, (match, left, chLeft, chRight) => {
+      return match2;
+    }).replace(/(=\?([^?]+)\?[Qq]\?[^?]*\?=)\s*(?==\?([^?]+)\?[Qq]\?[^?]*\?=)/g, (match2, left2, chLeft, chRight) => {
       if (normalizeCharset(chLeft || "") === normalizeCharset(chRight || "")) {
-        return left + "__\0JOIN\0__";
+        return left2 + "__\0JOIN\0__";
       }
-      return match;
+      return match2;
     }).replace(/(\?=)?__\x00JOIN\x00__(=\?([^?]+)\?[QqBb]\?)?/g, "").replace(/(=\?[^?]+\?[QqBb]\?[^?]*\?=)\s+(?==\?[^?]+\?[QqBb]\?[^?]*\?=)/g, "$1").replace(/=\?([\w_\-*]+)\?([QqBb])\?([^?]*)\?=/g, (_m, charset, encoding, text) => this.decodeWord(charset, encoding, text));
   }
   getHex(c) {
@@ -28548,7 +30491,7 @@ var Libmime = class {
    * @return {Object} An object of {key, value}
    */
   decodeHeader(headerLine) {
-    let line = (headerLine || "").toString().replace(/(?:\r?\n|\r)[ \t]*/g, " ").trim(), match = line.match(/^\s*([^:]+):(.*)$/), key = (match && match[1] || "").trim().toLowerCase(), value = (match && match[2] || "").trim();
+    let line = (headerLine || "").toString().replace(/(?:\r?\n|\r)[ \t]*/g, " ").trim(), match2 = line.match(/^\s*([^:]+):(.*)$/), key = (match2 && match2[1] || "").trim().toLowerCase(), value = (match2 && match2[2] || "").trim();
     return {
       key,
       value
@@ -28669,9 +30612,9 @@ var Libmime = class {
       value = "";
       valueEnd = 0;
       if (stage === STAGE_KEY) {
-        let name3 = collected.toLowerCase();
-        if (name3 && !Object.hasOwn(response.params, name3)) {
-          setOwnProperty(response.params, name3, "");
+        let name4 = collected.toLowerCase();
+        if (name4 && !Object.hasOwn(response.params, name4)) {
+          setOwnProperty(response.params, name4, "");
         }
       } else if (key === false) {
         response.value = collected;
@@ -28749,12 +30692,12 @@ var Libmime = class {
     commit();
     let continuations = /* @__PURE__ */ new Map();
     for (let key2 of Object.keys(response.params)) {
-      let match = key2.match(/\*((\d+)\*?)?$/);
-      if (!match) {
+      let match2 = key2.match(/\*((\d+)\*?)?$/);
+      if (!match2) {
         continue;
       }
-      let actualKey = key2.substring(0, match.index).toLowerCase();
-      let nr = Number(match[2]) || 0;
+      let actualKey = key2.substring(0, match2.index).toLowerCase();
+      let nr = Number(match2[2]) || 0;
       let value2 = response.params[key2];
       delete response.params[key2];
       let continuation = continuations.get(actualKey);
@@ -28765,9 +30708,9 @@ var Libmime = class {
         };
         continuations.set(actualKey, continuation);
       }
-      if (nr === 0 && match[0].charAt(match[0].length - 1) === "*" && (match = value2.match(/^([^']*)'[^']*'(.*)$/))) {
-        continuation.charset = match[1] || "utf-8";
-        value2 = match[2];
+      if (nr === 0 && match2[0].charAt(match2[0].length - 1) === "*" && (match2 = value2.match(/^([^']*)'[^']*'(.*)$/))) {
+        continuation.charset = match2[1] || "utf-8";
+        value2 = match2[2];
       }
       continuation.values.push({ nr, value: value2 });
     }
@@ -28956,22 +30899,22 @@ var Libmime = class {
   foldLines(input, lineLength, afterSpace) {
     let str = (input || "").toString();
     lineLength = lineLength || 76;
-    let pos = 0, len = str.length, result = "", line, match;
+    let pos = 0, len = str.length, result = "", line, match2;
     while (pos < len) {
       line = str.substring(pos, pos + Math.max(lineLength, 0));
       if (line.length < lineLength) {
         result += line;
         break;
       }
-      if (match = line.match(/^[^\n\r]*(\r?\n|\r)/)) {
-        line = match[0];
+      if (match2 = line.match(/^[^\n\r]*(\r?\n|\r)/)) {
+        line = match2[0];
         result += line;
         pos += line.length;
         continue;
-      } else if ((match = line.match(/(\s+)[^\s]*$/)) && match[0].length - (afterSpace ? (match[1] || "").length : 0) < line.length) {
-        line = line.substring(0, line.length - (match[0].length - (afterSpace ? (match[1] || "").length : 0)));
-      } else if (match = str.slice(pos + line.length).match(/^[^\s]+(\s*)/)) {
-        line = line + match[0].substring(0, match[0].length - (!afterSpace ? (match[1] || "").length : 0));
+      } else if ((match2 = line.match(/(\s+)[^\s]*$/)) && match2[0].length - (afterSpace ? (match2[1] || "").length : 0) < line.length) {
+        line = line.substring(0, line.length - (match2[0].length - (afterSpace ? (match2[1] || "").length : 0)));
+      } else if (match2 = str.slice(pos + line.length).match(/^[^\s]+(\s*)/)) {
+        line = line + match2[0].substring(0, match2[0].length - (!afterSpace ? (match2[1] || "").length : 0));
       }
       result += line;
       pos += line.length;
@@ -28989,19 +30932,19 @@ var Libmime = class {
    * @return {Array} Split string
    */
   splitMimeEncodedString(str, maxlen) {
-    let curLine, fallbackLine, match, chr, done, lines = [];
+    let curLine, fallbackLine, match2, chr, done, lines = [];
     maxlen = Math.max(maxlen || 0, 12);
     while (str.length) {
       curLine = str.substring(0, maxlen);
-      if (match = curLine.match(/[=][0-9A-F]?$/i)) {
-        curLine = curLine.substring(0, match.index);
+      if (match2 = curLine.match(/[=][0-9A-F]?$/i)) {
+        curLine = curLine.substring(0, match2.index);
       }
       fallbackLine = curLine.length ? curLine : str.substring(0, maxlen);
       done = false;
       while (!done && curLine.length) {
         done = true;
-        if (match = str.slice(curLine.length).match(/^[=]([0-9A-F]{2})/i)) {
-          chr = parseInt(match[1], 16);
+        if (match2 = str.slice(curLine.length).match(/^[=]([0-9A-F]{2})/i)) {
+          chr = parseInt(match2[1], 16);
           if (chr < 194 && chr > 127 && /=[0-9A-F]{2}$/i.test(curLine)) {
             curLine = curLine.substring(0, curLine.length - 3);
             done = false;
@@ -29369,17 +31312,17 @@ var ENCODING_NAMES = /* @__PURE__ */ new Set([
   "UNICODE"
 ]);
 function toJapaneseEncoding(charset) {
-  const name3 = charset.toUpperCase().replace(/[^A-Z0-9]+/g, "");
-  if (ENCODING_NAMES.has(name3)) {
-    return name3;
+  const name4 = charset.toUpperCase().replace(/[^A-Z0-9]+/g, "");
+  if (ENCODING_NAMES.has(name4)) {
+    return name4;
   }
-  if (/^EUC/.test(name3)) {
+  if (/^EUC/.test(name4)) {
     return "EUCJP";
   }
-  if (/^(JIS|ISO2022JP)/.test(name3)) {
+  if (/^(JIS|ISO2022JP)/.test(name4)) {
     return "JIS";
   }
-  if (/^(SHIFTJIS|XSJIS|CP932|MSKANJI|WINDOWS31J)/.test(name3)) {
+  if (/^(SHIFTJIS|XSJIS|CP932|MSKANJI|WINDOWS31J)/.test(name4)) {
     return "SJIS";
   }
   return "AUTO";
@@ -29472,23 +31415,23 @@ function buildConnectionError(cid, code, message, meta) {
   return createImapError(message, code, { cid, ...meta });
 }
 function restampConnectionError(err, meta) {
-  let error2 = buildConnectionError(err.cid, err.code, err.message, err);
+  let error3 = buildConnectionError(err.cid, err.code, err.message, err);
   for (let key of CONNECTION_ERROR_SITE_KEYS) {
-    delete error2[key];
+    delete error3[key];
   }
   if (meta) {
-    Object.assign(error2, meta);
+    Object.assign(error3, meta);
   }
-  error2.cause = err;
-  return error2;
+  error3.cause = err;
+  return error3;
 }
 function guardedPromise(executor) {
   let promise = new Promise(executor);
   promise.catch(noop);
   return promise;
 }
-function guardedReject(error2) {
-  let promise = Promise.reject(error2);
+function guardedReject(error3) {
+  let promise = Promise.reject(error3);
   promise.catch(noop);
   return promise;
 }
@@ -29596,7 +31539,7 @@ function comparePaths(connection, a, b) {
   return normalizePath(connection, a) === normalizePath(connection, b);
 }
 function updateCapabilities(list3) {
-  let map2 = /* @__PURE__ */ new Map();
+  let map3 = /* @__PURE__ */ new Map();
   if (list3 && Array.isArray(list3)) {
     list3.forEach((val) => {
       if (!val || typeof val.value !== "string") {
@@ -29604,22 +31547,22 @@ function updateCapabilities(list3) {
       }
       let capability2 = val.value.toUpperCase().trim();
       if (capability2 === "IMAP4REV1") {
-        map2.set("IMAP4rev1", true);
+        map3.set("IMAP4rev1", true);
         return;
       }
       if (capability2 === "IMAP4REV2") {
-        map2.set("IMAP4rev2", true);
+        map3.set("IMAP4rev2", true);
         return;
       }
       if (capability2.startsWith("APPENDLIMIT=")) {
         let splitPos = capability2.indexOf("=");
-        map2.set("APPENDLIMIT", parseUintValue(capability2.slice(splitPos + 1)) || 0);
+        map3.set("APPENDLIMIT", parseUintValue(capability2.slice(splitPos + 1)) || 0);
         return;
       }
-      map2.set(capability2, true);
+      map3.set(capability2, true);
     });
   }
-  return map2;
+  return map3;
 }
 function getStatusCode(response) {
   return response && typeof response === "object" && response.attributes && response.attributes[0] && response.attributes[0].section && response.attributes[0].section[0] && typeof response.attributes[0].section[0].value === "string" ? response.attributes[0].section[0].value.toUpperCase().trim() : false;
@@ -29668,9 +31611,9 @@ function getFolderTree(folders) {
     folders: []
   };
   let childIndex = /* @__PURE__ */ new Map();
-  let childByName = (node, name3) => {
+  let childByName = (node, name4) => {
     let index = childIndex.get(node);
-    return index ? index.get(name3) : void 0;
+    return index ? index.get(name4) : void 0;
   };
   let indexChild = (node, child) => {
     let index = childIndex.get(node);
@@ -29801,8 +31744,8 @@ function parseBodyStructureItem(attribute, seq, connection) {
   }
 }
 async function formatMessageResponse(untagged, mailbox, idHashAlgorithm, connection) {
-  let map2 = {};
-  map2.seq = parseUintValue(untagged.command, MAX_UINT32_DIGITS) || void 0;
+  let map3 = {};
+  map3.seq = parseUintValue(untagged.command, MAX_UINT32_DIGITS) || void 0;
   let key;
   let origin = false;
   let partialOrigins;
@@ -29821,7 +31764,7 @@ async function formatMessageResponse(untagged, mailbox, idHashAlgorithm, connect
       origin = false;
       key = imap_compiler_default({
         attributes: [attribute]
-      }).toString().toLowerCase().replace(/<(\d+)(\.\d+)?>$/, (match, start) => {
+      }).toString().toLowerCase().replace(/<(\d+)(\.\d+)?>$/, (match2, start) => {
         origin = parseUintValue(start, MAX_UINT32_DIGITS);
         return "";
       });
@@ -29857,13 +31800,13 @@ async function formatMessageResponse(untagged, mailbox, idHashAlgorithm, connect
     switch (key) {
       case "body[]":
       case "binary[]":
-        map2.source = getBuffer(attribute);
+        map3.source = getBuffer(attribute);
         recordOrigin("");
         break;
       case "uid":
-        map2.uid = getUint(attribute, MAX_UINT32_DIGITS) || void 0;
-        if (map2.uid && (!mailbox.uidNext || mailbox.uidNext <= map2.uid)) {
-          mailbox.uidNext = map2.uid + 1;
+        map3.uid = getUint(attribute, MAX_UINT32_DIGITS) || void 0;
+        if (map3.uid && (!mailbox.uidNext || mailbox.uidNext <= map3.uid)) {
+          mailbox.uidNext = map3.uid + 1;
         }
         break;
       case "modseq": {
@@ -29871,76 +31814,76 @@ async function formatMessageResponse(untagged, mailbox, idHashAlgorithm, connect
         if (modseq === false) {
           break;
         }
-        map2.modseq = modseq;
-        if (map2.modseq && (!mailbox.highestModseq || mailbox.highestModseq < map2.modseq)) {
-          mailbox.highestModseq = map2.modseq;
+        map3.modseq = modseq;
+        if (map3.modseq && (!mailbox.highestModseq || mailbox.highestModseq < map3.modseq)) {
+          mailbox.highestModseq = map3.modseq;
         }
         break;
       }
       case "emailid":
-        map2.emailId = getArray(attribute)[0];
+        map3.emailId = getArray(attribute)[0];
         break;
       case "x-gm-msgid":
-        map2.emailId = getString(attribute);
+        map3.emailId = getString(attribute);
         break;
       case "threadid":
-        map2.threadId = getArray(attribute)[0];
+        map3.threadId = getArray(attribute)[0];
         break;
       case "x-gm-thrid":
-        map2.threadId = getString(attribute);
+        map3.threadId = getString(attribute);
         break;
       case "x-gm-labels":
-        map2.labels = new Set(getArray(attribute).map((label) => connection ? decodePath(connection, label) : label));
+        map3.labels = new Set(getArray(attribute).map((label) => connection ? decodePath(connection, label) : label));
         break;
       case "rfc822.size":
-        map2.size = getUint(attribute) || 0;
+        map3.size = getUint(attribute) || 0;
         break;
       case "flags":
-        map2.flags = new Set(getArray(attribute));
+        map3.flags = new Set(getArray(attribute));
         break;
       // A server with nothing to report can answer ENVELOPE NIL or BODYSTRUCTURE NIL.
       // The field is left unset then: parsing NIL threw, and the whole message
       // disappeared from the FETCH result.
       case "envelope":
         if (Array.isArray(attribute)) {
-          map2.envelope = parseEnvelope(attribute);
+          map3.envelope = parseEnvelope(attribute);
         }
         break;
       case "bodystructure":
         if (Array.isArray(attribute)) {
-          map2.bodyStructure = parseBodyStructureItem(attribute, map2.seq, connection);
+          map3.bodyStructure = parseBodyStructureItem(attribute, map3.seq, connection);
         }
         break;
       case "internaldate": {
         let value = getString(attribute);
         let date = new Date(value);
         if (date.toString() === "Invalid Date") {
-          map2.internalDate = value;
+          map3.internalDate = value;
         } else {
-          map2.internalDate = date;
+          map3.internalDate = date;
         }
         break;
       }
       default: {
-        let match = key.match(/(body|binary)\[/i);
-        if (match) {
+        let match2 = key.match(/(body|binary)\[/i);
+        if (match2) {
           let partKey = key.replace(/^(body|binary)\[|]$/gi, "");
           partKey = partKey.replace(/\.fields.*$/g, "");
           let value = getBuffer(attribute);
           if (partKey === "header") {
-            map2.headers = value;
+            map3.headers = value;
             break;
           }
-          if (!map2.bodyParts) {
-            map2.bodyParts = /* @__PURE__ */ new Map();
+          if (!map3.bodyParts) {
+            map3.bodyParts = /* @__PURE__ */ new Map();
           }
-          map2.bodyParts.set(partKey, value);
+          map3.bodyParts.set(partKey, value);
           recordOrigin(partKey);
-          if (match[1].toLowerCase() === "binary") {
-            if (!map2.binaryParts) {
-              map2.binaryParts = /* @__PURE__ */ new Set();
+          if (match2[1].toLowerCase() === "binary") {
+            if (!map3.binaryParts) {
+              map3.binaryParts = /* @__PURE__ */ new Set();
             }
-            map2.binaryParts.add(partKey);
+            map3.binaryParts.add(partKey);
           }
           break;
         }
@@ -29948,7 +31891,7 @@ async function formatMessageResponse(untagged, mailbox, idHashAlgorithm, connect
       }
     }
   }
-  if (map2.emailId || map2.uid) {
+  if (map3.emailId || map3.uid) {
     let path5 = mailbox.path;
     if (/[\u0080-\uffff]/.test(path5)) {
       try {
@@ -29956,21 +31899,21 @@ async function formatMessageResponse(untagged, mailbox, idHashAlgorithm, connect
       } catch {
       }
     }
-    map2.id = map2.emailId || (0, import_node_crypto3.createHash)(idHashAlgorithm || "md5").update([path5, mailbox.uidValidity?.toString() || "", map2.uid.toString()].join(":")).digest("hex");
+    map3.id = map3.emailId || (0, import_node_crypto3.createHash)(idHashAlgorithm || "md5").update([path5, mailbox.uidValidity?.toString() || "", map3.uid.toString()].join(":")).digest("hex");
   }
   if (partialOrigins) {
-    Object.defineProperty(map2, "partialOrigins", { value: partialOrigins, writable: true, configurable: true });
+    Object.defineProperty(map3, "partialOrigins", { value: partialOrigins, writable: true, configurable: true });
   }
-  if (map2.flags) {
-    let flagColor = getFlagColor(map2.flags);
+  if (map3.flags) {
+    let flagColor = getFlagColor(map3.flags);
     if (flagColor) {
-      map2.flagColor = flagColor;
+      map3.flagColor = flagColor;
     }
   }
-  return map2;
+  return map3;
 }
-function processName(name3) {
-  let value = (name3 || "").toString();
+function processName(name4) {
+  let value = (name4 || "").toString();
   if (value.length > 2 && value.at(0) === '"' && value.at(-1) === '"') {
     value = value.slice(1, -1);
   }
@@ -29998,13 +31941,13 @@ function parseEnvelope(entry) {
         return false;
       }
       let entry2 = addr;
-      let name3 = decodeText(getStrValue(entry2[0]));
+      let name4 = decodeText(getStrValue(entry2[0]));
       let mailbox = getStrValue(entry2[2]) || "";
       let host = getStrValue(entry2[3]) || "";
       if (!host) {
-        return { name: name3 || mailbox && decodeText(mailbox), address: "" };
+        return { name: name4 || mailbox && decodeText(mailbox), address: "" };
       }
-      return { name: name3, address: `${mailbox}@${host}` };
+      return { name: name4, address: `${mailbox}@${host}` };
     }).filter((addr) => !!(addr && (addr.name || addr.address)));
   }, envelope = {};
   if (entry[0] && entry[0].value) {
@@ -30066,12 +32009,12 @@ function getStructuredParams(arr) {
     let actualKey;
     let nr;
     let value;
-    let match = key2.match(/\*((\d+)\*?)?$/);
-    if (!match) {
+    let match2 = key2.match(/\*((\d+)\*?)?$/);
+    if (!match2) {
       return;
     }
-    actualKey = key2.substring(0, match.index).toLowerCase();
-    nr = Number(match[2]) || 0;
+    actualKey = key2.substring(0, match2.index).toLowerCase();
+    nr = Number(match2[2]) || 0;
     if (isUnsafeKey(actualKey)) {
       delete params[key2];
       return;
@@ -30083,9 +32026,9 @@ function getStructuredParams(arr) {
       };
     }
     value = params[key2];
-    if (nr === 0 && match[0].at(-1) === "*" && (match = value.match(/^([^']*)'[^']*'(.*)$/))) {
-      params[actualKey].charset = match[1] || "utf-8";
-      value = match[2];
+    if (nr === 0 && match2[0].at(-1) === "*" && (match2 = value.match(/^([^']*)'[^']*'(.*)$/))) {
+      params[actualKey].charset = match2[1] || "utf-8";
+      value = match2[2];
     }
     params[actualKey].values.push({ nr, value });
     delete params[key2];
@@ -30334,19 +32277,19 @@ function parseRangeEntries(range) {
       }
       continue;
     }
-    let first = Number(entry.substring(0, colon));
+    let first2 = Number(entry.substring(0, colon));
     let second = Number(entry.slice(colon + 1));
-    if (isValidSequenceValue(first) && isValidSequenceValue(second)) {
-      entries.push([first, second]);
+    if (isValidSequenceValue(first2) && isValidSequenceValue(second)) {
+      entries.push([first2, second]);
     }
   }
   return entries;
 }
 function* iterateRange(range) {
   let count = 0;
-  for (let [first, second] of parseRangeEntries(range)) {
-    let step = first <= second ? 1 : -1;
-    for (let i = first; count < EXPANDED_RANGE_LIMIT; i += step) {
+  for (let [first2, second] of parseRangeEntries(range)) {
+    let step = first2 <= second ? 1 : -1;
+    for (let i = first2; count < EXPANDED_RANGE_LIMIT; i += step) {
       yield i;
       count++;
       if (i === second) {
@@ -30360,8 +32303,8 @@ function* iterateRange(range) {
 }
 function countRange(range) {
   let count = 0;
-  for (let [first, second] of parseRangeEntries(range)) {
-    count += Math.abs(second - first) + 1;
+  for (let [first2, second] of parseRangeEntries(range)) {
+    count += Math.abs(second - first2) + 1;
     if (count >= EXPANDED_RANGE_LIMIT) {
       return EXPANDED_RANGE_LIMIT;
     }
@@ -31284,7 +33227,7 @@ async function id(connection, clientInfo) {
   }
   let response;
   try {
-    let map2 = {};
+    let map3 = {};
     let formattedClientInfo = !clientInfo ? null : Object.keys(clientInfo).map((key) => [key, formatValue(key, clientInfo[key])]).filter((entry) => entry[1]).flatMap((entry) => entry);
     if (formattedClientInfo && !formattedClientInfo.length) {
       formattedClientInfo = null;
@@ -31301,18 +33244,18 @@ async function id(connection, clientInfo) {
             if (i % 2 === 0) {
               key = value;
             } else if (key !== void 0 && value !== void 0) {
-              let name3 = key.toLowerCase().trim();
-              if (!isUnsafeKey(name3)) {
-                map2[name3] = value;
+              let name4 = key.toLowerCase().trim();
+              if (!isUnsafeKey(name4)) {
+                map3[name4] = value;
               }
             }
           });
         }
       }
     });
-    connection.serverInfo = map2;
+    connection.serverInfo = map3;
     response.next();
-    return map2;
+    return map3;
   } catch (err) {
     connection.log.warn({ err, cid: connection.id });
     return false;
@@ -31353,18 +33296,18 @@ async function namespace(connection) {
     if (delimiter2 && prefix && prefix.charAt(prefix.length - 1) !== delimiter2) {
       prefix += delimiter2;
     }
-    let map2 = {
+    let map3 = {
       personal: [{ prefix: prefix || "", delimiter: delimiter2 }],
       other: false,
       shared: false
     };
-    connection.namespaces = map2;
+    connection.namespaces = map3;
     connection.namespace = connection.namespaces.personal[0];
     return connection.namespace;
   }
   let response;
   try {
-    let map2 = { personal: [], other: false, shared: false };
+    let map3 = { personal: [], other: false, shared: false };
     response = await connection.exec("NAMESPACE", false, {
       untagged: {
         // The NAMESPACE response (RFC 2342) contains exactly three sections:
@@ -31376,14 +33319,14 @@ async function namespace(connection) {
           if (!untagged.attributes || !untagged.attributes.length) {
             return;
           }
-          map2.personal = getNamsepaceInfo(untagged.attributes[0]) || [];
-          map2.other = getNamsepaceInfo(untagged.attributes[1]);
-          map2.shared = getNamsepaceInfo(untagged.attributes[2]);
+          map3.personal = getNamsepaceInfo(untagged.attributes[0]) || [];
+          map3.other = getNamsepaceInfo(untagged.attributes[1]);
+          map3.shared = getNamsepaceInfo(untagged.attributes[2]);
         }
       }
     });
     response.next();
-    connection.namespaces = map2;
+    connection.namespaces = map3;
     if (!connection.namespaces.personal[0]) {
       connection.namespaces.personal[0] = { prefix: "", delimiter: "." };
     }
@@ -31402,24 +33345,24 @@ async function namespace(connection) {
 async function getListPrefix(connection) {
   let response;
   try {
-    let map2 = {};
+    let map3 = {};
     response = await connection.exec("LIST", ["", ""], {
       untagged: {
         LIST: async (untagged) => {
           if (!untagged.attributes || !untagged.attributes.length) {
             return;
           }
-          map2.flags = new Set(getStringList(untagged.attributes[0]));
-          map2.delimiter = getStringValue(untagged.attributes[1]) || null;
-          map2.prefix = getStringValue(untagged.attributes[2]) || "";
-          if (map2.delimiter && map2.prefix.charAt(0) === map2.delimiter) {
-            map2.prefix = map2.prefix.slice(1);
+          map3.flags = new Set(getStringList(untagged.attributes[0]));
+          map3.delimiter = getStringValue(untagged.attributes[1]) || null;
+          map3.prefix = getStringValue(untagged.attributes[2]) || "";
+          if (map3.delimiter && map3.prefix.charAt(0) === map3.delimiter) {
+            map3.prefix = map3.prefix.slice(1);
           }
         }
       }
     });
     response.next();
-    return map2;
+    return map3;
   } catch (err) {
     connection.log.warn({ err, cid: connection.id });
     return {};
@@ -31541,16 +33484,16 @@ var STATUS_FIELDS = {
   DELETED: { key: "deleted", parser: uint32 }
 };
 var parseStatusList = (list3, onField) => {
-  let name3;
+  let name4;
   list3.forEach((entry, i) => {
     if (i % 2 === 0) {
-      name3 = entry && typeof entry.value === "string" ? entry.value : false;
+      name4 = entry && typeof entry.value === "string" ? entry.value : false;
       return;
     }
-    if (!name3 || !entry) {
+    if (!name4 || !entry) {
       return;
     }
-    const field = STATUS_FIELDS[name3.toUpperCase()];
+    const field = STATUS_FIELDS[name4.toUpperCase()];
     if (!field) {
       return;
     }
@@ -31621,7 +33564,7 @@ var GENERIC_TOKENS = new Set([
   "mesajlar",
   "\u03BC\u03B7\u03BD\u03CD\u03BC\u03B1\u03C4\u03B1",
   "\u03C3\u03C4\u03BF\u03B9\u03C7\u03B5\u03AF\u03B1"
-].map((token) => token.toLowerCase().normalize("NFKC")));
+].map((token2) => token2.toLowerCase().normalize("NFKC")));
 var TOKEN_SPLIT = /[\s\-_/.,()[\]]+/;
 var flags = ["\\All", "\\Archive", "\\Drafts", "\\Flagged", "\\Junk", "\\Sent", "\\Trash"];
 var LOWERCASE_FLAGS = flags.map((flag) => flag.toLowerCase());
@@ -32408,8 +34351,8 @@ for (let flag of Object.keys(names)) {
     NAME_INDEX.set(entry, flag);
   }
 }
-function normalizeName(name3) {
-  return name3.toLowerCase().replace(/[\u200e\u200f]/g, "").trim().normalize("NFKC");
+function normalizeName(name4) {
+  return name4.toLowerCase().replace(/[\u200e\u200f]/g, "").trim().normalize("NFKC");
 }
 var specialUse = (hasSpecialUseExtension, folder) => {
   if (hasSpecialUseExtension) {
@@ -32420,13 +34363,13 @@ var specialUse = (hasSpecialUseExtension, folder) => {
       return { flag: flag2, source: "extension" };
     }
   }
-  let name3 = normalizeName(folder.name);
-  let flag = NAME_INDEX.get(name3);
+  let name4 = normalizeName(folder.name);
+  let flag = NAME_INDEX.get(name4);
   if (flag) {
     return { flag, source: "name" };
   }
-  let core = name3.split(TOKEN_SPLIT).filter((token) => token && !GENERIC_TOKENS.has(token));
-  if (core.length === 1 && core[0] !== name3) {
+  let core = name4.split(TOKEN_SPLIT).filter((token2) => token2 && !GENERIC_TOKENS.has(token2));
+  if (core.length === 1 && core[0] !== name4) {
     flag = NAME_INDEX.get(core[0]);
     if (flag) {
       return { flag, source: "name-guess" };
@@ -32554,11 +34497,11 @@ async function list2(connection, reference, mailbox, options) {
             if (!statusList || !statusPath) {
               return;
             }
-            let map2 = { path: statusPath };
+            let map3 = { path: statusPath };
             parseStatusList(statusList, (key, value) => {
-              map2[key] = value;
+              map3[key] = value;
             });
-            statusMap.set(statusPath, map2);
+            statusMap.set(statusPath, map3);
           }
         }
       });
@@ -32724,7 +34667,7 @@ async function list2(connection, reference, mailbox, options) {
         connection.log.warn({ msg: "Failed to request subscription info", err, cid: connection.id });
       }
     }
-    let candidates = Object.entries(specialUseMatches).flatMap(([type, matches]) => matches.map((match) => ({ type, ...match })));
+    let candidates = Object.entries(specialUseMatches).flatMap(([type, matches]) => matches.map((match2) => ({ type, ...match2 })));
     candidates.sort((a, b) => {
       let aSource = SOURCE_SORT_ORDER.indexOf(a.source);
       let bSource = SOURCE_SORT_ORDER.indexOf(b.source);
@@ -32821,9 +34764,9 @@ async function enable(connection, extensionList) {
     });
     if (!sawEnabled) {
       for (let extension of extensionList) {
-        let name3 = extension.toUpperCase();
-        if (name3 === "CONDSTORE" || name3 === "QRESYNC") {
-          enabled.add(name3);
+        let name4 = extension.toUpperCase();
+        if (name4 === "CONDSTORE" || name4 === "QRESYNC") {
+          enabled.add(name4);
         }
       }
     }
@@ -32893,11 +34836,11 @@ async function select(connection, pathInput, options) {
   let folderListData = connection.folders.has(path5) ? connection.folders.get(path5) : false;
   let response;
   try {
-    let map2 = { path: path5 };
+    let map3 = { path: path5 };
     if (folderListData) {
       ["delimiter", "specialUse", "subscribed", "listed"].forEach((key) => {
         if (folderListData[key]) {
-          map2[key] = folderListData[key];
+          map3[key] = folderListData[key];
         }
       });
     }
@@ -32911,7 +34854,7 @@ async function select(connection, pathInput, options) {
           { type: "ATOM", value: options.changedSince.toString() }
         ]
       ]);
-      map2.qresync = true;
+      map3.qresync = true;
     }
     let encodedPath = encodePath(connection, path5);
     let selectCommand = {
@@ -32944,12 +34887,12 @@ async function select(connection, pathInput, options) {
             if (field) {
               let parsed = field.parse(value);
               if (parsed !== false) {
-                map2[field.key] = parsed;
+                map3[field.key] = parsed;
               }
             }
           }
           if (section2 && section2.length === 1 && section2[0] && section2[0].type === "ATOM" && section2[0].value?.toUpperCase() === "NOMODSEQ") {
-            map2.noModseq = true;
+            map3.noModseq = true;
           }
         },
         // Untagged FLAGS response lists all flags defined for this mailbox
@@ -32958,7 +34901,7 @@ async function select(connection, pathInput, options) {
           if (!untagged.attributes || !untagged.attributes.length || !Array.isArray(untagged.attributes[0])) {
             return;
           }
-          map2.flags = new Set(getStringList(untagged.attributes[0]));
+          map3.flags = new Set(getStringList(untagged.attributes[0]));
         },
         // Untagged EXISTS response: "* <count> EXISTS" tells us the total number
         // of messages in the mailbox. The count is in the command field (numeric prefix).
@@ -32967,7 +34910,7 @@ async function select(connection, pathInput, options) {
           if (num === false) {
             return false;
           }
-          map2.exists = num;
+          map3.exists = num;
         },
         // VANISHED responses (QRESYNC): server reports UIDs that have been expunged
         // since the client's last known state. Only received when QRESYNC was requested.
@@ -32985,32 +34928,32 @@ async function select(connection, pathInput, options) {
     let okAttributes = response.response && response.response.attributes || [];
     let section = okAttributes[0] && !okAttributes[0].value && okAttributes[0].section;
     if (section && section.length && section[0] && section[0].type === "ATOM" && typeof section[0].value === "string") {
-      map2.readOnly = section[0].value.toUpperCase() === "READ-ONLY";
+      map3.readOnly = section[0].value.toUpperCase() === "READ-ONLY";
     }
-    if (map2.qresync && (uidValidity !== map2.uidValidity || !map2.highestModseq || map2.noModseq)) {
-      map2.qresync = false;
+    if (map3.qresync && (uidValidity !== map3.uidValidity || !map3.highestModseq || map3.noModseq)) {
+      map3.qresync = false;
     }
     let currentMailbox = connection.mailbox;
     connection.mailbox = false;
-    let reopened = !currentMailbox || currentMailbox.path !== path5 || !!currentMailbox.uidValidity && !!map2.uidValidity && currentMailbox.uidValidity !== map2.uidValidity;
+    let reopened = !currentMailbox || currentMailbox.path !== path5 || !!currentMailbox.uidValidity && !!map3.uidValidity && currentMailbox.uidValidity !== map3.uidValidity;
     if (currentMailbox && reopened) {
       emitSafe(connection, "mailboxClose", currentMailbox);
     }
-    connection.mailbox = map2;
+    connection.mailbox = map3;
     connection.currentSelectCommand = selectCommand;
     connection.state = connection.states.SELECTED;
     if (reopened || !currentMailbox) {
       emitSafe(connection, "mailboxOpen", connection.mailbox);
     } else {
-      if (typeof map2.exists === "number" && map2.exists !== currentMailbox.exists) {
-        emitSafe(connection, "exists", { path: path5, count: map2.exists, prevCount: currentMailbox.exists });
+      if (typeof map3.exists === "number" && map3.exists !== currentMailbox.exists) {
+        emitSafe(connection, "exists", { path: path5, count: map3.exists, prevCount: currentMailbox.exists });
       }
-      if (map2.highestModseq && map2.highestModseq !== currentMailbox.highestModseq) {
-        emitSafe(connection, "highestModseq", { path: path5, highestModseq: map2.highestModseq, prevHighestModseq: currentMailbox.highestModseq });
+      if (map3.highestModseq && map3.highestModseq !== currentMailbox.highestModseq) {
+        emitSafe(connection, "highestModseq", { path: path5, highestModseq: map3.highestModseq, prevHighestModseq: currentMailbox.highestModseq });
       }
     }
     response.next();
-    return map2;
+    return map3;
   } catch (err) {
     await reportCommandError(connection, err);
     if (connection.state === connection.states.SELECTED) {
@@ -33053,8 +34996,8 @@ async function fetch(connection, range, query, options) {
       let queryStructure = [];
       let setBodyPeek = (attributes2, partial) => {
         let section = [].concat(attributes2 || []);
-        let first = section[0];
-        let binaryAddressable = !section.length || section.length === 1 && typeof first.value === "string" && /^\d+(\.\d+)*$/.test(first.value);
+        let first2 = section[0];
+        let binaryAddressable = !section.length || section.length === 1 && typeof first2.value === "string" && /^\d+(\.\d+)*$/.test(first2.value);
         let bodyPeek = {
           type: "ATOM",
           value: `${binaryAddressable ? commandKey : "BODY"}.PEEK`,
@@ -33064,13 +35007,13 @@ async function fetch(connection, range, query, options) {
         queryStructure.push(bodyPeek);
       };
       let full = !!query.full;
-      let all = !!query.all || full;
-      let fast = !!query.fast || all;
+      let all2 = !!query.all || full;
+      let fast = !!query.fast || all2;
       let items = {
         flags: query.flags || fast,
         internalDate: query.internalDate || fast,
         size: query.size || fast,
-        envelope: query.envelope || all,
+        envelope: query.envelope || all2,
         bodyStructure: query.bodyStructure || full
       };
       if (query.uid) {
@@ -33250,7 +35193,7 @@ async function create(connection, path5) {
   path5 = normalizePath(connection, path5);
   let response;
   try {
-    let map2 = {
+    let map3 = {
       path: path5
     };
     response = await connection.exec("CREATE", [{ type: "ATOM", value: encodePath(connection, path5) }]);
@@ -33273,14 +35216,14 @@ async function create(connection, path5) {
             break;
         }
         if (key && value) {
-          map2[key] = value;
+          map3[key] = value;
         }
       });
     }
-    map2.created = true;
+    map3.created = true;
     response.next();
     await connection.run("SUBSCRIBE", path5);
-    return map2;
+    return map3;
   } catch (err) {
     let errorCode = getStatusCode(err.response);
     if (errorCode === "ALREADYEXISTS") {
@@ -33306,12 +35249,12 @@ async function deleteMailbox(connection, path5) {
   }
   let response;
   try {
-    let map2 = {
+    let map3 = {
       path: path5
     };
     response = await connection.exec("DELETE", [{ type: "ATOM", value: encodePath(connection, path5) }]);
     response.next();
-    return map2;
+    return map3;
   } catch (err) {
     await reportCommandError(connection, err);
     throw err;
@@ -33331,7 +35274,7 @@ async function rename(connection, path5, newPath) {
   }
   let response;
   try {
-    let map2 = {
+    let map3 = {
       path: path5,
       newPath
     };
@@ -33340,7 +35283,7 @@ async function rename(connection, path5, newPath) {
       { type: "ATOM", value: encodePath(connection, newPath) }
     ]);
     response.next();
-    return map2;
+    return map3;
   } catch (err) {
     await reportCommandError(connection, err);
     throw err;
@@ -33637,19 +35580,19 @@ var searchCompiler = (connection, query) => {
           if (!labelQuery || typeof labelQuery !== "object") {
             break;
           }
-          let formatLabel = (name3) => {
-            let label = (name3 || "").toString().replace(/[\s"]+/g, " ").trim();
+          let formatLabel = (name4) => {
+            let label = (name4 || "").toString().replace(/[\s"]+/g, " ").trim();
             return label.indexOf(" ") >= 0 ? `"${label}"` : label;
           };
           let rawParts = [];
-          for (let name3 of [].concat(labelQuery.has || [])) {
-            if (name3) {
-              rawParts.push(`label:${formatLabel(name3)}`);
+          for (let name4 of [].concat(labelQuery.has || [])) {
+            if (name4) {
+              rawParts.push(`label:${formatLabel(name4)}`);
             }
           }
-          for (let name3 of [].concat(labelQuery.not || [])) {
-            if (name3) {
-              rawParts.push(`-label:${formatLabel(name3)}`);
+          for (let name4 of [].concat(labelQuery.not || [])) {
+            if (name4) {
+              rawParts.push(`-label:${formatLabel(name4)}`);
             }
           }
           if (!rawParts.length) {
@@ -33791,12 +35734,12 @@ function parseEsearchResponse(attrs) {
   const result = {};
   let i = 0;
   while (i < attrs.length) {
-    const token = attrs[i];
-    if (!token || token.type !== "ATOM") {
+    const token2 = attrs[i];
+    if (!token2 || token2.type !== "ATOM") {
       i++;
       continue;
     }
-    const key = token.value.toUpperCase();
+    const key = token2.value.toUpperCase();
     if (i + 1 >= attrs.length) {
       i++;
       continue;
@@ -33862,12 +35805,12 @@ var RE_SEQUENCE_SET = /^(?:\d+|\*)(?::(?:\d+|\*))?(?:,(?:\d+|\*)(?::(?:\d+|\*))?
 function checkEsearchAnswer(attrs, uid, problems) {
   let correlator;
   let i = 0;
-  const first = attrs[0];
-  if (Array.isArray(first)) {
+  const first2 = attrs[0];
+  if (Array.isArray(first2)) {
     i++;
-    const name3 = first[0];
-    correlator = getStringValue(first[1]);
-    if (first.length !== 2 || name3?.type !== "ATOM" || String(name3.value).toUpperCase() !== "TAG" || correlator === void 0) {
+    const name4 = first2[0];
+    correlator = getStringValue(first2[1]);
+    if (first2.length !== 2 || name4?.type !== "ATOM" || String(name4.value).toUpperCase() !== "TAG" || correlator === void 0) {
       problems.add("invalid correlator");
       correlator = void 0;
     }
@@ -33892,20 +35835,20 @@ function checkEsearchAnswer(attrs, uid, problems) {
       problems.add("item without a value");
       return correlator;
     }
-    const name3 = key.value.toUpperCase();
-    if (items.has(name3)) {
+    const name4 = key.value.toUpperCase();
+    if (items.has(name4)) {
       problems.add("repeated item");
     }
-    items.set(name3, value);
+    items.set(name4, value);
   }
-  const all = items.get("ALL");
-  if (all && (Array.isArray(all) || typeof all.value !== "string" || !RE_SEQUENCE_SET.test(all.value))) {
+  const all2 = items.get("ALL");
+  if (all2 && (Array.isArray(all2) || typeof all2.value !== "string" || !RE_SEQUENCE_SET.test(all2.value))) {
     problems.add("ALL is not a sequence-set");
   }
   if (items.has("PARTIAL")) {
     problems.add("partial result");
   }
-  if (!all) {
+  if (!all2) {
     const count = items.get("COUNT");
     if (count && (Array.isArray(count) || count.value !== "0") || items.has("MIN") || items.has("MAX")) {
       problems.add("result without ALL");
@@ -34067,13 +36010,13 @@ async function search(connection, query, options) {
                 add(value);
                 continue;
               }
-              let first = resolveId(part.substring(0, colon));
+              let first2 = resolveId(part.substring(0, colon));
               let second = resolveId(part.slice(colon + 1));
-              if (!isValidSequenceValue(first) || !isValidSequenceValue(second)) {
+              if (!isValidSequenceValue(first2) || !isValidSequenceValue(second)) {
                 discarded = true;
                 continue;
               }
-              for (let id2 = Math.min(first, second); id2 <= Math.max(first, second); id2++) {
+              for (let id2 = Math.min(first2, second); id2 <= Math.max(first2, second); id2++) {
                 if (overBudget()) {
                   truncated = true;
                   break sequenceSetLoop;
@@ -34234,23 +36177,23 @@ async function append(connection, destination, content, flags2, idate) {
     isLiteral8 = message.indexOf(0) >= 0;
   }
   attributes.push({ type: "LITERAL", value: message, isLiteral8 });
-  let map2 = { destination };
+  let map3 = { destination };
   if (connection.mailbox && connection.mailbox.path) {
-    map2.path = connection.mailbox.path;
+    map3.path = connection.mailbox.path;
   }
   const handleExistsUpdate = (untagged) => {
     let seq = parseUintValue(untagged.command, MAX_UINT32_DIGITS);
     if (seq === false) {
       return;
     }
-    map2.seq = seq;
+    map3.seq = seq;
     if (targetMailbox) {
       let prevCount = targetMailbox.exists;
-      if (map2.seq !== prevCount) {
-        targetMailbox.exists = map2.seq;
+      if (map3.seq !== prevCount) {
+        targetMailbox.exists = map3.seq;
         emitSafe(connection, "exists", {
           path: targetMailbox.path,
-          count: map2.seq,
+          count: map3.seq,
           prevCount
         });
       }
@@ -34264,21 +36207,21 @@ async function append(connection, destination, content, flags2, idate) {
     });
     let section = response.response.attributes && response.response.attributes[0] && response.response.attributes[0].section;
     if (section && section.length) {
-      let first = section[0];
-      let responseCode = first && typeof first.value === "string" ? first.value : "";
+      let first2 = section[0];
+      let responseCode = first2 && typeof first2.value === "string" ? first2.value : "";
       if (responseCode.toUpperCase() === "APPENDUID") {
         let uidValidity = parseBigIntValue(section[1] && section[1].value, MAX_UINT32_DIGITS);
         let uid = parseUintValue(section[2] && section[2].value, MAX_UINT32_DIGITS);
         if (uid) {
-          map2.uid = uid;
+          map3.uid = uid;
           if (uidValidity) {
-            map2.uidValidity = uidValidity;
+            map3.uidValidity = uidValidity;
           }
         }
       }
     }
     response.next();
-    if (targetMailbox && !map2.seq) {
+    if (targetMailbox && !map3.seq) {
       try {
         response = await connection.exec("NOOP", false, {
           untagged: { EXISTS: handleExistsUpdate },
@@ -34289,17 +36232,17 @@ async function append(connection, destination, content, flags2, idate) {
         connection.log.warn({ err, cid: connection.id });
       }
     }
-    if (map2.seq && !map2.uid) {
+    if (map3.seq && !map3.uid) {
       try {
-        let list3 = await connection.search({ seq: map2.seq }, { uid: true });
+        let list3 = await connection.search({ seq: map3.seq }, { uid: true });
         if (Array.isArray(list3) && list3.length) {
-          map2.uid = list3[0];
+          map3.uid = list3[0];
         }
       } catch (err) {
         logConnectionError(connection, "Failed to look up the UID of the appended message", err);
       }
     }
-    return map2;
+    return map3;
   } catch (err) {
     await reportCommandError(connection, err);
     throw err;
@@ -34341,7 +36284,7 @@ async function status(connection, path5, query) {
   attributes.push(queryAttributes);
   let response;
   try {
-    let map2 = { path: path5 };
+    let map3 = { path: path5 };
     response = await connection.exec("STATUS", attributes, {
       untagged: {
         // STATUS response: * STATUS <mailbox> (<key> <value> <key> <value> ...)
@@ -34355,12 +36298,12 @@ async function status(connection, path5, query) {
           }
           let updates = [];
           parseStatusList(list3, (key, value) => {
-            map2[key] = value;
+            map3[key] = value;
             if (currentMailbox && MAILBOX_UPDATERS[key]) {
               updates.push([key, value]);
             }
           });
-          if (currentMailbox && map2.uidValidity && currentMailbox.uidValidity && map2.uidValidity !== currentMailbox.uidValidity) {
+          if (currentMailbox && map3.uidValidity && currentMailbox.uidValidity && map3.uidValidity !== currentMailbox.uidValidity) {
             return;
           }
           for (let [key, value] of updates) {
@@ -34371,9 +36314,9 @@ async function status(connection, path5, query) {
     });
     response.next();
     if (syntheticRecent) {
-      map2.recent = 0;
+      map3.recent = 0;
     }
-    return map2;
+    return map3;
   } catch (err) {
     if (err.responseStatus === "NO") {
       let folders = await connection.run("LIST", "", path5, { listOnly: true }).catch((listErr) => {
@@ -34396,7 +36339,7 @@ var uidSetValues = (attribute) => {
   const value = attribute && attribute.value;
   return isUidSet(value) ? expandRange2(value) : false;
 };
-function parseCopyUid(response, map2) {
+function parseCopyUid(response, map3) {
   let section = response.attributes && response.attributes[0] && response.attributes[0].section;
   let responseCode = section && section.length && section[0] && typeof section[0].value === "string" ? section[0].value : "";
   if (responseCode !== "COPYUID") {
@@ -34405,12 +36348,12 @@ function parseCopyUid(response, map2) {
   let codeSection = section;
   let uidValidity = parseBigIntValue(codeSection[1] && codeSection[1].value);
   if (uidValidity !== false) {
-    map2.uidValidity = uidValidity;
+    map3.uidValidity = uidValidity;
   }
   const sourceUids = uidSetValues(codeSection[2]);
   const destinationUids = uidSetValues(codeSection[3]);
   if (sourceUids && destinationUids && sourceUids.length === destinationUids.length) {
-    map2.uidMap = new Map(sourceUids.map((uid, i) => [uid, destinationUids[i]]));
+    map3.uidMap = new Map(sourceUids.map((uid, i) => [uid, destinationUids[i]]));
   }
 }
 
@@ -34430,9 +36373,9 @@ async function copy(connection, range, destination, options) {
   try {
     response = await connection.exec(options.uid ? "UID COPY" : "COPY", attributes);
     response.next();
-    let map2 = { path: mailbox.path, destination };
-    parseCopyUid(response.response, map2);
-    return map2;
+    let map3 = { path: mailbox.path, destination };
+    parseCopyUid(response.response, map3);
+    return map3;
   } catch (err) {
     await reportCommandError(connection, err);
     return false;
@@ -34451,7 +36394,7 @@ async function move(connection, range, destination, options) {
     { type: "SEQUENCE", value: range },
     { type: "ATOM", value: encodePath(connection, destination) }
   ];
-  let map2 = { path: mailbox.path, destination };
+  let map3 = { path: mailbox.path, destination };
   if (!hasCapability(connection, "MOVE")) {
     let result = await connection.messageCopy(range, destination, options);
     if (!result) {
@@ -34465,13 +36408,13 @@ async function move(connection, range, destination, options) {
     response = await connection.exec(options.uid ? "UID MOVE" : "MOVE", attributes, {
       untagged: {
         OK: async (untagged) => {
-          parseCopyUid(untagged, map2);
+          parseCopyUid(untagged, map3);
         }
       }
     });
     response.next();
-    parseCopyUid(response.response, map2);
-    return map2;
+    parseCopyUid(response.response, map3);
+    return map3;
   } catch (err) {
     await reportCommandError(connection, err);
     return false;
@@ -34491,11 +36434,11 @@ async function compress(connection) {
     return false;
   }
   if (response.hasTrailingData) {
-    let error2 = createImapError("Server sent data between the COMPRESS response and the compression layer switch", "COMPRESS_TRAILING_DATA");
-    connection.log.error({ err: error2, cid: connection.id });
+    let error3 = createImapError("Server sent data between the COMPRESS response and the compression layer switch", "COMPRESS_TRAILING_DATA");
+    connection.log.error({ err: error3, cid: connection.id });
     connection.closeConnectionAfter();
     response.next();
-    throw error2;
+    throw error3;
   }
   response.next();
   return true;
@@ -34510,7 +36453,7 @@ async function quota(connection, path5) {
     return false;
   }
   path5 = normalizePath(connection, path5);
-  let map2 = { path: path5 };
+  let map3 = { path: path5 };
   let processQuotaResponse = (untagged) => {
     let attributes = untagged.attributes && untagged.attributes[1];
     if (!attributes || !Array.isArray(attributes) || !attributes.length) {
@@ -34533,10 +36476,10 @@ async function quota(connection, path5) {
       if (isUnsafeKey(key) || key === "path" || key === "quotaroot") {
         return;
       }
-      let resource = map2[key];
+      let resource = map3[key];
       if (typeof resource !== "object") {
         resource = {};
-        map2[key] = resource;
+        map3[key] = resource;
       }
       const multiplier = key === "storage" ? 1024 : 1;
       if (position === 1) {
@@ -34559,7 +36502,7 @@ async function quota(connection, path5) {
         QUOTAROOT: async (untagged) => {
           let quotaRoot = getStringValue(untagged.attributes && untagged.attributes[1]);
           if (quotaRoot) {
-            map2.quotaRoot = quotaRoot;
+            map3.quotaRoot = quotaRoot;
           }
         },
         // QUOTA response provides the actual resource usage and limits
@@ -34570,8 +36513,8 @@ async function quota(connection, path5) {
       }
     });
     response.next();
-    if (map2.quotaRoot && !quotaFound) {
-      response = await connection.exec("GETQUOTA", [{ type: "ATOM", value: map2.quotaRoot }], {
+    if (map3.quotaRoot && !quotaFound) {
+      response = await connection.exec("GETQUOTA", [{ type: "ATOM", value: map3.quotaRoot }], {
         untagged: {
           QUOTA: async (untagged) => {
             processQuotaResponse(untagged);
@@ -34580,7 +36523,7 @@ async function quota(connection, path5) {
       });
       response.next();
     }
-    return map2;
+    return map3;
   } catch (err) {
     await reportCommandError(connection, err);
     return false;
@@ -34590,11 +36533,11 @@ async function quota(connection, path5) {
 // node_modules/imapflow/dist/esm/commands/idle.js
 var NOOP_INTERVAL = 2 * 60 * 1e3;
 function claimIdling(connection) {
-  let token = {};
-  connection._idleSession = token;
+  let token2 = {};
+  connection._idleSession = token2;
   connection.idling = true;
   return () => {
-    if (connection._idleSession === token) {
+    if (connection._idleSession === token2) {
       connection._idleSession = null;
       connection.idling = false;
     }
@@ -35612,10 +37555,10 @@ var ImapFlow = class extends import_node_events.EventEmitter {
         keepReading = await this.handleResponse(data);
       } catch (err) {
         keepReading = false;
-        let error2 = createImapError("Failed to process server response", "ResponseProcessingFailed", { _err: err });
+        let error3 = createImapError("Failed to process server response", "ResponseProcessingFailed", { _err: err });
         this.log.error({ msg: "Failed to process server response", err, cid: this.id });
-        this.rejectCurrentRequest(error2);
-        this.failProtocol(error2);
+        this.rejectCurrentRequest(error3);
+        this.failProtocol(error3);
       } finally {
         this._processingResponse = false;
         this.releaseStreamData(data);
@@ -35645,8 +37588,8 @@ var ImapFlow = class extends import_node_events.EventEmitter {
     }
     let tag2 = parserError && parserError.parsedTag;
     if (!tag2) {
-      let match = payload.toString("latin1", 0, 64).match(/^\0*([^\s\x00-\x1f\x7f]+)/);
-      tag2 = match && match[1];
+      let match2 = payload.toString("latin1", 0, 64).match(/^\0*([^\s\x00-\x1f\x7f]+)/);
+      tag2 = match2 && match2[1];
     }
     if (!tag2 || tag2 !== this.currentRequest.tag) {
       return false;
@@ -35672,14 +37615,14 @@ var ImapFlow = class extends import_node_events.EventEmitter {
     if (!this.currentRequest || !this.currentRequest.sent) {
       return false;
     }
-    let match = payload.toString("latin1", 0, 1024).match(/^\0*(BAD|NO)(?:\s+([^]*))?$/i);
-    if (!match) {
+    let match2 = payload.toString("latin1", 0, 1024).match(/^\0*(BAD|NO)(?:\s+([^]*))?$/i);
+    if (!match2) {
       return false;
     }
     let err = createImapError("Command failed", "MissingTag", {
       command: this.currentRequest.command,
-      responseStatus: match[1].toUpperCase(),
-      responseText: (match[2] || "").trim().replace(/^"(.*)"$/, "$1")
+      responseStatus: match2[1].toUpperCase(),
+      responseText: (match2[2] || "").trim().replace(/^"(.*)"$/, "$1")
     });
     this.log.warn({ msg: "Server sent a status response without a tag", err, cid: this.id });
     this.failInFlight(err);
@@ -36817,10 +38760,10 @@ var ImapFlow = class extends import_node_events.EventEmitter {
         if (err.code === "CONNECT_TIMEOUT") {
           throw err;
         }
-        let error2 = new Error("Failed to setup proxy connection");
-        error2.code = err.code || "ProxyError";
-        error2._err = err;
-        throw error2;
+        let error3 = new Error("Failed to setup proxy connection");
+        error3.code = err.code || "ProxyError";
+        error3._err = err;
+        throw error3;
       }
       if (this.isClosed) {
         socket.destroy();
@@ -36967,11 +38910,11 @@ var ImapFlow = class extends import_node_events.EventEmitter {
   // reason. Single source of truth so every NoConnection rejection is consistent.
   /** @internal */
   createNoConnectionError(byeReason, meta) {
-    const error2 = this.createConnectionError("NoConnection", "Connection not available", meta);
+    const error3 = this.createConnectionError("NoConnection", "Connection not available", meta);
     if (byeReason) {
-      error2.reason = byeReason;
+      error3.reason = byeReason;
     }
-    return error2;
+    return error3;
   }
   // What a message command called without a selected mailbox rejects with: NoMailboxSelected,
   // or NoConnection once the connection is gone, as that is why the mailbox is missing then
@@ -38265,6 +40208,8876 @@ if (typeof Symbol.asyncDispose === "symbol") {
   };
 }
 
+// node_modules/mailparser/dist/esm/mail-parser.js
+var import_mailsplit2 = __toESM(require_mailsplit(), 1);
+var import_flowed_decoder2 = __toESM(require_flowed_decoder(), 1);
+var import_he2 = __toESM(require_he(), 1);
+
+// node_modules/domelementtype/lib/esm/index.js
+var ElementType;
+(function(ElementType2) {
+  ElementType2["Root"] = "root";
+  ElementType2["Text"] = "text";
+  ElementType2["Directive"] = "directive";
+  ElementType2["Comment"] = "comment";
+  ElementType2["Script"] = "script";
+  ElementType2["Style"] = "style";
+  ElementType2["Tag"] = "tag";
+  ElementType2["CDATA"] = "cdata";
+  ElementType2["Doctype"] = "doctype";
+})(ElementType || (ElementType = {}));
+function isTag(elem) {
+  return elem.type === ElementType.Tag || elem.type === ElementType.Script || elem.type === ElementType.Style;
+}
+var Root = ElementType.Root;
+var Text = ElementType.Text;
+var Directive = ElementType.Directive;
+var Comment = ElementType.Comment;
+var Script = ElementType.Script;
+var Style = ElementType.Style;
+var Tag = ElementType.Tag;
+var CDATA = ElementType.CDATA;
+var Doctype = ElementType.Doctype;
+
+// node_modules/domhandler/lib/esm/node.js
+var Node = class {
+  constructor() {
+    this.parent = null;
+    this.prev = null;
+    this.next = null;
+    this.startIndex = null;
+    this.endIndex = null;
+  }
+  // Read-write aliases for properties
+  /**
+   * Same as {@link parent}.
+   * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+   */
+  get parentNode() {
+    return this.parent;
+  }
+  set parentNode(parent) {
+    this.parent = parent;
+  }
+  /**
+   * Same as {@link prev}.
+   * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+   */
+  get previousSibling() {
+    return this.prev;
+  }
+  set previousSibling(prev) {
+    this.prev = prev;
+  }
+  /**
+   * Same as {@link next}.
+   * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+   */
+  get nextSibling() {
+    return this.next;
+  }
+  set nextSibling(next) {
+    this.next = next;
+  }
+  /**
+   * Clone this node, and optionally its children.
+   *
+   * @param recursive Clone child nodes as well.
+   * @returns A clone of the node.
+   */
+  cloneNode(recursive2 = false) {
+    return cloneNode(this, recursive2);
+  }
+};
+var DataNode = class extends Node {
+  /**
+   * @param data The content of the data node
+   */
+  constructor(data) {
+    super();
+    this.data = data;
+  }
+  /**
+   * Same as {@link data}.
+   * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+   */
+  get nodeValue() {
+    return this.data;
+  }
+  set nodeValue(data) {
+    this.data = data;
+  }
+};
+var Text2 = class extends DataNode {
+  constructor() {
+    super(...arguments);
+    this.type = ElementType.Text;
+  }
+  get nodeType() {
+    return 3;
+  }
+};
+var Comment2 = class extends DataNode {
+  constructor() {
+    super(...arguments);
+    this.type = ElementType.Comment;
+  }
+  get nodeType() {
+    return 8;
+  }
+};
+var ProcessingInstruction = class extends DataNode {
+  constructor(name4, data) {
+    super(data);
+    this.name = name4;
+    this.type = ElementType.Directive;
+  }
+  get nodeType() {
+    return 1;
+  }
+};
+var NodeWithChildren = class extends Node {
+  /**
+   * @param children Children of the node. Only certain node types can have children.
+   */
+  constructor(children) {
+    super();
+    this.children = children;
+  }
+  // Aliases
+  /** First child of the node. */
+  get firstChild() {
+    var _a3;
+    return (_a3 = this.children[0]) !== null && _a3 !== void 0 ? _a3 : null;
+  }
+  /** Last child of the node. */
+  get lastChild() {
+    return this.children.length > 0 ? this.children[this.children.length - 1] : null;
+  }
+  /**
+   * Same as {@link children}.
+   * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+   */
+  get childNodes() {
+    return this.children;
+  }
+  set childNodes(children) {
+    this.children = children;
+  }
+};
+var CDATA2 = class extends NodeWithChildren {
+  constructor() {
+    super(...arguments);
+    this.type = ElementType.CDATA;
+  }
+  get nodeType() {
+    return 4;
+  }
+};
+var Document = class extends NodeWithChildren {
+  constructor() {
+    super(...arguments);
+    this.type = ElementType.Root;
+  }
+  get nodeType() {
+    return 9;
+  }
+};
+var Element = class extends NodeWithChildren {
+  /**
+   * @param name Name of the tag, eg. `div`, `span`.
+   * @param attribs Object mapping attribute names to attribute values.
+   * @param children Children of the node.
+   */
+  constructor(name4, attribs, children = [], type = name4 === "script" ? ElementType.Script : name4 === "style" ? ElementType.Style : ElementType.Tag) {
+    super(children);
+    this.name = name4;
+    this.attribs = attribs;
+    this.type = type;
+  }
+  get nodeType() {
+    return 1;
+  }
+  // DOM Level 1 aliases
+  /**
+   * Same as {@link name}.
+   * [DOM spec](https://dom.spec.whatwg.org)-compatible alias.
+   */
+  get tagName() {
+    return this.name;
+  }
+  set tagName(name4) {
+    this.name = name4;
+  }
+  get attributes() {
+    return Object.keys(this.attribs).map((name4) => {
+      var _a3, _b;
+      return {
+        name: name4,
+        value: this.attribs[name4],
+        namespace: (_a3 = this["x-attribsNamespace"]) === null || _a3 === void 0 ? void 0 : _a3[name4],
+        prefix: (_b = this["x-attribsPrefix"]) === null || _b === void 0 ? void 0 : _b[name4]
+      };
+    });
+  }
+};
+function isTag2(node) {
+  return isTag(node);
+}
+function isCDATA(node) {
+  return node.type === ElementType.CDATA;
+}
+function isText(node) {
+  return node.type === ElementType.Text;
+}
+function isComment(node) {
+  return node.type === ElementType.Comment;
+}
+function isDirective(node) {
+  return node.type === ElementType.Directive;
+}
+function isDocument(node) {
+  return node.type === ElementType.Root;
+}
+function cloneNode(node, recursive2 = false) {
+  let result;
+  if (isText(node)) {
+    result = new Text2(node.data);
+  } else if (isComment(node)) {
+    result = new Comment2(node.data);
+  } else if (isTag2(node)) {
+    const children = recursive2 ? cloneChildren(node.children) : [];
+    const clone = new Element(node.name, { ...node.attribs }, children);
+    children.forEach((child) => child.parent = clone);
+    if (node.namespace != null) {
+      clone.namespace = node.namespace;
+    }
+    if (node["x-attribsNamespace"]) {
+      clone["x-attribsNamespace"] = { ...node["x-attribsNamespace"] };
+    }
+    if (node["x-attribsPrefix"]) {
+      clone["x-attribsPrefix"] = { ...node["x-attribsPrefix"] };
+    }
+    result = clone;
+  } else if (isCDATA(node)) {
+    const children = recursive2 ? cloneChildren(node.children) : [];
+    const clone = new CDATA2(children);
+    children.forEach((child) => child.parent = clone);
+    result = clone;
+  } else if (isDocument(node)) {
+    const children = recursive2 ? cloneChildren(node.children) : [];
+    const clone = new Document(children);
+    children.forEach((child) => child.parent = clone);
+    if (node["x-mode"]) {
+      clone["x-mode"] = node["x-mode"];
+    }
+    result = clone;
+  } else if (isDirective(node)) {
+    const instruction = new ProcessingInstruction(node.name, node.data);
+    if (node["x-name"] != null) {
+      instruction["x-name"] = node["x-name"];
+      instruction["x-publicId"] = node["x-publicId"];
+      instruction["x-systemId"] = node["x-systemId"];
+    }
+    result = instruction;
+  } else {
+    throw new Error(`Not implemented yet: ${node.type}`);
+  }
+  result.startIndex = node.startIndex;
+  result.endIndex = node.endIndex;
+  if (node.sourceCodeLocation != null) {
+    result.sourceCodeLocation = node.sourceCodeLocation;
+  }
+  return result;
+}
+function cloneChildren(childs) {
+  const children = childs.map((child) => cloneNode(child, true));
+  for (let i = 1; i < children.length; i++) {
+    children[i].prev = children[i - 1];
+    children[i - 1].next = children[i];
+  }
+  return children;
+}
+
+// node_modules/domhandler/lib/esm/index.js
+var defaultOpts = {
+  withStartIndices: false,
+  withEndIndices: false,
+  xmlMode: false
+};
+var DomHandler = class {
+  /**
+   * @param callback Called once parsing has completed.
+   * @param options Settings for the handler.
+   * @param elementCB Callback whenever a tag is closed.
+   */
+  constructor(callback, options, elementCB) {
+    this.dom = [];
+    this.root = new Document(this.dom);
+    this.done = false;
+    this.tagStack = [this.root];
+    this.lastNode = null;
+    this.parser = null;
+    if (typeof options === "function") {
+      elementCB = options;
+      options = defaultOpts;
+    }
+    if (typeof callback === "object") {
+      options = callback;
+      callback = void 0;
+    }
+    this.callback = callback !== null && callback !== void 0 ? callback : null;
+    this.options = options !== null && options !== void 0 ? options : defaultOpts;
+    this.elementCB = elementCB !== null && elementCB !== void 0 ? elementCB : null;
+  }
+  onparserinit(parser2) {
+    this.parser = parser2;
+  }
+  // Resets the handler back to starting state
+  onreset() {
+    this.dom = [];
+    this.root = new Document(this.dom);
+    this.done = false;
+    this.tagStack = [this.root];
+    this.lastNode = null;
+    this.parser = null;
+  }
+  // Signals the handler that parsing is done
+  onend() {
+    if (this.done)
+      return;
+    this.done = true;
+    this.parser = null;
+    this.handleCallback(null);
+  }
+  onerror(error3) {
+    this.handleCallback(error3);
+  }
+  onclosetag() {
+    this.lastNode = null;
+    const elem = this.tagStack.pop();
+    if (this.options.withEndIndices) {
+      elem.endIndex = this.parser.endIndex;
+    }
+    if (this.elementCB)
+      this.elementCB(elem);
+  }
+  onopentag(name4, attribs) {
+    const type = this.options.xmlMode ? ElementType.Tag : void 0;
+    const element = new Element(name4, attribs, void 0, type);
+    this.addNode(element);
+    this.tagStack.push(element);
+  }
+  ontext(data) {
+    const { lastNode } = this;
+    if (lastNode && lastNode.type === ElementType.Text) {
+      lastNode.data += data;
+      if (this.options.withEndIndices) {
+        lastNode.endIndex = this.parser.endIndex;
+      }
+    } else {
+      const node = new Text2(data);
+      this.addNode(node);
+      this.lastNode = node;
+    }
+  }
+  oncomment(data) {
+    if (this.lastNode && this.lastNode.type === ElementType.Comment) {
+      this.lastNode.data += data;
+      return;
+    }
+    const node = new Comment2(data);
+    this.addNode(node);
+    this.lastNode = node;
+  }
+  oncommentend() {
+    this.lastNode = null;
+  }
+  oncdatastart() {
+    const text = new Text2("");
+    const node = new CDATA2([text]);
+    this.addNode(node);
+    text.parent = node;
+    this.lastNode = text;
+  }
+  oncdataend() {
+    this.lastNode = null;
+  }
+  onprocessinginstruction(name4, data) {
+    const node = new ProcessingInstruction(name4, data);
+    this.addNode(node);
+  }
+  handleCallback(error3) {
+    if (typeof this.callback === "function") {
+      this.callback(error3, this.dom);
+    } else if (error3) {
+      throw error3;
+    }
+  }
+  addNode(node) {
+    const parent = this.tagStack[this.tagStack.length - 1];
+    const previousSibling = parent.children[parent.children.length - 1];
+    if (this.options.withStartIndices) {
+      node.startIndex = this.parser.startIndex;
+    }
+    if (this.options.withEndIndices) {
+      node.endIndex = this.parser.endIndex;
+    }
+    parent.children.push(node);
+    if (previousSibling) {
+      node.prev = previousSibling;
+      previousSibling.next = node;
+    }
+    node.parent = parent;
+    this.lastNode = null;
+  }
+};
+
+// node_modules/leac/lib/leac.mjs
+var linebreaksRe = /\n/g;
+function createPositionQuery(str) {
+  const offsets = [...str.matchAll(linebreaksRe)].map((m) => m.index || 0);
+  offsets.unshift(-1);
+  let lineIndex = 1;
+  return (offset) => {
+    while (lineIndex > 1 && offset < offsets[lineIndex - 1]) {
+      lineIndex--;
+    }
+    while (lineIndex < offsets.length && offset > offsets[lineIndex]) {
+      lineIndex++;
+    }
+    return { line: lineIndex, column: offset - offsets[lineIndex - 1] };
+  };
+}
+function toUnifiedRule(r, i) {
+  return {
+    name: r.name,
+    discard: r.discard,
+    push: r.push,
+    pop: r.pop,
+    regex: toRegExp(r, i),
+    replacer: isReplacementRule(r) ? toReplacer(r.regex, r.replace) : void 0
+  };
+}
+function isStringRule(r) {
+  return Object.prototype.hasOwnProperty.call(r, "str");
+}
+function isRegexRule(r) {
+  return Object.prototype.hasOwnProperty.call(r, "regex");
+}
+function isReplacementRule(r) {
+  return Object.prototype.hasOwnProperty.call(r, "replace");
+}
+function toReplacer(re, replace) {
+  const replaceSearch = toNonSticky(re);
+  return (match2) => match2.replace(replaceSearch, replace);
+}
+function toRegExp(r, i) {
+  if (r.name.length === 0) {
+    throw new Error(`Rule #${i} has empty name, which is not allowed.`);
+  }
+  if (isRegexRule(r)) {
+    return toSticky(r.regex);
+  }
+  if (isStringRule(r)) {
+    if (r.str.length === 0) {
+      throw new Error(`Rule #${i} ("${r.name}") has empty "str" property, which is not allowed.`);
+    }
+    return new RegExp(escapeRegExp(r.str), "y");
+  }
+  return new RegExp(escapeRegExp(r.name), "y");
+}
+function escapeRegExp(str) {
+  return str.replace(/[-[\]{}()*+!<=:?./\\^$|#\s,]/g, "\\$&");
+}
+function toSticky(re) {
+  if (re.global) {
+    throw new Error(`Regular expression /${re.source}/${re.flags} contains the global flag, which is not allowed.`);
+  }
+  return re.sticky ? re : new RegExp(re.source, re.flags + "y");
+}
+function toNonSticky(re) {
+  return re.sticky ? new RegExp(re.source, re.flags.replace("y", "")) : re;
+}
+function createLexer(rules, state = "", options = {}) {
+  const options1 = typeof state !== "string" ? state : options;
+  const state1 = typeof state === "string" ? state : "";
+  const unifiedRules = rules.map(toUnifiedRule);
+  const isLineNumbers = !!options1.lineNumbers;
+  return function(str, offset = 0) {
+    const positionQuery = isLineNumbers ? createPositionQuery(str) : void 0;
+    let position = { line: 0, column: 0 };
+    let currentIndex = offset;
+    const tokens = [];
+    loopStr: while (currentIndex < str.length) {
+      let anyMatch = false;
+      for (const rule of unifiedRules) {
+        rule.regex.lastIndex = currentIndex;
+        const match2 = rule.regex.exec(str);
+        if (match2 && match2[0].length > 0) {
+          if (!rule.discard) {
+            if (positionQuery) {
+              position = positionQuery(currentIndex);
+            }
+            tokens.push({
+              state: state1,
+              name: rule.name,
+              text: rule.replacer ? rule.replacer(match2[0]) : match2[0],
+              offset: currentIndex,
+              len: match2[0].length,
+              line: position.line,
+              column: position.column
+            });
+          }
+          currentIndex = rule.regex.lastIndex;
+          anyMatch = true;
+          if (rule.push) {
+            const r = rule.push(str, currentIndex);
+            tokens.push(...r.tokens);
+            currentIndex = r.offset;
+          }
+          if (rule.pop) {
+            break loopStr;
+          }
+          break;
+        }
+      }
+      if (!anyMatch) {
+        break;
+      }
+    }
+    return {
+      tokens,
+      offset: currentIndex,
+      complete: str.length <= currentIndex
+    };
+  };
+}
+
+// node_modules/peberminta/lib/core.mjs
+function mapInner(r, f) {
+  return r.matched ? {
+    matched: true,
+    position: r.position,
+    value: f(r.value, r.position)
+  } : r;
+}
+function mapOuter(r, f) {
+  return r.matched ? f(r) : r;
+}
+function ab(pa, pb, join) {
+  return (data, i) => mapOuter(pa(data, i), (ma) => mapInner(pb(data, ma.position), (vb, j) => join(ma.value, vb, data, i, j)));
+}
+function abc(pa, pb, pc, join) {
+  return (data, i) => mapOuter(pa(data, i), (ma) => mapOuter(pb(data, ma.position), (mb) => mapInner(pc(data, mb.position), (vc, j) => join(ma.value, mb.value, vc, data, i, j))));
+}
+function ahead(p) {
+  return (data, i) => mapOuter(p(data, i), (m1) => ({
+    matched: true,
+    position: i,
+    value: m1.value
+  }));
+}
+function all(...ps) {
+  return (data, i) => {
+    const result = [];
+    let position = i;
+    for (const p of ps) {
+      const r1 = p(data, position);
+      if (r1.matched) {
+        result.push(r1.value);
+        position = r1.position;
+      } else {
+        return { matched: false };
+      }
+    }
+    return {
+      matched: true,
+      position,
+      value: result
+    };
+  };
+}
+function chain(p, f) {
+  return (data, i) => mapOuter(p(data, i), (m1) => f(m1.value, data, i, m1.position)(data, m1.position));
+}
+function chainReduce(acc, f) {
+  return (data, i) => {
+    let loop = true;
+    let acc1 = acc;
+    let pos = i;
+    do {
+      const r = f(acc1, data, pos)(data, pos);
+      if (r.matched) {
+        acc1 = r.value;
+        pos = r.position;
+      } else {
+        loop = false;
+      }
+    } while (loop);
+    return {
+      matched: true,
+      position: pos,
+      value: acc1
+    };
+  };
+}
+function eitherOr(pa, pb) {
+  return (data, i) => {
+    const r1 = pa(data, i);
+    return r1.matched ? r1 : pb(data, i);
+  };
+}
+function error(message) {
+  return (data, i) => {
+    throw new Error(message instanceof Function ? message(data, i) : message);
+  };
+}
+function first(...ps) {
+  return (data, i) => {
+    for (const p of ps) {
+      const result = p(data, i);
+      if (result.matched) {
+        return result;
+      }
+    }
+    return { matched: false };
+  };
+}
+function map(p, mapper) {
+  return (data, i) => mapInner(p(data, i), (v, j) => mapper(v, data, i, j));
+}
+function flatten1(p) {
+  return map(p, (vs) => vs.flatMap((v) => v));
+}
+function flatten(...ps) {
+  return flatten1(all(...ps));
+}
+function left(pa, pb) {
+  return ab(pa, pb, (va) => va);
+}
+function reduceLeft(acc, p, reducer) {
+  return chainReduce(acc, (acc2) => map(p, (v, data, i, j) => reducer(acc2, v, data, i, j)));
+}
+function leftAssoc2(pLeft, pOper, pRight) {
+  return chain(pLeft, (v0) => reduceLeft(v0, ab(pOper, pRight, (f, y) => [f, y]), (acc, [f, y]) => f(acc, y)));
+}
+function takeWhile(p, test) {
+  return (data, i) => {
+    const values = [];
+    let success = true;
+    do {
+      const r = p(data, i);
+      if (r.matched && test(r.value, values.length + 1, data, i, r.position)) {
+        values.push(r.value);
+        i = r.position;
+      } else {
+        success = false;
+      }
+    } while (success);
+    return {
+      matched: true,
+      position: i,
+      value: values
+    };
+  };
+}
+function many(p) {
+  return takeWhile(p, () => true);
+}
+function many1(p) {
+  return ab(p, many(p), (head, tail) => [head, ...tail]);
+}
+function middle(pa, pb, pc) {
+  return abc(pa, pb, pc, (ra, rb) => rb);
+}
+function not(p) {
+  return (data, i) => {
+    const r = p(data, i);
+    return r.matched ? { matched: false } : {
+      matched: true,
+      position: i,
+      value: true
+    };
+  };
+}
+function option(p, def) {
+  return (data, i) => {
+    const r = p(data, i);
+    return r.matched ? r : {
+      matched: true,
+      position: i,
+      value: def
+    };
+  };
+}
+function recursive(f) {
+  return function(data, i) {
+    return f()(data, i);
+  };
+}
+function right(pa, pb) {
+  return ab(pa, pb, (va, vb) => vb);
+}
+function token(onToken, onEnd) {
+  return (data, i) => {
+    let position = i;
+    let value = void 0;
+    if (i < data.tokens.length) {
+      value = onToken(data.tokens[i], data, i);
+      if (value !== void 0) {
+        position++;
+      }
+    } else {
+      onEnd?.(data, i);
+    }
+    return value === void 0 ? { matched: false } : {
+      matched: true,
+      position,
+      value
+    };
+  };
+}
+function filter(p, test) {
+  return (data, i) => mapOuter(p(data, i), (m) => test(m.value, data, i, m.position) ? m : { matched: false });
+}
+
+// node_modules/parseley/lib/parseley.mjs
+var ws = "(?:[ \\t\\r\\n\\f]*)";
+var nl = "(?:\\n|\\r\\n|\\r|\\f)";
+var nonascii = "[^\\x00-\\x7F]";
+var unicode = "(?:\\\\[0-9a-f]{1,6}(?:\\r\\n|[ \\n\\r\\t\\f])?)";
+var escape = "(?:\\\\[^\\n\\r\\f0-9a-f])";
+var nmstart = `(?:[_a-z]|${nonascii}|${unicode}|${escape})`;
+var nmchar = `(?:[_a-z0-9-]|${nonascii}|${unicode}|${escape})`;
+var name2 = `(?:${nmchar}+)`;
+var ident = `(?:[-]?${nmstart}${nmchar}*)`;
+var string1 = `'([^\\n\\r\\f\\\\']|\\\\${nl}|${nonascii}|${unicode}|${escape})*'`;
+var string2 = `"([^\\n\\r\\f\\\\"]|\\\\${nl}|${nonascii}|${unicode}|${escape})*"`;
+var lexSelector = createLexer([
+  { name: "ws", regex: new RegExp(ws) },
+  { name: "hash", regex: new RegExp(`#${name2}`, "i") },
+  { name: "ident", regex: new RegExp(ident, "i") },
+  { name: "str1", regex: new RegExp(string1, "i") },
+  { name: "str2", regex: new RegExp(string2, "i") },
+  { name: "*" },
+  { name: "." },
+  { name: "," },
+  { name: "[" },
+  { name: "]" },
+  { name: "=" },
+  { name: ">" },
+  { name: "|" },
+  { name: "+" },
+  { name: "~" },
+  { name: "^" },
+  { name: "$" },
+  { name: ":" },
+  { name: "(" },
+  { name: ")" }
+]);
+var lexEscapedString = createLexer([
+  { name: "unicode", regex: new RegExp(unicode, "i") },
+  { name: "escape", regex: new RegExp(escape, "i") },
+  { name: "any", regex: new RegExp("[\\s\\S]", "i") }
+]);
+function sumSpec([a0, a1, a2], [b0, b1, b2]) {
+  return [a0 + b0, a1 + b1, a2 + b2];
+}
+function sumAllSpec(ss) {
+  return ss.reduce(sumSpec, [0, 0, 0]);
+}
+function maxSpec([a0, a1, a2], [b0, b1, b2]) {
+  return a0 > b0 || a0 === b0 && (a1 > b1 || a1 === b1 && a2 >= b2) ? [a0, a1, a2] : [b0, b1, b2];
+}
+function maxAllSpec(ss) {
+  return ss.reduce(maxSpec, [0, 0, 0]);
+}
+var unicodeEscapedSequence_ = token((t) => t.name === "unicode" ? String.fromCodePoint(parseInt(t.text.slice(1), 16)) : void 0);
+var escapedSequence_ = token((t) => t.name === "escape" ? t.text.slice(1) : void 0);
+var anyChar_ = token((t) => t.name === "any" ? t.text : void 0);
+var escapedString_ = map(many(first(unicodeEscapedSequence_, escapedSequence_, anyChar_)), (cs) => cs.join(""));
+function unescape(escapedString) {
+  const lexerResult = lexEscapedString(escapedString);
+  const result = escapedString_({ tokens: lexerResult.tokens, options: void 0 }, 0);
+  return result.value;
+}
+function literal(name4) {
+  return token((t) => t.name === name4 ? true : void 0);
+}
+var whitespace_ = token((t) => t.name === "ws" ? null : void 0);
+var optionalWhitespace_ = option(whitespace_, null);
+function optionallySpaced(parser2) {
+  return middle(optionalWhitespace_, parser2, optionalWhitespace_);
+}
+var identifier_ = token((t) => t.name === "ident" ? unescape(t.text) : void 0);
+var hashId_ = token((t) => t.name === "hash" ? unescape(t.text.slice(1)) : void 0);
+var string_ = token((t) => t.name.startsWith("str") ? unescape(t.text.slice(1, -1)) : void 0);
+var namespace_ = left(option(identifier_, ""), literal("|"));
+var qualifiedName_ = eitherOr(ab(namespace_, identifier_, (ns, name4) => ({ name: name4, namespace: ns })), map(identifier_, (name4) => ({ name: name4, namespace: null })));
+var uniSelector_ = eitherOr(ab(namespace_, literal("*"), (ns) => ({ type: "universal", namespace: ns, specificity: [0, 0, 0] })), map(literal("*"), () => ({ type: "universal", namespace: null, specificity: [0, 0, 0] })));
+var tagSelector_ = map(qualifiedName_, ({ name: name4, namespace: namespace2 }) => ({
+  type: "tag",
+  name: name4,
+  namespace: namespace2,
+  specificity: [0, 0, 1]
+}));
+var classSelector_ = ab(literal("."), identifier_, (_fullstop, name4) => ({
+  type: "class",
+  name: name4,
+  specificity: [0, 1, 0]
+}));
+var idSelector_ = map(hashId_, (name4) => ({
+  type: "id",
+  name: name4,
+  specificity: [1, 0, 0]
+}));
+var attrModifier_ = token((t) => {
+  if (t.name === "ident") {
+    if (t.text === "i" || t.text === "I") {
+      return "i";
+    }
+    if (t.text === "s" || t.text === "S") {
+      return "s";
+    }
+  }
+  return void 0;
+});
+var attrValue_ = eitherOr(ab(string_, option(right(optionalWhitespace_, attrModifier_), null), (v, mod) => ({ value: v, modifier: mod })), ab(identifier_, option(right(whitespace_, attrModifier_), null), (v, mod) => ({ value: v, modifier: mod })));
+var attrMatcher_ = first(map(literal("="), () => "="), ab(literal("~"), literal("="), () => "~="), ab(literal("|"), literal("="), () => "|="), ab(literal("^"), literal("="), () => "^="), ab(literal("$"), literal("="), () => "$="), ab(literal("*"), literal("="), () => "*="));
+var attrPresenceSelector_ = abc(literal("["), optionallySpaced(qualifiedName_), literal("]"), (_lbr, { name: name4, namespace: namespace2 }) => ({
+  type: "attrPresence",
+  name: name4,
+  namespace: namespace2,
+  specificity: [0, 1, 0]
+}));
+var attrValueSelector_ = middle(literal("["), abc(optionallySpaced(qualifiedName_), attrMatcher_, optionallySpaced(attrValue_), ({ name: name4, namespace: namespace2 }, matcher, { value, modifier }) => ({
+  type: "attrValue",
+  name: name4,
+  namespace: namespace2,
+  matcher,
+  value,
+  modifier,
+  specificity: [0, 1, 0]
+})), literal("]"));
+var pseudoClassSelector_ = abc(literal(":"), identifier_, not(ahead(literal("("))), (_fullstop, name4) => ({
+  type: "pc",
+  name: name4,
+  specificity: [0, 1, 0]
+}));
+function pcLiteral(name4) {
+  return filter(identifier_, (id2) => id2.toLowerCase() === name4.toLowerCase());
+}
+function fpcBase(name4, contentParser, contentDesc) {
+  return abc(middle(literal(":"), pcLiteral(name4), eitherOr(literal("("), error(`Expected opening parenthesis in :${name4}()`))), eitherOr(optionallySpaced(contentParser), error(`Expected ${contentDesc} in :${name4}()`)), eitherOr(literal(")"), error(`Expected closing parenthesis in :${name4}()`)), (name5, content) => ({ name: name5, content }));
+}
+var isSelector_ = map(fpcBase("is", recursive(() => listSelector_), "selector list"), (v) => ({
+  type: "fpc:is",
+  name: v.name,
+  list: v.content.list,
+  specificity: maxAllSpec(v.content.list.map((s) => s.specificity))
+}));
+var whereSelector_ = map(fpcBase("where", recursive(() => listSelector_), "selector list"), (v) => ({
+  type: "fpc:where",
+  name: v.name,
+  list: v.content.list,
+  specificity: [0, 0, 0]
+}));
+var notSelector_ = map(fpcBase("not", recursive(() => listSelector_), "selector list"), (v) => ({
+  type: "fpc:not",
+  name: v.name,
+  list: v.content.list,
+  specificity: maxAllSpec(v.content.list.map((s) => s.specificity))
+}));
+var functionalPseudoClassSelector_ = first(isSelector_, whereSelector_, notSelector_);
+var attrSelector_ = eitherOr(attrPresenceSelector_, attrValueSelector_);
+var typeSelector_ = eitherOr(uniSelector_, tagSelector_);
+var subclassSelector_ = first(idSelector_, classSelector_, attrSelector_, functionalPseudoClassSelector_, pseudoClassSelector_);
+var compoundSelector_ = map(eitherOr(flatten(typeSelector_, many(subclassSelector_)), many1(subclassSelector_)), (ss) => {
+  return {
+    type: "compound",
+    list: ss,
+    specificity: sumAllSpec(ss.map((s) => s.specificity))
+  };
+});
+var combinator_ = first(map(literal(">"), () => ">"), map(literal("+"), () => "+"), map(literal("~"), () => "~"), ab(literal("|"), literal("|"), () => "||"));
+var combinatorSeparator_ = eitherOr(optionallySpaced(combinator_), map(whitespace_, () => " "));
+var complexSelector_ = leftAssoc2(compoundSelector_, map(combinatorSeparator_, (c) => (left2, right2) => ({
+  type: "compound",
+  list: [...right2.list, { type: "combinator", combinator: c, left: left2, specificity: left2.specificity }],
+  specificity: sumSpec(left2.specificity, right2.specificity)
+})), compoundSelector_);
+var listSelector_ = leftAssoc2(map(complexSelector_, (s) => ({ type: "list", list: [s] })), map(optionallySpaced(literal(",")), () => (acc, next) => ({ type: "list", list: [...acc.list, next] })), complexSelector_);
+function parse_(parser2, str) {
+  if (!(typeof str === "string" || str instanceof String)) {
+    throw new Error("Expected a selector string. Actual input is not a string!");
+  }
+  const lexerResult = lexSelector(str);
+  if (!lexerResult.complete) {
+    throw new Error(`The input "${str}" was only partially tokenized, stopped at offset ${lexerResult.offset}!
+` + prettyPrintPosition(str, lexerResult.offset));
+  }
+  const result = optionallySpaced(parser2)({ tokens: lexerResult.tokens, options: void 0 }, 0);
+  if (!result.matched) {
+    throw new Error(`No match for "${str}" input!`);
+  }
+  if (result.position < lexerResult.tokens.length) {
+    const token2 = lexerResult.tokens[result.position];
+    throw new Error(`The input "${str}" was only partially parsed, stopped at offset ${token2.offset}!
+` + prettyPrintPosition(str, token2.offset, token2.len));
+  }
+  return result.value;
+}
+function prettyPrintPosition(str, offset, len = 1) {
+  return `${str.replace(/(\t)|(\r)|(\n)/g, (_m, t, r) => t ? "\u2409" : r ? "\u240D" : "\u240A")}
+${"".padEnd(offset)}${"^".repeat(len)}`;
+}
+function parse1(str) {
+  return parse_(complexSelector_, str);
+}
+function serialize(selector) {
+  if (!selector.type) {
+    throw new Error("This is not an AST node.");
+  }
+  switch (selector.type) {
+    case "universal":
+      return _serNs(selector.namespace) + "*";
+    case "tag":
+      return _serNs(selector.namespace) + _serIdent(selector.name);
+    case "class":
+      return "." + _serIdent(selector.name);
+    case "id":
+      return "#" + _serIdent(selector.name);
+    case "attrPresence":
+      return `[${_serNs(selector.namespace)}${_serIdent(selector.name)}]`;
+    case "attrValue":
+      return `[${_serNs(selector.namespace)}${_serIdent(selector.name)}${selector.matcher}"${_serStr(selector.value)}"${selector.modifier ? selector.modifier : ""}]`;
+    case "pc":
+      return ":" + _serIdent(selector.name);
+    case "fpc:is":
+    case "fpc:where":
+    case "fpc:not":
+      return `:${_serIdent(selector.name)}(${selector.list.map(serialize).join(",")})`;
+    case "combinator":
+      return serialize(selector.left) + selector.combinator;
+    case "compound":
+      return selector.list.reduce((acc, node) => {
+        return node.type === "combinator" ? serialize(node) + acc : acc + serialize(node);
+      }, "");
+    case "list":
+      return selector.list.map(serialize).join(",");
+  }
+}
+function _serNs(ns) {
+  return ns || ns === "" ? _serIdent(ns) + "|" : "";
+}
+function _codePoint(char) {
+  return `\\${char.codePointAt(0).toString(16)} `;
+}
+function _serIdent(str) {
+  return str.replace(
+    /(^[0-9])|(^-[0-9])|(^-$)|([-0-9a-zA-Z_]|[^\x00-\x7F])|(\x00)|([\x01-\x1f]|\x7f)|([\s\S])/g,
+    (_m, d1, d2, hy, safe, nl2, ctrl, other) => d1 ? _codePoint(d1) : d2 ? "-" + _codePoint(d2.slice(1)) : hy ? "\\-" : safe ? safe : nl2 ? "\uFFFD" : ctrl ? _codePoint(ctrl) : "\\" + other
+  );
+}
+function _serStr(str) {
+  return str.replace(
+    /(")|(\\)|(\x00)|([\x01-\x1f]|\x7f)/g,
+    (_m, dq, bs, nl2, ctrl) => dq ? '\\"' : bs ? "\\\\" : nl2 ? "\uFFFD" : _codePoint(ctrl)
+  );
+}
+function normalize(selector, options = { mode: "html" }) {
+  const mode = options.mode ?? "html";
+  const isHtmlMode = mode === "html";
+  const allowUnspecifiedCaseSensitivityForAttributes = options.allowUnspecifiedCaseSensitivityForAttributes ?? false;
+  const attributesWithNormalizedValues = options.attributesWithNormalizedValues;
+  const attributesWithNormalizedValuesSet = attributesWithNormalizedValues?.length ? new Set(attributesWithNormalizedValues.map((a) => a.toLowerCase())) : null;
+  function visit(node) {
+    if (!node.type) {
+      throw new Error("This is not an AST node.");
+    }
+    switch (node.type) {
+      case "universal": {
+        if (isHtmlMode && node.namespace !== null) {
+          node.namespace = node.namespace.toLowerCase();
+        }
+        break;
+      }
+      case "tag": {
+        if (isHtmlMode) {
+          node.name = node.name.toLowerCase();
+        }
+        if (isHtmlMode && node.namespace !== null) {
+          node.namespace = node.namespace.toLowerCase();
+        }
+        break;
+      }
+      case "attrPresence": {
+        if (isHtmlMode) {
+          node.name = node.name.toLowerCase();
+        }
+        if (isHtmlMode && node.namespace !== null) {
+          node.namespace = node.namespace.toLowerCase();
+        }
+        break;
+      }
+      case "attrValue": {
+        if (isHtmlMode) {
+          node.name = node.name.toLowerCase();
+        }
+        if (isHtmlMode && node.namespace !== null) {
+          node.namespace = node.namespace.toLowerCase();
+        }
+        const isCaseInsensitiveValue = node.modifier === "i" || node.modifier === null && !!attributesWithNormalizedValuesSet && attributesWithNormalizedValuesSet.has(node.name.toLowerCase());
+        if (isCaseInsensitiveValue) {
+          node.value = node.value.toLowerCase();
+        }
+        if (!allowUnspecifiedCaseSensitivityForAttributes && node.modifier === null) {
+          node.modifier = isCaseInsensitiveValue ? "i" : "s";
+        }
+        break;
+      }
+      case "pc": {
+        node.name = node.name.toLowerCase();
+        break;
+      }
+      case "fpc:is":
+      case "fpc:where":
+      case "fpc:not": {
+        node.name = node.name.toLowerCase();
+        node.list.forEach(visit);
+        node.list.sort((a, b) => serialize(a) < serialize(b) ? -1 : 1);
+        break;
+      }
+      case "compound": {
+        node.list.forEach(visit);
+        node.list.sort((a, b) => _compareSelectorPriority(_getSelectorPriority(a), _getSelectorPriority(b)));
+        break;
+      }
+      case "combinator": {
+        visit(node.left);
+        break;
+      }
+      case "list": {
+        node.list.forEach(visit);
+        node.list.sort((a, b) => serialize(a) < serialize(b) ? -1 : 1);
+        break;
+      }
+    }
+  }
+  visit(selector);
+  return selector;
+}
+function _getSelectorPriority(selector) {
+  switch (selector.type) {
+    case "universal":
+      return [1];
+    case "tag":
+      return [1];
+    case "id":
+      return [2];
+    case "class":
+      return [3, selector.name];
+    case "attrPresence":
+      return [4, serialize(selector)];
+    case "attrValue":
+      return [5, serialize(selector)];
+    case "pc":
+      return [6, selector.name];
+    case "fpc:is":
+    case "fpc:where":
+    case "fpc:not":
+      return [7, serialize(selector)];
+    case "combinator":
+      return [15, serialize(selector)];
+  }
+}
+function _compareSelectorPriority(a, b) {
+  if (a[0] !== b[0]) {
+    return a[0] < b[0] ? -1 : 1;
+  }
+  const aStr = a[1];
+  const bStr = b[1];
+  if (aStr === bStr) {
+    return 0;
+  }
+  if (aStr === void 0) {
+    return -1;
+  }
+  if (bStr === void 0) {
+    return 1;
+  }
+  return aStr < bStr ? -1 : 1;
+}
+function compareSpecificity(a, b) {
+  if (a[0] !== b[0]) {
+    return a[0] < b[0] ? -1 : 1;
+  }
+  if (a[1] !== b[1]) {
+    return a[1] < b[1] ? -1 : 1;
+  }
+  return a[2] < b[2] ? -1 : a[2] > b[2] ? 1 : 0;
+}
+
+// node_modules/selderee/lib/selderee.mjs
+var DecisionTree = class {
+  branches;
+  constructor(input, options = {}) {
+    this.branches = weave(toAstTerminalPairs(input, options));
+  }
+  build(builder) {
+    return builder(this.branches);
+  }
+};
+function toAstTerminalPairs(array, options) {
+  const len = array.length;
+  const results = new Array(len);
+  for (let i = 0; i < len; i++) {
+    const [selectorString, val] = array[i];
+    const ast = parse1(selectorString);
+    reduceSelectorVariants(ast);
+    normalize(ast, {
+      mode: "html",
+      attributesWithNormalizedValues: options.attributesWithNormalizedValues ?? [],
+      allowUnspecifiedCaseSensitivityForAttributes: false
+    });
+    results[i] = {
+      ast,
+      terminal: {
+        type: "terminal",
+        valueContainer: { index: i, value: val, specificity: ast.specificity }
+      }
+    };
+  }
+  return results;
+}
+function reduceSelectorVariants(ast) {
+  const newList = [];
+  ast.list.forEach((sel) => {
+    switch (sel.type) {
+      case "class":
+        newList.push({
+          matcher: "~=",
+          modifier: null,
+          name: "class",
+          namespace: null,
+          specificity: sel.specificity,
+          type: "attrValue",
+          value: sel.name
+        });
+        break;
+      case "id":
+        newList.push({
+          matcher: "=",
+          modifier: null,
+          name: "id",
+          namespace: null,
+          specificity: [0, 1, 0],
+          type: "attrValue",
+          value: sel.name
+        });
+        break;
+      case "combinator":
+        reduceSelectorVariants(sel.left);
+        newList.push(sel);
+        break;
+      case "universal":
+        break;
+      default:
+        newList.push(sel);
+        break;
+    }
+  });
+  ast.list = newList;
+}
+function weave(items) {
+  const branches = [];
+  while (items.length) {
+    const topKind = findTopKey(items, (_sel) => true, getSelectorKind);
+    const { matches, nonMatches, empty } = breakByKind(items, topKind);
+    items = nonMatches;
+    if (matches.length) {
+      branches.push(branchOfKind(topKind, matches));
+    }
+    if (empty.length) {
+      branches.push(...terminate(empty));
+    }
+  }
+  return branches;
+}
+function terminate(items) {
+  const results = [];
+  for (const item of items) {
+    const terminal = item.terminal;
+    if (terminal.type === "terminal") {
+      results.push(terminal);
+    } else {
+      const { matches, rest } = partition(terminal.cont, (node) => node.type === "terminal");
+      matches.forEach((node) => results.push(node));
+      if (rest.length) {
+        terminal.cont = rest;
+        results.push(terminal);
+      }
+    }
+  }
+  return results;
+}
+function breakByKind(items, selectedKind) {
+  const matches = [];
+  const nonMatches = [];
+  const empty = [];
+  for (const item of items) {
+    const simpleSelectors = item.ast.list;
+    if (simpleSelectors.length) {
+      const isMatch = simpleSelectors.some((node) => getSelectorKind(node) === selectedKind);
+      (isMatch ? matches : nonMatches).push(item);
+    } else {
+      empty.push(item);
+    }
+  }
+  return { matches, nonMatches, empty };
+}
+function getSelectorKind(sel) {
+  switch (sel.type) {
+    case "attrPresence":
+      return `attrPresence ${sel.name}`;
+    case "attrValue":
+      return `attrValue ${sel.name}`;
+    case "pc":
+      return `pc ${sel.name}`;
+    case "combinator":
+      return `combinator ${sel.combinator}`;
+    default:
+      return sel.type;
+  }
+}
+function branchOfKind(kind, items) {
+  if (kind === "tag") {
+    return tagNameBranch(items);
+  }
+  if (kind.startsWith("attrValue ")) {
+    return attrValueBranch(kind.substring(10), items);
+  }
+  if (kind.startsWith("attrPresence ")) {
+    return attrPresenceBranch(kind.substring(13), items);
+  }
+  if (kind.startsWith("pc ")) {
+    return pseudoClassBranch(kind.substring(3), items);
+  }
+  if (kind === "combinator >") {
+    return combinatorBranch(">", items);
+  }
+  if (kind === "combinator +") {
+    return combinatorBranch("+", items);
+  }
+  throw new Error(`Unsupported selector kind: ${kind}`);
+}
+function tagNameBranch(items) {
+  const groups = spliceAndGroup(items, (x) => x.type === "tag", (x) => x.name);
+  const variants = Object.entries(groups).map(([name4, group]) => ({
+    type: "variant",
+    value: name4,
+    cont: weave(group.items)
+  }));
+  return {
+    type: "tagName",
+    variants
+  };
+}
+function attrPresenceBranch(name4, items) {
+  for (const item of items) {
+    spliceSimpleSelector(item, (x) => x.type === "attrPresence" && x.name === name4);
+  }
+  return {
+    type: "attrPresence",
+    name: name4,
+    cont: weave(items)
+  };
+}
+function attrValueBranch(name4, items) {
+  const groups = spliceAndGroup(items, (x) => x.type === "attrValue" && x.name === name4, (x) => `${x.matcher} ${x.modifier || ""} ${x.value}`);
+  const matchers = [];
+  for (const group of Object.values(groups)) {
+    const sel = group.oneSimpleSelector;
+    matchers.push({
+      type: "matcher",
+      matcher: sel.matcher,
+      modifier: sel.modifier,
+      value: sel.value,
+      predicate: getAttrValuePredicate(sel),
+      cont: weave(group.items)
+    });
+  }
+  return {
+    type: "attrValue",
+    name: name4,
+    matchers
+  };
+}
+function getAttrValuePredicate(sel) {
+  if (sel.modifier === "i") {
+    const expected = sel.value.toLowerCase();
+    switch (sel.matcher) {
+      case "=":
+        return (actual) => expected === actual.toLowerCase();
+      case "~=":
+        return (actual) => actual.toLowerCase().split(/[ \t]+/).includes(expected);
+      case "^=":
+        return (actual) => actual.toLowerCase().startsWith(expected);
+      case "$=":
+        return (actual) => actual.toLowerCase().endsWith(expected);
+      case "*=":
+        return (actual) => actual.toLowerCase().includes(expected);
+      case "|=":
+        return (actual) => {
+          const lower = actual.toLowerCase();
+          return expected === lower || lower.startsWith(expected) && lower[expected.length] === "-";
+        };
+    }
+  } else {
+    const expected = sel.value;
+    switch (sel.matcher) {
+      case "=":
+        return (actual) => expected === actual;
+      case "~=":
+        return (actual) => actual.split(/[ \t]+/).includes(expected);
+      case "^=":
+        return (actual) => actual.startsWith(expected);
+      case "$=":
+        return (actual) => actual.endsWith(expected);
+      case "*=":
+        return (actual) => actual.includes(expected);
+      case "|=":
+        return (actual) => expected === actual || actual.startsWith(expected) && actual[expected.length] === "-";
+    }
+  }
+}
+function pseudoClassBranch(name4, items) {
+  if (name4 !== "empty" && name4 !== "only-child" && name4 !== "first-child" && name4 !== "last-child" && name4 !== "any-link") {
+    throw new Error(`Unsupported pseudo-class: :${name4}`);
+  }
+  for (const item of items) {
+    spliceSimpleSelector(item, (x) => x.type === "pc" && x.name === name4);
+  }
+  return {
+    type: "pseudoClass",
+    name: name4,
+    cont: weave(items)
+  };
+}
+function combinatorBranch(combinator, items) {
+  const groups = spliceAndGroup(items, (x) => x.type === "combinator" && x.combinator === combinator, (x) => serialize(x.left));
+  const leftItems = [];
+  for (const group of Object.values(groups)) {
+    const rightCont = weave(group.items);
+    const leftAst = group.oneSimpleSelector.left;
+    leftItems.push({
+      ast: leftAst,
+      terminal: { type: "popElement", cont: rightCont }
+    });
+  }
+  return {
+    type: "pushElement",
+    combinator,
+    cont: weave(leftItems)
+  };
+}
+function spliceAndGroup(items, predicate, keyCallback) {
+  const groups = {};
+  while (items.length) {
+    const bestKey = findTopKey(items, predicate, keyCallback);
+    const bestKeyPredicate = (sel) => predicate(sel) && keyCallback(sel) === bestKey;
+    const hasBestKeyPredicate = (item) => item.ast.list.some(bestKeyPredicate);
+    const { matches, rest } = partition(items, hasBestKeyPredicate);
+    let oneSimpleSelector = null;
+    for (const item of matches) {
+      const splicedNode = spliceSimpleSelector(item, bestKeyPredicate);
+      if (!oneSimpleSelector) {
+        oneSimpleSelector = splicedNode;
+      }
+    }
+    if (oneSimpleSelector == null) {
+      throw new Error("No simple selector is found.");
+    }
+    groups[bestKey] = { oneSimpleSelector, items: matches };
+    items = rest;
+  }
+  return groups;
+}
+function spliceSimpleSelector(item, predicate) {
+  const simpleSelectors = item.ast.list;
+  const matches = new Array(simpleSelectors.length);
+  let firstIndex = -1;
+  for (let i = simpleSelectors.length; i-- > 0; ) {
+    if (predicate(simpleSelectors[i])) {
+      matches[i] = true;
+      firstIndex = i;
+    }
+  }
+  if (firstIndex == -1) {
+    throw new Error(`Couldn't find the required simple selector.`);
+  }
+  const result = simpleSelectors[firstIndex];
+  item.ast.list = simpleSelectors.filter((_, i) => !matches[i]);
+  return result;
+}
+function findTopKey(items, predicate, keyCallback) {
+  const candidates = {};
+  for (const item of items) {
+    const candidates1 = {};
+    for (const node of item.ast.list.filter(predicate)) {
+      candidates1[keyCallback(node)] = true;
+    }
+    for (const key of Object.keys(candidates1)) {
+      if (candidates[key]) {
+        candidates[key]++;
+      } else {
+        candidates[key] = 1;
+      }
+    }
+  }
+  let topKind = "";
+  let topCounter = 0;
+  for (const entry of Object.entries(candidates)) {
+    if (entry[1] > topCounter) {
+      topKind = entry[0];
+      topCounter = entry[1];
+    }
+  }
+  return topKind;
+}
+function partition(src, predicate) {
+  const matches = [];
+  const rest = [];
+  for (const x of src) {
+    if (predicate(x)) {
+      matches.push(x);
+    } else {
+      rest.push(x);
+    }
+  }
+  return { matches, rest };
+}
+var Picker = class {
+  f;
+  constructor(f) {
+    this.f = f;
+  }
+  pickAll(el) {
+    return this.f(el);
+  }
+  pick1(el, preferFirst = false) {
+    const results = this.f(el);
+    const len = results.length;
+    if (len === 0) {
+      return null;
+    }
+    if (len === 1) {
+      return results[0].value;
+    }
+    const comparator = preferFirst ? comparatorPreferFirst : comparatorPreferLast;
+    let result = results[0];
+    for (let i = 1; i < len; i++) {
+      const next = results[i];
+      if (comparator(result, next)) {
+        result = next;
+      }
+    }
+    return result.value;
+  }
+};
+function comparatorPreferFirst(acc, next) {
+  const diff = compareSpecificity(next.specificity, acc.specificity);
+  return diff > 0 || diff === 0 && next.index < acc.index;
+}
+function comparatorPreferLast(acc, next) {
+  const diff = compareSpecificity(next.specificity, acc.specificity);
+  return diff > 0 || diff === 0 && next.index > acc.index;
+}
+
+// node_modules/@selderee/plugin-htmlparser2/lib/hp2-builder.mjs
+function hp2Builder(nodes) {
+  return new Picker(handleArray(nodes));
+}
+function handleArray(nodes) {
+  const matchers = nodes.map(handleNode);
+  return (el, ...tail) => matchers.flatMap((m) => m(el, ...tail));
+}
+function handleNode(node) {
+  switch (node.type) {
+    case "terminal": {
+      const result = [node.valueContainer];
+      return () => result;
+    }
+    case "tagName":
+      return handleTagName(node);
+    case "attrValue":
+      return handleAttrValueName(node);
+    case "attrPresence":
+      return handleAttrPresenceName(node);
+    case "pseudoClass":
+      return handlePseudoClassNode(node);
+    case "pushElement":
+      return handlePushElementNode(node);
+    case "popElement":
+      return handlePopElementNode(node);
+  }
+}
+function handleTagName(node) {
+  const variants = {};
+  for (const variant of node.variants) {
+    variants[variant.value] = handleArray(variant.cont);
+  }
+  return (el, ...tail) => {
+    const continuation = variants[el.name];
+    return continuation ? continuation(el, ...tail) : [];
+  };
+}
+function handleAttrPresenceName(node) {
+  const attrName = node.name;
+  const continuation = handleArray(node.cont);
+  return (el, ...tail) => Object.prototype.hasOwnProperty.call(el.attribs, attrName) ? continuation(el, ...tail) : [];
+}
+function handleAttrValueName(node) {
+  const callbacks = [];
+  for (const matcher of node.matchers) {
+    const predicate = matcher.predicate;
+    const continuation = handleArray(matcher.cont);
+    callbacks.push((attr, el, ...tail) => predicate(attr) ? continuation(el, ...tail) : []);
+  }
+  const attrName = node.name;
+  return (el, ...tail) => {
+    const attr = el.attribs[attrName];
+    return attr || attr === "" ? callbacks.flatMap((cb) => cb(attr, el, ...tail)) : [];
+  };
+}
+function handlePseudoClassNode(node) {
+  const continuation = handleArray(node.cont);
+  const predicate = pseudoClassPredicates[node.name];
+  if (!predicate) {
+    throw new Error(`Unsupported pseudo-class: :${node.name}`);
+  }
+  return (el, ...tail) => predicate(el) ? continuation(el, ...tail) : [];
+}
+var pseudoClassPredicates = {
+  "empty": isEmptyElement,
+  "only-child": isOnlyChildElement,
+  "first-child": isFirstChildElement,
+  "last-child": isLastChildElement,
+  "any-link": isAnyLinkElement
+};
+function isEmptyElement(el) {
+  for (const child of el.children) {
+    if (isTag2(child)) {
+      return false;
+    }
+    if (child.type === ElementType.Text || child.type === ElementType.CDATA) {
+      return false;
+    }
+  }
+  return true;
+}
+function isOnlyChildElement(el) {
+  return getPrecedingElement(el) === null && getFollowingElement(el) === null;
+}
+function isFirstChildElement(el) {
+  return getPrecedingElement(el) === null;
+}
+function isLastChildElement(el) {
+  return getFollowingElement(el) === null;
+}
+function isAnyLinkElement(el) {
+  return (el.name === "a" || el.name === "area") && Object.prototype.hasOwnProperty.call(el.attribs, "href");
+}
+function handlePushElementNode(node) {
+  const continuation = handleArray(node.cont);
+  const leftElementGetter = node.combinator === "+" ? getPrecedingElement : getParentElement;
+  return (el, ...tail) => {
+    const next = leftElementGetter(el);
+    if (next === null) {
+      return [];
+    }
+    return continuation(next, el, ...tail);
+  };
+}
+var getPrecedingElement = (el) => {
+  const prev = el.prev;
+  if (prev === null) {
+    return null;
+  }
+  return isTag2(prev) ? prev : getPrecedingElement(prev);
+};
+var getFollowingElement = (el) => {
+  const next = el.next;
+  if (next === null) {
+    return null;
+  }
+  return isTag2(next) ? next : getFollowingElement(next);
+};
+var getParentElement = (el) => {
+  const parent = el.parent;
+  return parent && isTag2(parent) ? parent : null;
+};
+function handlePopElementNode(node) {
+  const continuation = handleArray(node.cont);
+  return (_el, next, ...tail) => continuation(next, ...tail);
+}
+
+// node_modules/htmlparser2/node_modules/entities/dist/esm/decode-codepoint.js
+var _a;
+var decodeMap = /* @__PURE__ */ new Map([
+  [0, 65533],
+  // C1 Unicode control character reference replacements
+  [128, 8364],
+  [130, 8218],
+  [131, 402],
+  [132, 8222],
+  [133, 8230],
+  [134, 8224],
+  [135, 8225],
+  [136, 710],
+  [137, 8240],
+  [138, 352],
+  [139, 8249],
+  [140, 338],
+  [142, 381],
+  [145, 8216],
+  [146, 8217],
+  [147, 8220],
+  [148, 8221],
+  [149, 8226],
+  [150, 8211],
+  [151, 8212],
+  [152, 732],
+  [153, 8482],
+  [154, 353],
+  [155, 8250],
+  [156, 339],
+  [158, 382],
+  [159, 376]
+]);
+var fromCodePoint = (
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, n/no-unsupported-features/es-builtins
+  (_a = String.fromCodePoint) !== null && _a !== void 0 ? _a : ((codePoint) => {
+    let output = "";
+    if (codePoint > 65535) {
+      codePoint -= 65536;
+      output += String.fromCharCode(codePoint >>> 10 & 1023 | 55296);
+      codePoint = 56320 | codePoint & 1023;
+    }
+    output += String.fromCharCode(codePoint);
+    return output;
+  })
+);
+function replaceCodePoint(codePoint) {
+  var _a3;
+  if (codePoint >= 55296 && codePoint <= 57343 || codePoint > 1114111) {
+    return 65533;
+  }
+  return (_a3 = decodeMap.get(codePoint)) !== null && _a3 !== void 0 ? _a3 : codePoint;
+}
+
+// node_modules/htmlparser2/node_modules/entities/dist/esm/internal/decode-shared.js
+function decodeBase64(input) {
+  const binary = (
+    // eslint-disable-next-line n/no-unsupported-features/node-builtins
+    typeof atob === "function" ? (
+      // Browser (and Node >=16)
+      // eslint-disable-next-line n/no-unsupported-features/node-builtins
+      atob(input)
+    ) : (
+      // Older Node versions (<16)
+      // eslint-disable-next-line n/no-unsupported-features/node-builtins
+      typeof Buffer.from === "function" ? (
+        // eslint-disable-next-line n/no-unsupported-features/node-builtins
+        Buffer.from(input, "base64").toString("binary")
+      ) : (
+        // eslint-disable-next-line unicorn/no-new-buffer, n/no-deprecated-api
+        new Buffer(input, "base64").toString("binary")
+      )
+    )
+  );
+  const evenLength = binary.length & ~1;
+  const out = new Uint16Array(evenLength / 2);
+  for (let index = 0, outIndex = 0; index < evenLength; index += 2) {
+    const lo = binary.charCodeAt(index);
+    const hi = binary.charCodeAt(index + 1);
+    out[outIndex++] = lo | hi << 8;
+  }
+  return out;
+}
+
+// node_modules/htmlparser2/node_modules/entities/dist/esm/generated/decode-data-html.js
+var htmlDecodeTree = /* @__PURE__ */ decodeBase64("QR08ALkAAgH6AYsDNQR2BO0EPgXZBQEGLAbdBxMISQrvCmQLfQurDKQNLw4fD4YPpA+6D/IPAAAAAAAAAAAAAAAAKhBMEY8TmxUWF2EYLBkxGuAa3RsJHDscWR8YIC8jSCSIJcMl6ie3Ku8rEC0CLjoupS7kLgAIRU1hYmNmZ2xtbm9wcnN0dVQAWgBeAGUAaQBzAHcAfgCBAIQAhwCSAJoAoACsALMAbABpAGcAO4DGAMZAUAA7gCYAJkBjAHUAdABlADuAwQDBQHIiZXZlAAJhAAFpeW0AcgByAGMAO4DCAMJAEGRyAADgNdgE3XIAYQB2AGUAO4DAAMBA8CFoYZFj4SFjcgBhZAAAoFMqAAFncIsAjgBvAG4ABGFmAADgNdg43fAlbHlGdW5jdGlvbgCgYSBpAG4AZwA7gMUAxUAAAWNzpACoAHIAAOA12Jzc6SFnbgCgVCJpAGwAZABlADuAwwDDQG0AbAA7gMQAxEAABGFjZWZvcnN1xQDYANoA7QDxAPYA+QD8AAABY3LJAM8AayNzbGFzaAAAoBYidgHTANUAAKDnKmUAZAAAoAYjeQARZIABY3J0AOAA5QDrAGEidXNlAACgNSLuI291bGxpcwCgLCFhAJJjcgAA4DXYBd1wAGYAAOA12Dnd5SF2ZdhiYwDyAOoAbSJwZXEAAKBOIgAHSE9hY2RlZmhpbG9yc3UXARoBHwE6AVIBVQFiAWQBZgGCAakB6QHtAfIBYwB5ACdkUABZADuAqQCpQIABY3B5ACUBKAE1AfUhdGUGYWmg0iJ0KGFsRGlmZmVyZW50aWFsRAAAoEUhbCJleXMAAKAtIQACYWVpb0EBRAFKAU0B8iFvbgxhZABpAGwAO4DHAMdAcgBjAAhhbiJpbnQAAKAwIm8AdAAKYQABZG5ZAV0BaSJsbGEAuGB0I2VyRG90ALdg8gA5AWkAp2NyImNsZQAAAkRNUFRwAXQBeQF9AW8AdAAAoJkiaSJudXMAAKCWIuwhdXMAoJUiaSJtZXMAAKCXIm8AAAFjc4cBlAFrKndpc2VDb250b3VySW50ZWdyYWwAAKAyImUjQ3VybHkAAAFEUZwBpAFvJXVibGVRdW90ZQAAoB0gdSJvdGUAAKAZIAACbG5wdbABtgHNAdgBbwBuAGWgNyIAoHQqgAFnaXQAvAHBAcUB8iJ1ZW50AKBhIm4AdAAAoC8i7yV1ckludGVncmFsAKAuIgABZnLRAdMBAKACIe8iZHVjdACgECJuLnRlckNsb2Nrd2lzZUNvbnRvdXJJbnRlZ3JhbAAAoDMi7yFzcwCgLypjAHIAAOA12J7ccABDoNMiYQBwAACgTSKABURKU1phY2VmaW9zAAsCEgIVAhgCGwIsAjQCOQI9AnMCfwNvoEUh9CJyYWhkAKARKWMAeQACZGMAeQAFZGMAeQAPZIABZ3JzACECJQIoAuchZXIAoCEgcgAAoKEhaAB2AACg5CoAAWF5MAIzAvIhb24OYRRkbAB0oAciYQCUY3IAAOA12AfdAAFhZkECawIAAWNtRQJnAvIjaXRpY2FsAAJBREdUUAJUAl8CYwJjInV0ZQC0YG8AdAFZAloC2WJiJGxlQWN1dGUA3WJyImF2ZQBgYGkibGRlANxi7yFuZACgxCJmJWVyZW50aWFsRAAAoEYhcAR9AgAAAAAAAIECjgIAABoDZgAA4DXYO91EoagAhQKJAm8AdAAAoNwgcSJ1YWwAAKBQIuIhbGUAA0NETFJVVpkCqAK1Au8C/wIRA28AbgB0AG8AdQByAEkAbgB0AGUAZwByAGEA7ADEAW8AdAKvAgAAAACwAqhgbiNBcnJvdwAAoNMhAAFlb7kC0AJmAHQAgAFBUlQAwQLGAs0CciJyb3cAAKDQIekkZ2h0QXJyb3cAoNQhZQDlACsCbgBnAAABTFLWAugC5SFmdAABQVLcAuECciJyb3cAAKD4J+kkZ2h0QXJyb3cAoPon6SRnaHRBcnJvdwCg+SdpImdodAAAAUFU9gL7AnIicm93AACg0iFlAGUAAKCoInAAQQIGAwAAAAALA3Iicm93AACg0SFvJHduQXJyb3cAAKDVIWUlcnRpY2FsQmFyAACgJSJuAAADQUJMUlRhJAM2AzoDWgNxA3oDciJyb3cAAKGTIUJVLAMwA2EAcgAAoBMpcCNBcnJvdwAAoPUhciJldmUAEWPlIWZ00gJDAwAASwMAAFIDaSVnaHRWZWN0b3IAAKBQKWUkZVZlY3RvcgAAoF4p5SJjdG9yQqC9IWEAcgAAoFYpaSJnaHQA1AFiAwAAaQNlJGVWZWN0b3IAAKBfKeUiY3RvckKgwSFhAHIAAKBXKWUAZQBBoKQiciJyb3cAAKCnIXIAcgBvAPcAtAIAAWN0gwOHA3IAAOA12J/c8iFvaxBhAAhOVGFjZGZnbG1vcHFzdHV4owOlA6kDsAO/A8IDxgPNA9ID8gP9AwEEFAQeBCAEJQRHAEphSAA7gNAA0EBjAHUAdABlADuAyQDJQIABYWl5ALYDuQO+A/Ihb24aYXIAYwA7gMoAykAtZG8AdAAWYXIAAOA12AjdcgBhAHYAZQA7gMgAyEDlIm1lbnQAoAgiAAFhcNYD2QNjAHIAEmF0AHkAUwLhAwAAAADpA20lYWxsU3F1YXJlAACg+yVlJ3J5U21hbGxTcXVhcmUAAKCrJQABZ3D2A/kDbwBuABhhZgAA4DXYPN3zImlsb26VY3UAAAFhaQYEDgRsAFSgdSppImxkZQAAoEIi7CNpYnJpdW0AoMwhAAFjaRgEGwRyAACgMCFtAACgcyphAJdjbQBsADuAywDLQAABaXApBC0E8yF0cwCgAyLvJG5lbnRpYWxFAKBHIYACY2Zpb3MAPQQ/BEMEXQRyBHkAJGRyAADgNdgJ3WwibGVkAFMCTAQAAAAAVARtJWFsbFNxdWFyZQAAoPwlZSdyeVNtYWxsU3F1YXJlAACgqiVwA2UEAABpBAAAAABtBGYAAOA12D3dwSFsbACgACLyI2llcnRyZgCgMSFjAPIAcQQABkpUYWJjZGZnb3JzdIgEiwSOBJMElwSkBKcEqwStBLIE5QTqBGMAeQADZDuAPgA+QO0hbWFkoJMD3GNyImV2ZQAeYYABZWl5AJ0EoASjBOQhaWwiYXIAYwAcYRNkbwB0ACBhcgAA4DXYCt0AoNkicABmAADgNdg+3eUiYXRlcgADRUZHTFNUvwTIBM8E1QTZBOAEcSJ1YWwATKBlIuUhc3MAoNsidSRsbEVxdWFsAACgZyJyI2VhdGVyAACgoirlIXNzAKB3IuwkYW50RXF1YWwAoH4qaSJsZGUAAKBzImMAcgAA4DXYotwAoGsiAARBYWNmaW9zdfkE/QQFBQgFCwUTBSIFKwVSIkRjeQAqZAABY3QBBQQFZQBrAMdiXmDpIXJjJGFyAACgDCFsJWJlcnRTcGFjZQAAoAsh8AEYBQAAGwVmAACgDSHpJXpvbnRhbExpbmUAoAAlAAFjdCYFKAXyABIF8iFvayZhbQBwAEQBMQU5BW8AdwBuAEgAdQBtAPAAAAFxInVhbAAAoE8iAAdFSk9hY2RmZ21ub3N0dVMFVgVZBVwFYwVtBXAFcwV6BZAFtgXFBckFzQVjAHkAFWTsIWlnMmFjAHkAAWRjAHUAdABlADuAzQDNQAABaXlnBWwFcgBjADuAzgDOQBhkbwB0ADBhcgAAoBEhcgBhAHYAZQA7gMwAzEAAoREhYXB/BYsFAAFjZ4MFhQVyACphaSNuYXJ5SQAAoEghbABpAGUA8wD6AvQBlQUAAKUFZaAsIgABZ3KaBZ4F8iFhbACgKyLzI2VjdGlvbgCgwiJpI3NpYmxlAAABQ1SsBbEFbyJtbWEAAKBjIGkibWVzAACgYiCAAWdwdAC8Bb8FwwVvAG4ALmFmAADgNdhA3WEAmWNjAHIAAKAQIWkibGRlAChh6wHSBQAA1QVjAHkABmRsADuAzwDPQIACY2Zvc3UA4QXpBe0F8gX9BQABaXnlBegFcgBjADRhGWRyAADgNdgN3XAAZgAA4DXYQd3jAfcFAAD7BXIAAOA12KXc8iFjeQhk6yFjeQRkgANISmFjZm9zAAwGDwYSBhUGHQYhBiYGYwB5ACVkYwB5AAxk8CFwYZpjAAFleRkGHAbkIWlsNmEaZHIAAOA12A7dcABmAADgNdhC3WMAcgAA4DXYptyABUpUYWNlZmxtb3N0AD0GQAZDBl4GawZkB2gHcAd0B80H2gdjAHkACWQ7gDwAPECAAmNtbnByAEwGTwZSBlUGWwb1IXRlOWHiIWRhm2NnAACg6ifsI2FjZXRyZgCgEiFyAACgniGAAWFleQBkBmcGagbyIW9uPWHkIWlsO2EbZAABZnNvBjQHdAAABUFDREZSVFVWYXKABp4GpAbGBssG3AYDByEHwQIqBwABbnKEBowGZyVsZUJyYWNrZXQAAKDoJ/Ihb3cAoZAhQlKTBpcGYQByAACg5CHpJGdodEFycm93AKDGIWUjaWxpbmcAAKAII28A9QGqBgAAsgZiJWxlQnJhY2tldAAAoOYnbgDUAbcGAAC+BmUkZVZlY3RvcgAAoGEp5SJjdG9yQqDDIWEAcgAAoFkpbCJvb3IAAKAKI2kiZ2h0AAABQVbSBtcGciJyb3cAAKCUIeUiY3RvcgCgTikAAWVy4AbwBmUAAKGjIkFW5gbrBnIicm93AACgpCHlImN0b3IAoFopaSNhbmdsZQBCorIi+wYAAAAA/wZhAHIAAKDPKXEidWFsAACgtCJwAIABRFRWAAoHEQcYB+8kd25WZWN0b3IAoFEpZSRlVmVjdG9yAACgYCnlImN0b3JCoL8hYQByAACgWCnlImN0b3JCoLwhYQByAACgUilpAGcAaAB0AGEAcgByAG8A9wDMAnMAAANFRkdMU1Q/B0cHTgdUB1gHXwfxJXVhbEdyZWF0ZXIAoNoidSRsbEVxdWFsAACgZiJyI2VhdGVyAACgdiLlIXNzAKChKuwkYW50RXF1YWwAoH0qaSJsZGUAAKByInIAAOA12A/dZaDYIuYjdGFycm93AKDaIWkiZG90AD9hgAFucHcAege1B7kHZwAAAkxSbHKCB5QHmwerB+UhZnQAAUFSiAeNB3Iicm93AACg9SfpJGdodEFycm93AKD3J+kkZ2h0QXJyb3cAoPYn5SFmdAABYXLcAqEHaQBnAGgAdABhAHIAcgBvAPcA5wJpAGcAaAB0AGEAcgByAG8A9wDuAmYAAOA12EPdZQByAAABTFK/B8YHZSRmdEFycm93AACgmSHpJGdodEFycm93AKCYIYABY2h0ANMH1QfXB/IAWgYAoLAh8iFva0FhAKBqIgAEYWNlZmlvc3XpB+wH7gf/BwMICQgOCBEIcAAAoAUpeQAcZAABZGzyB/kHaSR1bVNwYWNlAACgXyBsI2ludHJmAACgMyFyAADgNdgQ3e4jdXNQbHVzAKATInAAZgAA4DXYRN1jAPIA/gecY4AESmFjZWZvc3R1ACEIJAgoCDUIgQiFCDsKQApHCmMAeQAKZGMidXRlAENhgAFhZXkALggxCDQI8iFvbkdh5CFpbEVhHWSAAWdzdwA7CGEIfQjhInRpdmWAAU1UVgBECEwIWQhlJWRpdW1TcGFjZQAAoAsgaABpAAABY25SCFMIawBTAHAAYQBjAOUASwhlAHIAeQBUAGgAaQDuAFQI9CFlZAABR0xnCHUIcgBlAGEAdABlAHIARwByAGUAYQB0AGUA8gDrBGUAcwBzAEwAZQBzAPMA2wdMImluZQAKYHIAAOA12BHdAAJCbnB0jAiRCJkInAhyImVhawAAoGAgwiZyZWFraW5nU3BhY2WgYGYAAKAVIUOq7CqzCMIIzQgAAOcIGwkAAAAAAAAtCQAAbwkAAIcJAACdCcAJGQoAADQKAAFvdbYIvAjuI2dydWVudACgYiJwIkNhcAAAoG0ibyh1YmxlVmVydGljYWxCYXIAAKAmIoABbHF4ANII1wjhCOUibWVudACgCSL1IWFsVKBgImkibGRlAADgQiI4A2kic3RzAACgBCJyI2VhdGVyAACjbyJFRkdMU1T1CPoIAgkJCQ0JFQlxInVhbAAAoHEidSRsbEVxdWFsAADgZyI4A3IjZWF0ZXIAAOBrIjgD5SFzcwCgeSLsJGFudEVxdWFsAOB+KjgDaSJsZGUAAKB1IvUhbXBEASAJJwnvI3duSHVtcADgTiI4A3EidWFsAADgTyI4A2UAAAFmczEJRgn0JFRyaWFuZ2xlQqLqIj0JAAAAAEIJYQByAADgzyk4A3EidWFsAACg7CJzAICibiJFR0xTVABRCVYJXAlhCWkJcSJ1YWwAAKBwInIjZWF0ZXIAAKB4IuUhc3MA4GoiOAPsJGFudEVxdWFsAOB9KjgDaSJsZGUAAKB0IuUic3RlZAABR0x1CX8J8iZlYXRlckdyZWF0ZXIA4KIqOAPlI3NzTGVzcwDgoSo4A/IjZWNlZGVzAKGAIkVTjwmVCXEidWFsAADgryo4A+wkYW50RXF1YWwAoOAiAAFlaaAJqQl2JmVyc2VFbGVtZW50AACgDCLnJWh0VHJpYW5nbGVCousitgkAAAAAuwlhAHIAAODQKTgDcSJ1YWwAAKDtIgABcXXDCeAJdSNhcmVTdQAAAWJwywnVCfMhZXRF4I8iOANxInVhbAAAoOIi5SJyc2V0ReCQIjgDcSJ1YWwAAKDjIoABYmNwAOYJ8AkNCvMhZXRF4IIi0iBxInVhbAAAoIgi4yJlZWRzgKGBIkVTVAD6CQAKBwpxInVhbAAA4LAqOAPsJGFudEVxdWFsAKDhImkibGRlAADgfyI4A+UicnNldEXggyLSIHEidWFsAACgiSJpImxkZQCAoUEiRUZUACIKJwouCnEidWFsAACgRCJ1JGxsRXF1YWwAAKBHImkibGRlAACgSSJlJXJ0aWNhbEJhcgAAoCQiYwByAADgNdip3GkAbABkAGUAO4DRANFAnWMAB0VhY2RmZ21vcHJzdHV2XgphCmgKcgp2CnoKgQqRCpYKqwqtCrsKyArNCuwhaWdSYWMAdQB0AGUAO4DTANNAAAFpeWwKcQpyAGMAO4DUANRAHmRiImxhYwBQYXIAAOA12BLdcgBhAHYAZQA7gNIA0kCAAWFlaQCHCooKjQpjAHIATGFnAGEAqWNjInJvbgCfY3AAZgAA4DXYRt3lI25DdXJseQABRFGeCqYKbyV1YmxlUXVvdGUAAKAcIHUib3RlAACgGCAAoFQqAAFjbLEKtQpyAADgNdiq3GEAcwBoADuA2ADYQGkAbAHACsUKZABlADuA1QDVQGUAcwAAoDcqbQBsADuA1gDWQGUAcgAAAUJQ0wrmCgABYXLXCtoKcgAAoD4gYQBjAAABZWvgCuIKAKDeI2UAdAAAoLQjYSVyZW50aGVzaXMAAKDcI4AEYWNmaGlsb3JzAP0KAwsFCwkLCwsMCxELIwtaC3IjdGlhbEQAAKACInkAH2RyAADgNdgT3WkApmOgY/Ujc01pbnVzsWAAAWlwFQsgC24AYwBhAHIAZQBwAGwAYQBuAOUACgVmAACgGSGAobsqZWlvACoLRQtJC+MiZWRlc4CheiJFU1QANAs5C0ALcSJ1YWwAAKCvKuwkYW50RXF1YWwAoHwiaSJsZGUAAKB+Im0AZQAAoDMgAAFkcE0LUQv1IWN0AKAPIm8jcnRpb24AYaA3ImwAAKAdIgABY2leC2ILcgAA4DXYq9yoYwACVWZvc2oLbwtzC3cLTwBUADuAIgAiQHIAAOA12BTdcABmAACgGiFjAHIAAOA12KzcAAZCRWFjZWZoaW9yc3WPC5MLlwupC7YL2AvbC90LhQyTDJoMowzhIXJyAKAQKUcAO4CuAK5AgAFjbnIAnQugC6ML9SF0ZVRhZwAAoOsncgB0oKAhbAAAoBYpgAFhZXkArwuyC7UL8iFvblhh5CFpbFZhIGR2oBwhZSJyc2UAAAFFVb8LzwsAAWxxwwvIC+UibWVudACgCyL1JGlsaWJyaXVtAKDLIXAmRXF1aWxpYnJpdW0AAKBvKXIAAKAcIW8AoWPnIWh0AARBQ0RGVFVWYewLCgwQDDIMNwxeDHwM9gIAAW5y8Av4C2clbGVCcmFja2V0AACg6SfyIW93AKGSIUJM/wsDDGEAcgAAoOUhZSRmdEFycm93AACgxCFlI2lsaW5nAACgCSNvAPUBFgwAAB4MYiVsZUJyYWNrZXQAAKDnJ24A1AEjDAAAKgxlJGVWZWN0b3IAAKBdKeUiY3RvckKgwiFhAHIAAKBVKWwib29yAACgCyMAAWVyOwxLDGUAAKGiIkFWQQxGDHIicm93AACgpiHlImN0b3IAoFspaSNhbmdsZQBCorMiVgwAAAAAWgxhAHIAAKDQKXEidWFsAACgtSJwAIABRFRWAGUMbAxzDO8kd25WZWN0b3IAoE8pZSRlVmVjdG9yAACgXCnlImN0b3JCoL4hYQByAACgVCnlImN0b3JCoMAhYQByAACgUykAAXB1iQyMDGYAAKAdIe4kZEltcGxpZXMAoHAp6SRnaHRhcnJvdwCg2yEAAWNongyhDHIAAKAbIQCgsSHsJGVEZWxheWVkAKD0KYAGSE9hY2ZoaW1vcXN0dQC/DMgMzAzQDOIM5gwKDQ0NFA0ZDU8NVA1YDQABQ2PDDMYMyCFjeSlkeQAoZEYiVGN5ACxkYyJ1dGUAWmEAorwqYWVpedgM2wzeDOEM8iFvbmBh5CFpbF5hcgBjAFxhIWRyAADgNdgW3e8hcnQAAkRMUlXvDPYM/QwEDW8kd25BcnJvdwAAoJMhZSRmdEFycm93AACgkCHpJGdodEFycm93AKCSIXAjQXJyb3cAAKCRIechbWGjY+EkbGxDaXJjbGUAoBgicABmAADgNdhK3XICHw0AAAAAIg10AACgGiLhIXJlgKGhJUlTVQAqDTINSg3uJXRlcnNlY3Rpb24AoJMidQAAAWJwNw1ADfMhZXRFoI8icSJ1YWwAAKCRIuUicnNldEWgkCJxInVhbAAAoJIibiJpb24AAKCUImMAcgAA4DXYrtxhAHIAAKDGIgACYmNtcF8Nag2ODZANc6DQImUAdABFoNAicSJ1YWwAAKCGIgABY2huDYkNZSJlZHMAgKF7IkVTVAB4DX0NhA1xInVhbAAAoLAq7CRhbnRFcXVhbACgfSJpImxkZQAAoH8iVABoAGEA9ADHCwCgESIAodEiZXOVDZ8NciJzZXQARaCDInEidWFsAACghyJlAHQAAKDRIoAFSFJTYWNmaGlvcnMAtQ27Db8NyA3ODdsN3w3+DRgOHQ4jDk8AUgBOADuA3gDeQMEhREUAoCIhAAFIY8MNxg1jAHkAC2R5ACZkAAFidcwNzQ0JYKRjgAFhZXkA1A3XDdoN8iFvbmRh5CFpbGJhImRyAADgNdgX3QABZWnjDe4N8gHoDQAA7Q3lImZvcmUAoDQiYQCYYwABY27yDfkNayNTcGFjZQAA4F8gCiDTInBhY2UAoAkg7CFkZYChPCJFRlQABw4MDhMOcSJ1YWwAAKBDInUkbGxFcXVhbAAAoEUiaSJsZGUAAKBIInAAZgAA4DXYS93pI3BsZURvdACg2yAAAWN0Jw4rDnIAAOA12K/c8iFva2Zh4QpFDlYOYA5qDgAAbg5yDgAAAAAAAAAAAAB5DnwOqA6zDgAADg8RDxYPGg8AAWNySA5ODnUAdABlADuA2gDaQHIAb6CfIeMhaXIAoEkpcgDjAVsOAABdDnkADmR2AGUAbGEAAWl5Yw5oDnIAYwA7gNsA20AjZGIibGFjAHBhcgAA4DXYGN1yAGEAdgBlADuA2QDZQOEhY3JqYQABZGl/Dp8OZQByAAABQlCFDpcOAAFhcokOiw5yAF9gYQBjAAABZWuRDpMOAKDfI2UAdAAAoLUjYSVyZW50aGVzaXMAAKDdI28AbgBQoMMi7CF1cwCgjiIAAWdwqw6uDm8AbgByYWYAAOA12EzdAARBREVUYWRwc78O0g7ZDuEOBQPqDvMOBw9yInJvdwDCoZEhyA4AAMwOYQByAACgEilvJHduQXJyb3cAAKDFIW8kd25BcnJvdwAAoJUhcSV1aWxpYnJpdW0AAKBuKWUAZQBBoKUiciJyb3cAAKClIW8AdwBuAGEAcgByAG8A9wAQA2UAcgAAAUxS+Q4AD2UkZnRBcnJvdwAAoJYh6SRnaHRBcnJvdwCglyFpAGyg0gNvAG4ApWPpIW5nbmFjAHIAAOA12LDcaSJsZGUAaGFtAGwAO4DcANxAgAREYmNkZWZvc3YALQ8xDzUPNw89D3IPdg97D4AP4SFzaACgqyJhAHIAAKDrKnkAEmThIXNobKCpIgCg5ioAAWVyQQ9DDwCgwSKAAWJ0eQBJD00Paw9hAHIAAKAWIGmgFiDjIWFsAAJCTFNUWA9cD18PZg9hAHIAAKAjIukhbmV8YGUkcGFyYXRvcgAAoFgnaSJsZGUAAKBAItQkaGluU3BhY2UAoAogcgAA4DXYGd1wAGYAAOA12E3dYwByAADgNdix3GQiYXNoAACgqiKAAmNlZm9zAI4PkQ+VD5kPng/pIXJjdGHkIWdlAKDAInIAAOA12BrdcABmAADgNdhO3WMAcgAA4DXYstwAAmZpb3OqD64Prw+0D3IAAOA12BvdnmNwAGYAAOA12E/dYwByAADgNdiz3IAEQUlVYWNmb3N1AMgPyw/OD9EP2A/gD+QP6Q/uD2MAeQAvZGMAeQAHZGMAeQAuZGMAdQB0AGUAO4DdAN1AAAFpedwP3w9yAGMAdmErZHIAAOA12BzdcABmAADgNdhQ3WMAcgAA4DXYtNxtAGwAeGEABEhhY2RlZm9z/g8BEAUQDRAQEB0QIBAkEGMAeQAWZGMidXRlAHlhAAFheQkQDBDyIW9ufWEXZG8AdAB7YfIBFRAAABwQbwBXAGkAZAB0AOgAVAhhAJZjcgAAoCghcABmAACgJCFjAHIAAOA12LXc4QtCEEkQTRAAAGcQbRByEAAAAAAAAAAAeRCKEJcQ8hD9EAAAGxEhETIROREAAD4RYwB1AHQAZQA7gOEA4UByImV2ZQADYYCiPiJFZGl1eQBWEFkQWxBgEGUQAOA+IjMDAKA/InIAYwA7gOIA4kB0AGUAO4C0ALRAMGRsAGkAZwA7gOYA5kByoGEgAOA12B7dcgBhAHYAZQA7gOAA4EAAAWVwfBCGEAABZnCAEIQQ8yF5bQCgNSHoAIMQaABhALFjAAFhcI0QWwAAAWNskRCTEHIAAWFnAACgPypkApwQAAAAALEQAKInImFkc3ajEKcQqRCuEG4AZAAAoFUqAKBcKmwib3BlAACgWCoAoFoqAKMgImVsbXJzersQvRDAEN0Q5RDtEACgpCllAACgICJzAGQAYaAhImEEzhDQENIQ1BDWENgQ2hDcEACgqCkAoKkpAKCqKQCgqykAoKwpAKCtKQCgrikAoK8pdAB2oB8iYgBkoL4iAKCdKQABcHTpEOwQaAAAoCIixWDhIXJyAKB8IwABZ3D1EPgQbwBuAAVhZgAA4DXYUt0Ao0giRWFlaW9wBxEJEQ0RDxESERQRAKBwKuMhaXIAoG8qAKBKImQAAKBLInMAJ2DyIW94ZaBIIvEADhFpAG4AZwA7gOUA5UCAAWN0eQAmESoRKxFyAADgNdi23CpgbQBwAGWgSCLxAPgBaQBsAGQAZQA7gOMA40BtAGwAO4DkAORAAAFjaUERRxFvAG4AaQBuAPQA6AFuAHQAAKARKgAITmFiY2RlZmlrbG5vcHJzdWQRaBGXEZ8RpxGrEdIR1hErEjASexKKEn0RThNbE3oTbwB0AACg7SoAAWNybBGJEWsAAAJjZXBzdBF4EX0RghHvIW5nAKBMInAjc2lsb24A9mNyImltZQAAoDUgaQBtAGWgPSJxAACgzSJ2AY0RkRFlAGUAAKC9ImUAZABnoAUjZQAAoAUjcgBrAHSgtSPiIXJrAKC2IwABb3mjEaYRbgDnAHcRMWTxIXVvAKAeIIACY21wcnQAtBG5Eb4RwRHFEeEhdXPloDUi5ABwInR5dgAAoLApcwDpAH0RbgBvAPUA6gCAAWFodwDLEcwRzhGyYwCgNiHlIWVuAKBsInIAAOA12B/dZwCAA2Nvc3R1dncA4xHyEQUSEhIhEiYSKRKAAWFpdQDpEesR7xHwAKMFcgBjAACg7yVwAACgwyKAAWRwdAD4EfwRABJvAHQAAKAAKuwhdXMAoAEqaSJtZXMAAKACKnECCxIAAAAADxLjIXVwAKAGKmEAcgAAoAUm8iNpYW5nbGUAAWR1GhIeEu8hd24AoL0lcAAAoLMlcCJsdXMAAKAEKmUA5QBCD+UAkg9hInJvdwAAoA0pgAFha28ANhJoEncSAAFjbjoSZRJrAIABbHN0AEESRxJNEm8jemVuZ2UAAKDrKXEAdQBhAHIA5QBcBPIjaWFuZ2xlgKG0JWRscgBYElwSYBLvIXduAKC+JeUhZnQAoMIlaSJnaHQAAKC4JWsAAKAjJLEBbRIAAHUSsgFxEgAAcxIAoJIlAKCRJTQAAKCTJWMAawAAoIglAAFlb38ShxJx4D0A5SD1IWl2AOBhIuUgdAAAoBAjAAJwdHd4kRKVEpsSnxJmAADgNdhT3XSgpSJvAG0AAKClIvQhaWUAoMgiAAZESFVWYmRobXB0dXayEsES0RLgEvcS+xIKExoTHxMjEygTNxMAAkxSbHK5ErsSvRK/EgCgVyUAoFQlAKBWJQCgUyUAolAlRFVkdckSyxLNEs8SAKBmJQCgaSUAoGQlAKBnJQACTFJsctgS2hLcEt4SAKBdJQCgWiUAoFwlAKBZJQCjUSVITFJobHLrEu0S7xLxEvMS9RIAoGwlAKBjJQCgYCUAoGslAKBiJQCgXyVvAHgAAKDJKQACTFJscgITBBMGEwgTAKBVJQCgUiUAoBAlAKAMJQCiACVEVWR1EhMUExYTGBMAoGUlAKBoJQCgLCUAoDQlaSJudXMAAKCfIuwhdXMAoJ4iaSJtZXMAAKCgIgACTFJsci8TMRMzEzUTAKBbJQCgWCUAoBglAKAUJQCjAiVITFJobHJCE0QTRhNIE0oTTBMAoGolAKBhJQCgXiUAoDwlAKAkJQCgHCUAAWV2UhNVE3YA5QD5AGIAYQByADuApgCmQAACY2Vpb2ITZhNqE24TcgAA4DXYt9xtAGkAAKBPIG0A5aA9IogRbAAAoVwAYmh0E3YTAKDFKfMhdWIAoMgnbAF+E4QTbABloCIgdAAAoCIgcAAAoU4iRWWJE4sTAKCuKvGgTyI8BeEMqRMAAN8TABQDFB8UAAAjFDQUAAAAAIUUAAAAAI0UAAAAANcU4xT3FPsUAACIFQAAlhWAAWNwcgCuE7ET1RP1IXRlB2GAoikiYWJjZHMAuxO/E8QTzhPSE24AZAAAoEQqciJjdXAAAKBJKgABYXXIE8sTcAAAoEsqcAAAoEcqbwB0AACgQCoA4CkiAP4AAWVv2RPcE3QAAKBBIO4ABAUAAmFlaXXlE+8T9RP4E/AB6hMAAO0TcwAAoE0qbwBuAA1hZABpAGwAO4DnAOdAcgBjAAlhcABzAHOgTCptAACgUCpvAHQAC2GAAWRtbgAIFA0UEhRpAGwAO4C4ALhAcCJ0eXYAAKCyKXQAAIGiADtlGBQZFKJAcgBkAG8A9ABiAXIAAOA12CDdgAFjZWkAKBQqFDIUeQBHZGMAawBtoBMn4SFyawCgEyfHY3IAAKPLJUVjZWZtcz8UQRRHFHcUfBSAFACgwykAocYCZWxGFEkUcQAAoFciZQBhAlAUAAAAAGAUciJyb3cAAAFsclYUWhTlIWZ0AKC6IWkiZ2h0AACguyGAAlJTYWNkAGgUaRRrFG8UcxSuYACgyCRzAHQAAKCbIukhcmMAoJoi4SFzaACgnSJuImludAAAoBAqaQBkAACg7yrjIWlyAKDCKfUhYnN1oGMmaQB0AACgYybsApMUmhS2FAAAwxRvAG4AZaA6APGgVCKrAG0CnxQAAAAAoxRhAHSgLABAYAChASJmbKcUqRTuABMNZQAAAW14rhSyFOUhbnQAoAEiZQDzANIB5wG6FAAAwBRkoEUibwB0AACgbSpuAPQAzAGAAWZyeQDIFMsUzhQA4DXYVN1vAOQA1wEAgakAO3MeAdMUcgAAoBchAAFhb9oU3hRyAHIAAKC1IXMAcwAAoBcnAAFjdeYU6hRyAADgNdi43AABYnDuFPIUZaDPKgCg0SploNAqAKDSKuQhb3QAoO8igANkZWxwcnZ3AAYVEBUbFSEVRBVlFYQV4SFycgABbHIMFQ4VAKA4KQCgNSlwAhYVAAAAABkVcgAAoN4iYwAAoN8i4SFycnCgtiEAoD0pgKIqImJjZG9zACsVMBU6FT4VQRVyImNhcAAAoEgqAAFhdTQVNxVwAACgRipwAACgSipvAHQAAKCNInIAAKBFKgDgKiIA/gACYWxydksVURVuFXMVcgByAG2gtyEAoDwpeQCAAWV2dwBYFWUVaRVxAHACXxUAAAAAYxVyAGUA4wAXFXUA4wAZFWUAZQAAoM4iZSJkZ2UAAKDPImUAbgA7gKQApEBlI2Fycm93AAABbHJ7FX8V5SFmdACgtiFpImdodAAAoLchZQDkAG0VAAFjaYsVkRVvAG4AaQBuAPQAkwFuAHQAAKAxImwiY3R5AACgLSOACUFIYWJjZGVmaGlqbG9yc3R1d3oAuBW7Fb8V1RXgFegV+RUKFhUWHxZUFlcWZRbFFtsW7xb7FgUXChdyAPIAtAJhAHIAAKBlKQACZ2xyc8YVyhXOFdAV5yFlcgCgICDlIXRoAKA4IfIA9QxoAHagECAAoKMiawHZFd4VYSJyb3cAAKAPKWEA4wBfAgABYXnkFecV8iFvbg9hNGQAoUYhYW/tFfQVAAFnciEC8RVyAACgyiF0InNlcQAAoHcqgAFnbG0A/xUCFgUWO4CwALBAdABhALRjcCJ0eXYAAKCxKQABaXIOFhIW8yFodACgfykA4DXYId1hAHIAAAFschsWHRYAoMMhAKDCIYACYWVnc3YAKBauAjYWOhY+Fm0AAKHEIm9zLhY0Fm4AZABzoMQi9SFpdACgZiZhIm1tYQDdY2kAbgAAoPIiAKH3AGlvQxZRFmQAZQAAgfcAO29KFksW90BuI3RpbWVzAACgxyJuAPgAUBZjAHkAUmRjAG8CXhYAAAAAYhZyAG4AAKAeI28AcAAAoA0jgAJscHR1dwBuFnEWdRaSFp4W7CFhciRgZgAA4DXYVd0AotkCZW1wc30WhBaJFo0WcQBkoFAibwB0AACgUSJpIm51cwAAoDgi7CF1cwCgFCLxInVhcmUAoKEiYgBsAGUAYgBhAHIAdwBlAGQAZwDlANcAbgCAAWFkaAClFqoWtBZyAHIAbwD3APUMbwB3AG4AYQByAHIAbwB3APMA8xVhI3Jwb29uAAABbHK8FsAWZQBmAPQAHBZpAGcAaAD0AB4WYgHJFs8WawBhAHIAbwD3AJILbwLUFgAAAADYFnIAbgAAoB8jbwBwAACgDCOAAWNvdADhFukW7BYAAXJ55RboFgDgNdi53FVkbAAAoPYp8iFvaxFhAAFkcvMW9xZvAHQAAKDxImkA5qC/JVsSAAFhaP8WAhdyAPIANQNhAPIA1wvhIm5nbGUAoKYpAAFjaQ4XEBd5AF9k5yJyYXJyAKD/JwAJRGFjZGVmZ2xtbm9wcXJzdHV4MRc4F0YXWxcyBF4XaRd5F40XrBe0F78X2RcVGCEYLRg1GEAYAAFEbzUXgRZvAPQA+BUAAWNzPBdCF3UAdABlADuA6QDpQPQhZXIAoG4qAAJhaW95TRdQF1YXWhfyIW9uG2FyAGOgViI7gOoA6kDsIW9uAKBVIk1kbwB0ABdhAAFEcmIXZhdvAHQAAKBSIgDgNdgi3XKhmipuF3QXYQB2AGUAO4DoAOhAZKCWKm8AdAAAoJgqgKGZKmlscwCAF4UXhxfuInRlcnMAoOcjAKATIWSglSpvAHQAAKCXKoABYXBzAJMXlheiF2MAcgATYXQAeQBzogUinxcAAAAAoRdlAHQAAKAFInAAMaADIDMBqRerFwCgBCAAoAUgAAFnc7AXsRdLYXAAAKACIAABZ3C4F7sXbwBuABlhZgAA4DXYVt2AAWFscwDFF8sXzxdyAHOg1SJsAACg4yl1AHMAAKBxKmkAAKG1A2x21RfYF28AbgC1Y/VjAAJjc3V24BfoF/0XEBgAAWlv5BdWF3IAYwAAoFYiaQLuFwAAAADwF+0ADQThIW50AAFnbPUX+Rd0AHIAAKCWKuUhc3MAoJUqgAFhZWkAAxgGGAoYbABzAD1gcwB0AACgXyJ2AESgYSJEAACgeCrwImFyc2wAoOUpAAFEYRkYHRhvAHQAAKBTInIAcgAAoHEpgAFjZGkAJxgqGO0XcgAAoC8hbwD0AIwCAAFhaDEYMhi3YzuA8ADwQAABbXI5GD0YbAA7gOsA60BvAACgrCCAAWNpcABGGEgYSxhsACFgcwD0ACwEAAFlb08YVxhjAHQAYQB0AGkAbwDuABoEbgBlAG4AdABpAGEAbADlADME4Ql1GAAAgRgAAIMYiBgAAAAAoRilGAAAqhgAALsYvhjRGAAA1xgnGWwAbABpAG4AZwBkAG8AdABzAGUA8QBlF3kARGRtImFsZQAAoEAmgAFpbHIAjRiRGJ0Y7CFpZwCgA/tpApcYAAAAAJoYZwAAoAD7aQBnAACgBPsA4DXYI93sIWlnAKAB++whaWcA4GYAagCAAWFsdACvGLIYthh0AACgbSZpAGcAAKAC+24AcwAAoLElbwBmAJJh8AHCGAAAxhhmAADgNdhX3QABYWvJGMwYbADsAGsEdqDUIgCg2SphI3J0aW50AACgDSoAAWFv2hgiGQABY3PeGB8ZsQPnGP0YBRkSGRUZAAAdGbID7xjyGPQY9xj5GAAA+xg7gL0AvUAAoFMhO4C8ALxAAKBVIQCgWSEAoFshswEBGQAAAxkAoFQhAKBWIbQCCxkOGQAAAAAQGTuAvgC+QACgVyEAoFwhNQAAoFghtgEZGQAAGxkAoFohAKBdITgAAKBeIWwAAKBEIHcAbgAAoCIjYwByAADgNdi73IAIRWFiY2RlZmdpamxub3JzdHYARhlKGVoZXhlmGWkZkhmWGZkZnRmgGa0ZxhnLGc8Z4BkjGmygZyIAoIwqgAFjbXAAUBlTGVgZ9SF0ZfVhbQBhAOSgswM6FgCghipyImV2ZQAfYQABaXliGWUZcgBjAB1hM2RvAHQAIWGAoWUibHFzAMYEcBl6GfGhZSLOBAAAdhlsAGEAbgD0AN8EgKF+KmNkbACBGYQZjBljAACgqSpvAHQAb6CAKmyggioAoIQqZeDbIgD+cwAAoJQqcgAA4DXYJN3noGsirATtIWVsAKA3IWMAeQBTZIChdyJFYWoApxmpGasZAKCSKgCgpSoAoKQqAAJFYWVztBm2Gb0ZwhkAoGkicABwoIoq8iFveACgiipxoIgq8aCIKrUZaQBtAACg5yJwAGYAAOA12FjdYQB2AOUAYwIAAWNp0xnWGXIAAKAKIW0AAKFzImVs3BneGQCgjioAoJAqAIM+ADtjZGxxco0E6xn0GfgZ/BkBGgABY2nvGfEZAKCnKnIAAKB6Km8AdAAAoNci0CFhcgCglSl1ImVzdAAAoHwqgAJhZGVscwAKGvQZFhrVBCAa8AEPGgAAFBpwAHIAbwD4AFkZcgAAoHgpcQAAAWxxxAQbGmwAZQBzAPMASRlpAO0A5AQAAWVuJxouGnIjdG5lcXEAAOBpIgD+xQAsGgAFQWFiY2Vma29zeUAaQxpmGmoabRqDGocalhrCGtMacgDyAMwCAAJpbG1yShpOGlAaVBpyAHMA8ABxD2YAvWBpAGwA9AASBQABZHJYGlsaYwB5AEpkAKGUIWN3YBpkGmkAcgAAoEgpAKCtIWEAcgAAoA8h6SFyYyVhgAFhbHIAcxp7Gn8a8iF0c3WgZSZpAHQAAKBlJuwhaXAAoCYg4yFvbgCguSJyAADgNdgl3XMAAAFld4wakRphInJvdwAAoCUpYSJyb3cAAKAmKYACYW1vcHIAnxqjGqcauhq+GnIAcgAAoP8h9CFodACgOyJrAAABbHKsGrMaZSRmdGFycm93AACgqSHpJGdodGFycm93AKCqIWYAAOA12Fnd4iFhcgCgFSCAAWNsdADIGswa0BpyAADgNdi93GEAcwDoAGka8iFvaydhAAFicNca2xr1IWxsAKBDIOghZW4AoBAg4Qr2GgAA/RoAAAgbExsaGwAAIRs7GwAAAAA+G2IbmRuVG6sbAACyG80b0htjAHUAdABlADuA7QDtQAChYyBpeQEbBhtyAGMAO4DuAO5AOGQAAWN4CxsNG3kANWRjAGwAO4ChAKFAAAFmcssCFhsA4DXYJt1yAGEAdgBlADuA7ADsQIChSCFpbm8AJxsyGzYbAAFpbisbLxtuAHQAAKAMKnQAAKAtIuYhaW4AoNwpdABhAACgKSHsIWlnM2GAAWFvcABDG1sbXhuAAWNndABJG0sbWRtyACthgAFlbHAAcQVRG1UbaQBuAOUAyAVhAHIA9AByBWgAMWFmAACgtyJlAGQAtWEAoggiY2ZvdGkbbRt1G3kb4SFyZQCgBSFpAG4AdKAeImkAZQAAoN0pZABvAPQAWxsAoisiY2VscIEbhRuPG5QbYQBsAACguiIAAWdyiRuNG2UAcgDzACMQ4wCCG2EicmhrAACgFyryIW9kAKA8KgACY2dwdJ8boRukG6gbeQBRZG8AbgAvYWYAAOA12FrdYQC5Y3UAZQBzAHQAO4C/AL9AAAFjabUbuRtyAADgNdi+3G4AAKIIIkVkc3bCG8QbyBvQAwCg+SJvAHQAAKD1Inag9CIAoPMiaaBiIOwhZGUpYesB1hsAANkbYwB5AFZkbAA7gO8A70AAA2NmbW9zdeYb7hvyG/Ub+hsFHAABaXnqG+0bcgBjADVhOWRyAADgNdgn3eEhdGg3YnAAZgAA4DXYW93jAf8bAAADHHIAAOA12L/c8iFjeVhk6yFjeVRkAARhY2ZnaGpvcxUcGhwiHCYcKhwtHDAcNRzwIXBhdqC6A/BjAAFleR4cIRzkIWlsN2E6ZHIAAOA12CjdciJlZW4AOGFjAHkARWRjAHkAXGRwAGYAAOA12FzdYwByAADgNdjA3IALQUJFSGFiY2RlZmdoamxtbm9wcnN0dXYAXhxtHHEcdRx5HN8cBx0dHTwd3B3tHfEdAR4EHh0eLB5FHrwewx7hHgkfPR9LH4ABYXJ0AGQcZxxpHHIA8gBvB/IAxQLhIWlsAKAbKeEhcnIAoA4pZ6BmIgCgiyphAHIAAKBiKWMJjRwAAJAcAACVHAAAAAAAAAAAAACZHJwcAACmHKgcrRwAANIc9SF0ZTph7SJwdHl2AKC0KXIAYQDuAFoG4iFkYbtjZwAAoegnZGyhHKMcAKCRKeUAiwYAoIUqdQBvADuAqwCrQHIAgKOQIWJmaGxwc3QAuhy/HMIcxBzHHMoczhxmoOQhcwAAoB8pcwAAoB0p6wCyGnAAAKCrIWwAAKA5KWkAbQAAoHMpbAAAoKIhAKGrKmFl1hzaHGkAbAAAoBkpc6CtKgDgrSoA/oABYWJyAOUc6RztHHIAcgAAoAwpcgBrAACgcicAAWFr8Rz4HGMAAAFla/Yc9xx7YFtgAAFlc/wc/hwAoIspbAAAAWR1Ax0FHQCgjykAoI0pAAJhZXV5Dh0RHRodHB3yIW9uPmEAAWRpFR0YHWkAbAA8YewAowbiAPccO2QAAmNxcnMkHScdLB05HWEAAKA2KXUAbwDyoBwgqhEAAWR1MB00HeghYXIAoGcpcyJoYXIAAKBLKWgAAKCyIQCiZCJmZ3FzRB1FB5Qdnh10AIACYWhscnQATh1WHWUdbB2NHXIicm93AHSgkCFhAOkAzxxhI3Jwb29uAAABZHVeHWId7yF3bgCgvSFwAACgvCHlJGZ0YXJyb3dzAKDHIWkiZ2h0AIABYWhzAHUdex2DHXIicm93APOglCGdBmEAcgBwAG8AbwBuAPMAzgtxAHUAaQBnAGEAcgByAG8A9wBlGugkcmVldGltZXMAoMsi8aFkIk0HAACaHWwAYQBuAPQAXgcAon0qY2Rnc6YdqR2xHbcdYwAAoKgqbwB0AG+gfypyoIEqAKCDKmXg2iIA/nMAAKCTKoACYWRlZ3MAwB3GHcod1h3ZHXAAcAByAG8A+ACmHG8AdAAAoNYicQAAAWdxzx3SHXQA8gBGB2cAdADyAHQcdADyAFMHaQDtAGMHgAFpbHIA4h3mHeod8yFodACgfClvAG8A8gDKBgDgNdgp3UWgdiIAoJEqYQH1Hf4dcgAAAWR1YB35HWygvCEAoGopbABrAACghCVjAHkAWWQAomoiYWNodAweDx4VHhkecgDyAGsdbwByAG4AZQDyAGAW4SFyZACgaylyAGkAAKD6JQABaW8hHiQe5CFvdEBh9SFzdGGgsCPjIWhlAKCwIwACRWFlczMeNR48HkEeAKBoInAAcKCJKvIhb3gAoIkqcaCHKvGghyo0HmkAbQAAoOYiAARhYm5vcHR3elIeXB5fHoUelh6mHqsetB4AAW5yVh5ZHmcAAKDsJ3IAAKD9IXIA6wCwBmcAgAFsbXIAZh52Hnse5SFmdAABYXKIB2weaQBnAGgAdABhAHIAcgBvAPcAkwfhInBzdG8AoPwnaQBnAGgAdABhAHIAcgBvAPcAmgdwI2Fycm93AAABbHKNHpEeZQBmAPQAxhxpImdodAAAoKwhgAFhZmwAnB6fHqIecgAAoIUpAOA12F3ddQBzAACgLSppIm1lcwAAoDQqYQGvHrMecwB0AACgFyLhAIoOZaHKJbkeRhLuIWdlAKDKJWEAcgBsoCgAdAAAoJMpgAJhY2htdADMHs8e1R7bHt0ecgDyAJ0GbwByAG4AZQDyANYWYQByAGSgyyEAoG0pAKAOIHIAaQAAoL8iAANhY2hpcXTrHu8e1QfzHv0eBh/xIXVvAKA5IHIAAOA12MHcbQDloXIi+h4AAPweAKCNKgCgjyoAAWJ19xwBH28AcqAYIACgGiDyIW9rQmEAhDwAO2NkaGlscXJCBhcfxh0gHyQfKB8sHzEfAAFjaRsfHR8AoKYqcgAAoHkqcgBlAOUAkx3tIWVzAKDJIuEhcnIAoHYpdSJlc3QAAKB7KgABUGk1HzkfYQByAACglillocMlAgdfEnIAAAFkdUIfRx9zImhhcgAAoEop6CFhcgCgZikAAWVuTx9WH3IjdG5lcXEAAOBoIgD+xQBUHwAHRGFjZGVmaGlsbm9wc3VuH3Ifoh+rH68ftx+7H74f5h/uH/MfBwj/HwsgxCFvdACgOiIAAmNscHJ5H30fiR+eH3IAO4CvAK9AAAFldIEfgx8AoEImZaAgJ3MAZQAAoCAnc6CmIXQAbwCAoaYhZGx1AJQfmB+cH28AdwDuAHkDZQBmAPQA6gbwAOkO6yFlcgCgriUAAW95ph+qH+0hbWEAoCkqPGThIXNoAKAUIOElc3VyZWRhbmdsZQCgISJyAADgNdgq3W8AAKAnIYABY2RuAMQfyR/bH3IAbwA7gLUAtUBhoiMi0B8AANMf1x9zAPQAKxFpAHIAAKDwKm8AdAA7gLcAt0B1AHMA4qESIh4TAADjH3WgOCIAoCoqYwHqH+0fcAAAoNsq8gB+GnAAbAB1APMACAgAAWRw9x/7H+UhbHMAoKciZgAA4DXYXt0AAWN0AyAHIHIAAOA12MLc8CFvcwCgPiJsobwDECAVIPQiaW1hcACguCJhAPAAEyAADEdMUlZhYmNkZWZnaGlqbG1vcHJzdHV2dzwgRyBmIG0geSCqILgg2iDeIBEhFSEyIUMhTSFQIZwhnyHSIQAiIyKLIrEivyIUIwABZ3RAIEMgAODZIjgD9uBrItIgBwmAAWVsdABNIF8gYiBmAHQAAAFhclMgWCByInJvdwAAoM0h6SRnaHRhcnJvdwCgziEA4NgiOAP24Goi0iBfCekkZ2h0YXJyb3cAoM8hAAFEZHEgdSDhIXNoAKCvIuEhc2gAoK4igAJiY25wdACCIIYgiSCNIKIgbABhAACgByL1IXRlRGFnAADgICLSIACiSSJFaW9wlSCYIJwgniAA4HAqOANkAADgSyI4A3MASWFyAG8A+AAyCnUAcgBhoG4mbADzoG4mmwjzAa8gAACzIHAAO4CgAKBAbQBwAOXgTiI4AyoJgAJhZW91eQDBIMogzSDWINkg8AHGIAAAyCAAoEMqbwBuAEhh5CFpbEZhbgBnAGSgRyJvAHQAAOBtKjgDcAAAoEIqPWThIXNoAKATIACjYCJBYWRxc3jpIO0g+SD+IAIhDCFyAHIAAKDXIXIAAAFocvIg9SBrAACgJClvoJch9wAGD28AdAAA4FAiOAN1AGkA9gC7CAABZWkGIQohYQByAACgKCntAN8I6SFzdPOgBCLlCHIAAOA12CvdAAJFZXN0/wgcISshLiHxoXEiIiEAABMJ8aFxIgAJAAAnIWwAYQBuAPQAEwlpAO0AGQlyoG8iAKBvIoABQWFwADghOyE/IXIA8gBeIHIAcgAAoK4hYQByAACg8ipzogsiSiEAAAAAxwtkoPwiAKD6ImMAeQBaZIADQUVhZGVzdABcIV8hYiFmIWkhkyGWIXIA8gBXIADgZiI4A3IAcgAAoJohcgAAoCUggKFwImZxcwBwIYQhjiF0AAABYXJ1IXohcgByAG8A9wBlIWkAZwBoAHQAYQByAHIAbwD3AD4h8aFwImAhAACKIWwAYQBuAPQAZwlz4H0qOAMAoG4iaQDtAG0JcqBuImkA5aDqIkUJaQDkADoKAAFwdKMhpyFmAADgNdhf3YCBrAA7aW4AriGvIcchrEBuAIChCSJFZHYAtyG6Ib8hAOD5IjgDbwB0AADg9SI4A+EB1gjEIcYhAKD3IgCg9iJpAHagDCLhAagJzyHRIQCg/iIAoP0igAFhb3IA2CHsIfEhcgCAoSYiYXN0AOAh5SHpIWwAbABlAOwAywhsAADg/SrlIADgAiI4A2wiaW50AACgFCrjoYAi9yEAAPohdQDlAJsJY+CvKjgDZaCAIvEAkwkAAkFhaXQHIgoiFyIeInIA8gBsIHIAcgAAoZshY3cRIhQiAOAzKTgDAOCdITgDZyRodGFycm93AACgmyFyAGkA5aDrIr4JgANjaGltcHF1AC8iPCJHIpwhTSJQIloigKGBImNlcgA2Iv0JOSJ1AOUABgoA4DXYw9zvIXJ0bQKdIQAAAABEImEAcgDhAOEhbQBloEEi8aBEIiYKYQDyAMsIcwB1AAABYnBWIlgi5QDUCeUA3wmAAWJjcABgInMieCKAoYQiRWVzAGci7glqIgDgxSo4A2UAdABl4IIi0iBxAPGgiCJoImMAZaCBIvEA/gmAoYUiRWVzAH8iFgqCIgDgxio4A2UAdABl4IMi0iBxAPGgiSKAIgACZ2lscpIilCKaIpwi7AAMCWwAZABlADuA8QDxQOcAWwlpI2FuZ2xlAAABbHKkIqoi5SFmdGWg6iLxAEUJaSJnaHQAZaDrIvEAvgltoL0DAKEjAGVzuCK8InIAbwAAoBYhcAAAoAcggARESGFkZ2lscnMAziLSItYi2iLeIugi7SICIw8j4SFzaACgrSLhIXJyAKAEKXAAAOBNItIg4SFzaACgrCIAAWV04iLlIgDgZSLSIADgPgDSIG4iZmluAACg3imAAUFldADzIvci+iJyAHIAAKACKQDgZCLSIHLgPADSIGkAZQAA4LQi0iAAAUF0BiMKI3IAcgAAoAMp8iFpZQDgtSLSIGkAbQAA4Dwi0iCAAUFhbgAaIx4jKiNyAHIAAKDWIXIAAAFociMjJiNrAACgIylvoJYh9wD/DuUhYXIAoCcpUxJqFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVCMAAF4jaSN/I4IjjSOeI8AUAAAAAKYjwCMAANoj3yMAAO8jHiQvJD8kRCQAAWNzVyNsFHUAdABlADuA8wDzQAABaXlhI2cjcgBjoJoiO4D0APRAPmSAAmFiaW9zAHEjdCN3I3EBeiNzAOgAdhTsIWFjUWF2AACgOCrvIWxkAKC8KewhaWdTYQABY3KFI4kjaQByAACgvykA4DXYLN1vA5QjAAAAAJYjAACcI24A22JhAHYAZQA7gPIA8kAAoMEpAAFibaEjjAphAHIAAKC1KQACYWNpdKwjryO6I70jcgDyAFkUAAFpcrMjtiNyAACgvinvIXNzAKC7KW4A5QDZCgCgwCmAAWFlaQDFI8gjyyNjAHIATWFnAGEAyWOAAWNkbgDRI9Qj1iPyIW9uv2MAoLYpdQDzAHgBcABmAADgNdhg3YABYWVsAOQj5yPrI3IAAKC3KXIAcAAAoLkpdQDzAHwBAKMoImFkaW9zdvkj/CMPJBMkFiQbJHIA8gBeFIChXSplZm0AAyQJJAwkcgBvoDQhZgAAoDQhO4CqAKpAO4C6ALpA5yFvZgCgtiJyAACgVipsIm9wZQAAoFcqAKBbKoABY2xvACMkJSQrJPIACCRhAHMAaAA7gPgA+EBsAACgmCJpAGwBMyQ4JGQAZQA7gPUA9UBlAHMAYaCXInMAAKA2Km0AbAA7gPYA9kDiIWFyAKA9I+EKXiQAAHokAAB8JJQkAACYJKkkAAAAALUkEQsAAPAkAAAAAAQleiUAAIMlcgCAoSUiYXN0AGUkbyQBCwCBtgA7bGokayS2QGwAZQDsABgDaQJ1JAAAAAB4JG0AAKDzKgCg/Sp5AD9kcgCAAmNpbXB0AIUkiCSLJJkSjyRuAHQAJWBvAGQALmBpAGwAAKAwIOUhbmsAoDEgcgAA4DXYLd2AAWltbwCdJKAkpCR2oMYD1WNtAGEA9AD+B24AZQAAoA4m9KHAA64kAAC0JGMjaGZvcmsAAKDUItZjAAFhdbgkxCRuAAABY2u9JMIkawBooA8hAKAOIfYAaRpzAACkKwBhYmNkZW1zdNMkIRPXJNsk4STjJOck6yTjIWlyAKAjKmkAcgAAoCIqAAFvdYsW3yQAoCUqAKByKm4AO4CxALFAaQBtAACgJip3AG8AAKAnKoABaXB1APUk+iT+JO4idGludACgFSpmAADgNdhh3W4AZAA7gKMAo0CApHoiRWFjZWlub3N1ABMlFSUYJRslTCVRJVklSSV1JQCgsypwAACgtyp1AOUAPwtjoK8qgKJ6ImFjZW5zACclLSU0JTYlSSVwAHAAcgBvAPgAFyV1AHIAbAB5AGUA8QA/C/EAOAuAAWFlcwA8JUElRSXwInByb3gAoLkqcQBxAACgtSppAG0AAKDoImkA7QBEC20AZQDzoDIgIguAAUVhcwBDJVclRSXwAEAlgAFkZnAATwtfJXElgAFhbHMAZSVpJW0l7CFhcgCgLiPpIW5lAKASI/UhcmYAoBMjdKAdIu8AWQvyIWVsAKCwIgABY2l9JYElcgAA4DXYxdzIY24iY3NwAACgCCAAA2Zpb3BzdZElKxuVJZolnyWkJXIAAOA12C7dcABmAADgNdhi3XIiaW1lAACgVyBjAHIAAOA12MbcgAFhZW8AqiW6JcAldAAAAWVpryW2JXIAbgBpAG8AbgDzABkFbgB0AACgFipzAHQAZaA/APEACRj0AG0LgApBQkhhYmNkZWZoaWxtbm9wcnN0dXgA4yXyJfYl+iVpJpAmpia9JtUm5ib4JlonaCdxJ3UnnietJ7EnyCfiJ+cngAFhcnQA6SXsJe4lcgDyAJkM8gD6AuEhaWwAoBwpYQByAPIA3BVhAHIAAKBkKYADY2RlbnFydAAGJhAmEyYYJiYmKyZaJgABZXUKJg0mAOA9IjEDdABlAFVhaQDjACAN7SJwdHl2AKCzKWcAgKHpJ2RlbAAgJiImJCYAoJIpAKClKeUA9wt1AG8AO4C7ALtAcgAApZIhYWJjZmhscHN0dz0mQCZFJkcmSiZMJk4mUSZVJlgmcAAAoHUpZqDlIXMAAKAgKQCgMylzAACgHinrALka8ACVHmwAAKBFKWkAbQAAoHQpbAAAoKMhAKCdIQABYWleJmImaQBsAACgGilvAG6gNiJhAGwA8wB2C4ABYWJyAG8mciZ2JnIA8gAvEnIAawAAoHMnAAFha3omgSZjAAABZWt/JoAmfWBdYAABZXOFJocmAKCMKWwAAAFkdYwmjiYAoI4pAKCQKQACYWV1eZcmmiajJqUm8iFvbllhAAFkaZ4moSZpAGwAV2HsAA8M4gCAJkBkAAJjbHFzrSawJrUmuiZhAACgNylkImhhcgAAoGkpdQBvAPKgHSCjAWgAAKCzIYABYWNnAMMm0iaUC2wAgKEcIWlwcwDLJs4migxuAOUAoAxhAHIA9ADaC3QAAKCtJYABaWxyANsm3ybjJvMhaHQAoH0pbwBvAPIANgwA4DXYL90AAWFv6ib1JnIAAAFkde8m8SYAoMEhbKDAIQCgbCl2oMED8WOAAWducwD+Jk4nUCdoAHQAAANhaGxyc3QKJxInISc1Jz0nRydyInJvdwB0oJIhYQDpAFYmYSNycG9vbgAAAWR1GiceJ28AdwDuAPAmcAAAoMAh5SFmdAABYWgnJy0ncgByAG8AdwDzAAkMYQByAHAAbwBvAG4A8wATBGklZ2h0YXJyb3dzAACgySFxAHUAaQBnAGEAcgByAG8A9wBZJugkcmVldGltZXMAoMwiZwDaYmkAbgBnAGQAbwB0AHMAZQDxABwYgAFhaG0AYCdjJ2YncgDyAAkMYQDyABMEAKAPIG8idXN0AGGgsSPjIWhlAKCxI+0haWQAoO4qAAJhYnB0fCeGJ4knmScAAW5ygCeDJ2cAAKDtJ3IAAKD+IXIA6wAcDIABYWZsAI8nkieVJ3IAAKCGKQDgNdhj3XUAcwAAoC4qaSJtZXMAAKA1KgABYXCiJ6gncgBnoCkAdAAAoJQp7yJsaW50AKASKmEAcgDyADwnAAJhY2hxuCe8J6EMwCfxIXVvAKA6IHIAAOA12MfcAAFidYAmxCdvAPKgGSCoAYABaGlyAM4n0ifWJ3IAZQDlAE0n7SFlcwCgyiJpAIChuSVlZmwAXAxjEt4n9CFyaQCgzinsInVoYXIAoGgpAKAeIWENBSgJKA0oSyhVKIYoAACLKLAoAAAAAOMo5ygAABApJCkxKW0pcSmHKaYpAACYKgAAAACxKmMidXRlAFthcQB1AO8ABR+ApHsiRWFjZWlucHN5ABwoHignKCooLygyKEEoRihJKACgtCrwASMoAAAlKACguCpvAG4AYWF1AOUAgw1koLAqaQBsAF9hcgBjAF1hgAFFYXMAOCg6KD0oAKC2KnAAAKC6KmkAbQAAoOki7yJsaW50AKATKmkA7QCIDUFkbwB0AGKixSKRFgAAAABTKACgZiqAA0FhY21zdHgAYChkKG8ocyh1KHkogihyAHIAAKDYIXIAAAFocmkoayjrAJAab6CYIfcAzAd0ADuApwCnQGkAO2D3IWFyAKApKW0AAAFpbn4ozQBuAHUA8wDOAHQAAKA2J3IA7+A12DDdIxkAAmFjb3mRKJUonSisKHIAcAAAoG8mAAFoeZkonChjAHkASWRIZHIAdABtAqUoAAAAAKgoaQDkAFsPYQByAGEA7ABsJDuArQCtQAABZ22zKLsobQBhAAChwwNmdroouijCY4CjPCJkZWdsbnByAMgozCjPKNMo1yjaKN4obwB0AACgairxoEMiCw5FoJ4qAKCgKkWgnSoAoJ8qZQAAoEYi7CF1cwCgJCrhIXJyAKByKWEAcgDyAPwMAAJhZWl07Sj8KAEpCCkAAWxz8Sj4KGwAcwBlAHQAbQDpAH8oaABwAACgMyrwImFyc2wAoOQpAAFkbFoPBSllAACgIyNloKoqc6CsKgDgrCoA/oABZmxwABUpGCkfKfQhY3lMZGKgLwBhoMQpcgAAoD8jZgAA4DXYZN1hAAABZHIoKRcDZQBzAHWgYCZpAHQAAKBgJoABY3N1ADYpRilhKQABYXU6KUApcABzoJMiAOCTIgD+cABzoJQiAOCUIgD+dQAAAWJwSylWKQChjyJlcz4NUCllAHQAZaCPIvEAPw0AoZAiZXNIDVspZQB0AGWgkCLxAEkNAKGhJWFmZilbBHIAZQFrKVwEAKChJWEAcgDyAAMNAAJjZW10dyl7KX8pgilyAADgNdjI3HQAbQDuAM4AaQDsAAYpYQByAOYAVw0AAWFyiimOKXIA5qAGJhESAAFhbpIpoylpImdodAAAAWVwmSmgKXAAcwBpAGwAbwDuANkXaADpAKAkcwCvYIACYmNtbnAArin8KY4NJSooKgCkgiJFZGVtbnByc7wpvinCKcgpzCnUKdgp3CkAoMUqbwB0AACgvSpkoIYibwB0AACgwyr1IWx0AKDBKgABRWXQKdIpAKDLKgCgiiLsIXVzAKC/KuEhcnIAoHkpgAFlaXUA4inxKfQpdAAAoYIiZW7oKewpcQDxoIYivSllAHEA8aCKItEpbQAAoMcqAAFicPgp+ikAoNUqAKDTKmMAgKJ7ImFjZW5zAAcqDSoUKhYqRihwAHAAcgBvAPgAIyh1AHIAbAB5AGUA8QCDDfEAfA2AAWFlcwAcKiIqPShwAHAAcgBvAPgAPChxAPEAOShnAACgaiYApoMiMTIzRWRlaGxtbnBzPCo/KkIqRSpHKlIqWCpjKmcqaypzKncqO4C5ALlAO4CyALJAO4CzALNAAKDGKgABb3NLKk4qdAAAoL4qdQBiAACg2CpkoIcibwB0AACgxCpzAAABb3VdKmAqbAAAoMknYgAAoNcq4SFycgCgeyn1IWx0AKDCKgABRWVvKnEqAKDMKgCgiyLsIXVzAKDAKoABZWl1AH0qjCqPKnQAAKGDImVugyqHKnEA8aCHIkYqZQBxAPGgiyJwKm0AAKDIKgABYnCTKpUqAKDUKgCg1iqAAUFhbgCdKqEqrCpyAHIAAKDZIXIAAAFocqYqqCrrAJUab6CZIfcAxQf3IWFyAKAqKWwAaQBnADuA3wDfQOELzyrZKtwq6SrsKvEqAAD1KjQrAAAAAAAAAAAAAEwrbCsAAHErvSsAAAAAAADRK3IC1CoAAAAA2CrnIWV0AKAWI8RjcgDrAOUKgAFhZXkA4SrkKucq8iFvbmVh5CFpbGNhQmRvAPQAIg5sInJlYwAAoBUjcgAA4DXYMd0AAmVpa2/7KhIrKCsuK/IBACsAAAkrZQAAATRm6g0EK28AcgDlAOsNYQBzorgDECsAAAAAEit5AG0A0WMAAWNuFislK2sAAAFhcxsrIStwAHAAcgBvAPgAFw5pAG0AAKA8InMA8AD9DQABYXMsKyEr8AAXDnIAbgA7gP4A/kDsATgrOyswG2QA5QBnAmUAcwCAgdcAO2JkAEMrRCtJK9dAYaCgInIAAKAxKgCgMCqAAWVwcwBRK1MraSvhAAkh4qKkIlsrXysAAAAAYytvAHQAAKA2I2kAcgAAoPEqb+A12GXdcgBrAACg2irhAHgociJpbWUAAKA0IIABYWlwAHYreSu3K2QA5QC+DYADYWRlbXBzdACFK6MrmiunK6wrsCuzK24iZ2xlAACitSVkbHFykCuUK5ornCvvIXduAKC/JeUhZnRloMMl8QACBwCgXCJpImdodABloLkl8QBdDG8AdAAAoOwlaSJudXMAAKA6KuwhdXMAoDkqYgAAoM0p6SFtZQCgOyrlInppdW0AoOIjgAFjaHQAwivKK80rAAFyecYrySsA4DXYydxGZGMAeQBbZPIhb2tnYQABaW/UK9creAD0ANERaCJlYWQAAAFsct4r5ytlAGYAdABhAHIAcgBvAPcAXQbpJGdodGFycm93AKCgIQAJQUhhYmNkZmdobG1vcHJzdHV3CiwNLBEsHSwnLDEsQCxLLFIsYix6LIQsjyzLLOgs7Sz/LAotcgDyAAkDYQByAACgYykAAWNyFSwbLHUAdABlADuA+gD6QPIACQ1yAOMBIywAACUseQBeZHYAZQBtYQABaXkrLDAscgBjADuA+wD7QENkgAFhYmgANyw6LD0scgDyANEO7CFhY3FhYQDyAOAOAAFpckQsSCzzIWh0AKB+KQDgNdgy3XIAYQB2AGUAO4D5APlAYQFWLF8scgAAAWxyWixcLACgvyEAoL4hbABrAACggCUAAWN0Zix2LG8CbCwAAAAAcyxyAG4AZaAcI3IAAKAcI28AcAAAoA8jcgBpAACg+CUAAWFsfiyBLGMAcgBrYTuAqACoQAABZ3CILIssbwBuAHNhZgAA4DXYZt0AA2FkaGxzdZksniynLLgsuyzFLHIAcgBvAPcACQ1vAHcAbgBhAHIAcgBvAPcA2A5hI3Jwb29uAAABbHKvLLMsZQBmAPQAWyxpAGcAaAD0AF0sdQDzAKYOaQAAocUDaGzBLMIs0mNvAG4AxWPwI2Fycm93cwCgyCGAAWNpdADRLOEs5CxvAtcsAAAAAN4scgBuAGWgHSNyAACgHSNvAHAAAKAOI24AZwBvYXIAaQAAoPklYwByAADgNdjK3IABZGlyAPMs9yz6LG8AdAAAoPAi7CFkZWlhaQBmoLUlAKC0JQABYW0DLQYtcgDyAMosbAA7gPwA/EDhIm5nbGUAoKcpgAdBQkRhY2RlZmxub3Byc3oAJy0qLTAtNC2bLZ0toS2/LcMtxy3TLdgt3C3gLfwtcgDyABADYQByAHag6CoAoOkqYQBzAOgA/gIAAW5yOC08LechcnQAoJwpgANla25wcnN0AJkpSC1NLVQtXi1iLYItYQBwAHAA4QAaHG8AdABoAGkAbgDnAKEXgAFoaXIAoSmzJFotbwBwAPQAdCVooJUh7wD4JgABaXVmLWotZwBtAOEAuygAAWJwbi14LXMjZXRuZXEAceCKIgD+AODLKgD+cyNldG5lcQBx4IsiAP4A4MwqAP4AAWhyhi2KLWUAdADhABIraSNhbmdsZQAAAWxyki2WLeUhZnQAoLIiaSJnaHQAAKCzInkAMmThIXNoAKCiIoABZWxyAKcttC24LWKiKCKuLQAAAACyLWEAcgAAoLsicQAAoFoi7CFpcACg7iIAAWJ0vC1eD2EA8gBfD3IAAOA12DPddAByAOkAlS1zAHUAAAFicM0t0C0A4IIi0iAA4IMi0iBwAGYAAOA12GfdcgBvAPAAWQt0AHIA6QCaLQABY3XkLegtcgAA4DXYy9wAAWJw7C30LW4AAAFFZXUt8S0A4IoiAP5uAAABRWV/LfktAOCLIgD+6SJnemFnAKCaKYADY2Vmb3BycwANLhAuJS4pLiMuLi40LukhcmN1YQABZGkULiEuAAFiZxguHC5hAHIAAKBfKmUAcaAnIgCgWSLlIXJwAKAYIXIAAOA12DTdcABmAADgNdho3WWgQCJhAHQA6ABqD2MAcgAA4DXYzNzjCuQRUC4AAFQuAABYLmIuAAAAAGMubS5wLnQuAAAAAIguki4AAJouJxIqEnQAcgDpAB0ScgAA4DXYNd0AAUFhWy5eLnIA8gDnAnIA8gCTB75jAAFBYWYuaS5yAPIA4AJyAPIAjAdhAPAAeh5pAHMAAKD7IoABZHB0APgReS6DLgABZmx9LoAuAOA12GnddQDzAP8RaQBtAOUABBIAAUFhiy6OLnIA8gDuAnIA8gCaBwABY3GVLgoScgAA4DXYzdwAAXB0nS6hLmwAdQDzACUScgDpACASAARhY2VmaW9zdbEuvC7ELsguzC7PLtQu2S5jAAABdXm2LrsudABlADuA/QD9QE9kAAFpecAuwy5yAGMAd2FLZG4AO4ClAKVAcgAA4DXYNt1jAHkAV2RwAGYAAOA12GrdYwByAADgNdjO3AABY23dLt8ueQBOZGwAO4D/AP9AAAVhY2RlZmhpb3N38y73Lv8uAi8MLxAvEy8YLx0vIi9jInV0ZQB6YQABYXn7Lv4u8iFvbn5hN2RvAHQAfGEAAWV0Bi8KL3QAcgDmAB8QYQC2Y3IAAOA12DfdYwB5ADZk5yJyYXJyAKDdIXAAZgAA4DXYa91jAHIAAOA12M/cAAFqbiYvKC8AoA0gagAAoAwg");
+
+// node_modules/htmlparser2/node_modules/entities/dist/esm/generated/decode-data-xml.js
+var xmlDecodeTree = /* @__PURE__ */ decodeBase64("AAJhZ2xxBwARABMAFQBtAg0AAAAAAA8AcAAmYG8AcwAnYHQAPmB0ADxg9SFvdCJg");
+
+// node_modules/htmlparser2/node_modules/entities/dist/esm/internal/bin-trie-flags.js
+var BinTrieFlags;
+(function(BinTrieFlags3) {
+  BinTrieFlags3[BinTrieFlags3["VALUE_LENGTH"] = 49152] = "VALUE_LENGTH";
+  BinTrieFlags3[BinTrieFlags3["FLAG13"] = 8192] = "FLAG13";
+  BinTrieFlags3[BinTrieFlags3["BRANCH_LENGTH"] = 8064] = "BRANCH_LENGTH";
+  BinTrieFlags3[BinTrieFlags3["JUMP_TABLE"] = 127] = "JUMP_TABLE";
+})(BinTrieFlags || (BinTrieFlags = {}));
+
+// node_modules/htmlparser2/node_modules/entities/dist/esm/decode.js
+var CharCodes;
+(function(CharCodes4) {
+  CharCodes4[CharCodes4["NUM"] = 35] = "NUM";
+  CharCodes4[CharCodes4["SEMI"] = 59] = "SEMI";
+  CharCodes4[CharCodes4["EQUALS"] = 61] = "EQUALS";
+  CharCodes4[CharCodes4["ZERO"] = 48] = "ZERO";
+  CharCodes4[CharCodes4["NINE"] = 57] = "NINE";
+  CharCodes4[CharCodes4["LOWER_A"] = 97] = "LOWER_A";
+  CharCodes4[CharCodes4["LOWER_F"] = 102] = "LOWER_F";
+  CharCodes4[CharCodes4["LOWER_X"] = 120] = "LOWER_X";
+  CharCodes4[CharCodes4["LOWER_Z"] = 122] = "LOWER_Z";
+  CharCodes4[CharCodes4["UPPER_A"] = 65] = "UPPER_A";
+  CharCodes4[CharCodes4["UPPER_F"] = 70] = "UPPER_F";
+  CharCodes4[CharCodes4["UPPER_Z"] = 90] = "UPPER_Z";
+})(CharCodes || (CharCodes = {}));
+var TO_LOWER_BIT = 32;
+function isNumber(code) {
+  return code >= CharCodes.ZERO && code <= CharCodes.NINE;
+}
+function isHexadecimalCharacter(code) {
+  return code >= CharCodes.UPPER_A && code <= CharCodes.UPPER_F || code >= CharCodes.LOWER_A && code <= CharCodes.LOWER_F;
+}
+function isAsciiAlphaNumeric(code) {
+  return code >= CharCodes.UPPER_A && code <= CharCodes.UPPER_Z || code >= CharCodes.LOWER_A && code <= CharCodes.LOWER_Z || isNumber(code);
+}
+function isEntityInAttributeInvalidEnd(code) {
+  return code === CharCodes.EQUALS || isAsciiAlphaNumeric(code);
+}
+var EntityDecoderState;
+(function(EntityDecoderState3) {
+  EntityDecoderState3[EntityDecoderState3["EntityStart"] = 0] = "EntityStart";
+  EntityDecoderState3[EntityDecoderState3["NumericStart"] = 1] = "NumericStart";
+  EntityDecoderState3[EntityDecoderState3["NumericDecimal"] = 2] = "NumericDecimal";
+  EntityDecoderState3[EntityDecoderState3["NumericHex"] = 3] = "NumericHex";
+  EntityDecoderState3[EntityDecoderState3["NamedEntity"] = 4] = "NamedEntity";
+})(EntityDecoderState || (EntityDecoderState = {}));
+var DecodingMode;
+(function(DecodingMode3) {
+  DecodingMode3[DecodingMode3["Legacy"] = 0] = "Legacy";
+  DecodingMode3[DecodingMode3["Strict"] = 1] = "Strict";
+  DecodingMode3[DecodingMode3["Attribute"] = 2] = "Attribute";
+})(DecodingMode || (DecodingMode = {}));
+var EntityDecoder = class {
+  constructor(decodeTree, emitCodePoint, errors2) {
+    this.decodeTree = decodeTree;
+    this.emitCodePoint = emitCodePoint;
+    this.errors = errors2;
+    this.state = EntityDecoderState.EntityStart;
+    this.consumed = 1;
+    this.result = 0;
+    this.treeIndex = 0;
+    this.excess = 1;
+    this.decodeMode = DecodingMode.Strict;
+    this.runConsumed = 0;
+  }
+  /** Resets the instance to make it reusable. */
+  startEntity(decodeMode) {
+    this.decodeMode = decodeMode;
+    this.state = EntityDecoderState.EntityStart;
+    this.result = 0;
+    this.treeIndex = 0;
+    this.excess = 1;
+    this.consumed = 1;
+    this.runConsumed = 0;
+  }
+  /**
+   * Write an entity to the decoder. This can be called multiple times with partial entities.
+   * If the entity is incomplete, the decoder will return -1.
+   *
+   * Mirrors the implementation of `getDecoder`, but with the ability to stop decoding if the
+   * entity is incomplete, and resume when the next string is written.
+   *
+   * @param input The string containing the entity (or a continuation of the entity).
+   * @param offset The offset at which the entity begins. Should be 0 if this is not the first call.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  write(input, offset) {
+    switch (this.state) {
+      case EntityDecoderState.EntityStart: {
+        if (input.charCodeAt(offset) === CharCodes.NUM) {
+          this.state = EntityDecoderState.NumericStart;
+          this.consumed += 1;
+          return this.stateNumericStart(input, offset + 1);
+        }
+        this.state = EntityDecoderState.NamedEntity;
+        return this.stateNamedEntity(input, offset);
+      }
+      case EntityDecoderState.NumericStart: {
+        return this.stateNumericStart(input, offset);
+      }
+      case EntityDecoderState.NumericDecimal: {
+        return this.stateNumericDecimal(input, offset);
+      }
+      case EntityDecoderState.NumericHex: {
+        return this.stateNumericHex(input, offset);
+      }
+      case EntityDecoderState.NamedEntity: {
+        return this.stateNamedEntity(input, offset);
+      }
+    }
+  }
+  /**
+   * Switches between the numeric decimal and hexadecimal states.
+   *
+   * Equivalent to the `Numeric character reference state` in the HTML spec.
+   *
+   * @param input The string containing the entity (or a continuation of the entity).
+   * @param offset The current offset.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  stateNumericStart(input, offset) {
+    if (offset >= input.length) {
+      return -1;
+    }
+    if ((input.charCodeAt(offset) | TO_LOWER_BIT) === CharCodes.LOWER_X) {
+      this.state = EntityDecoderState.NumericHex;
+      this.consumed += 1;
+      return this.stateNumericHex(input, offset + 1);
+    }
+    this.state = EntityDecoderState.NumericDecimal;
+    return this.stateNumericDecimal(input, offset);
+  }
+  /**
+   * Parses a hexadecimal numeric entity.
+   *
+   * Equivalent to the `Hexademical character reference state` in the HTML spec.
+   *
+   * @param input The string containing the entity (or a continuation of the entity).
+   * @param offset The current offset.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  stateNumericHex(input, offset) {
+    while (offset < input.length) {
+      const char = input.charCodeAt(offset);
+      if (isNumber(char) || isHexadecimalCharacter(char)) {
+        const digit = char <= CharCodes.NINE ? char - CharCodes.ZERO : (char | TO_LOWER_BIT) - CharCodes.LOWER_A + 10;
+        this.result = this.result * 16 + digit;
+        this.consumed++;
+        offset++;
+      } else {
+        return this.emitNumericEntity(char, 3);
+      }
+    }
+    return -1;
+  }
+  /**
+   * Parses a decimal numeric entity.
+   *
+   * Equivalent to the `Decimal character reference state` in the HTML spec.
+   *
+   * @param input The string containing the entity (or a continuation of the entity).
+   * @param offset The current offset.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  stateNumericDecimal(input, offset) {
+    while (offset < input.length) {
+      const char = input.charCodeAt(offset);
+      if (isNumber(char)) {
+        this.result = this.result * 10 + (char - CharCodes.ZERO);
+        this.consumed++;
+        offset++;
+      } else {
+        return this.emitNumericEntity(char, 2);
+      }
+    }
+    return -1;
+  }
+  /**
+   * Validate and emit a numeric entity.
+   *
+   * Implements the logic from the `Hexademical character reference start
+   * state` and `Numeric character reference end state` in the HTML spec.
+   *
+   * @param lastCp The last code point of the entity. Used to see if the
+   *               entity was terminated with a semicolon.
+   * @param expectedLength The minimum number of characters that should be
+   *                       consumed. Used to validate that at least one digit
+   *                       was consumed.
+   * @returns The number of characters that were consumed.
+   */
+  emitNumericEntity(lastCp, expectedLength) {
+    var _a3;
+    if (this.consumed <= expectedLength) {
+      (_a3 = this.errors) === null || _a3 === void 0 ? void 0 : _a3.absenceOfDigitsInNumericCharacterReference(this.consumed);
+      return 0;
+    }
+    if (lastCp === CharCodes.SEMI) {
+      this.consumed += 1;
+    } else if (this.decodeMode === DecodingMode.Strict) {
+      return 0;
+    }
+    this.emitCodePoint(replaceCodePoint(this.result), this.consumed);
+    if (this.errors) {
+      if (lastCp !== CharCodes.SEMI) {
+        this.errors.missingSemicolonAfterCharacterReference();
+      }
+      this.errors.validateNumericCharacterReference(this.result);
+    }
+    return this.consumed;
+  }
+  /**
+   * Parses a named entity.
+   *
+   * Equivalent to the `Named character reference state` in the HTML spec.
+   *
+   * @param input The string containing the entity (or a continuation of the entity).
+   * @param offset The current offset.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  stateNamedEntity(input, offset) {
+    const { decodeTree } = this;
+    let current = decodeTree[this.treeIndex];
+    let valueLength = (current & BinTrieFlags.VALUE_LENGTH) >> 14;
+    while (offset < input.length) {
+      if (valueLength === 0 && (current & BinTrieFlags.FLAG13) !== 0) {
+        const runLength = (current & BinTrieFlags.BRANCH_LENGTH) >> 7;
+        if (this.runConsumed === 0) {
+          const firstChar = current & BinTrieFlags.JUMP_TABLE;
+          if (input.charCodeAt(offset) !== firstChar) {
+            return this.result === 0 ? 0 : this.emitNotTerminatedNamedEntity();
+          }
+          offset++;
+          this.excess++;
+          this.runConsumed++;
+        }
+        while (this.runConsumed < runLength) {
+          if (offset >= input.length) {
+            return -1;
+          }
+          const charIndexInPacked = this.runConsumed - 1;
+          const packedWord = decodeTree[this.treeIndex + 1 + (charIndexInPacked >> 1)];
+          const expectedChar = charIndexInPacked % 2 === 0 ? packedWord & 255 : packedWord >> 8 & 255;
+          if (input.charCodeAt(offset) !== expectedChar) {
+            this.runConsumed = 0;
+            return this.result === 0 ? 0 : this.emitNotTerminatedNamedEntity();
+          }
+          offset++;
+          this.excess++;
+          this.runConsumed++;
+        }
+        this.runConsumed = 0;
+        this.treeIndex += 1 + (runLength >> 1);
+        current = decodeTree[this.treeIndex];
+        valueLength = (current & BinTrieFlags.VALUE_LENGTH) >> 14;
+      }
+      if (offset >= input.length)
+        break;
+      const char = input.charCodeAt(offset);
+      if (char === CharCodes.SEMI && valueLength !== 0 && (current & BinTrieFlags.FLAG13) !== 0) {
+        return this.emitNamedEntityData(this.treeIndex, valueLength, this.consumed + this.excess);
+      }
+      this.treeIndex = determineBranch(decodeTree, current, this.treeIndex + Math.max(1, valueLength), char);
+      if (this.treeIndex < 0) {
+        return this.result === 0 || // If we are parsing an attribute
+        this.decodeMode === DecodingMode.Attribute && // We shouldn't have consumed any characters after the entity,
+        (valueLength === 0 || // And there should be no invalid characters.
+        isEntityInAttributeInvalidEnd(char)) ? 0 : this.emitNotTerminatedNamedEntity();
+      }
+      current = decodeTree[this.treeIndex];
+      valueLength = (current & BinTrieFlags.VALUE_LENGTH) >> 14;
+      if (valueLength !== 0) {
+        if (char === CharCodes.SEMI) {
+          return this.emitNamedEntityData(this.treeIndex, valueLength, this.consumed + this.excess);
+        }
+        if (this.decodeMode !== DecodingMode.Strict && (current & BinTrieFlags.FLAG13) === 0) {
+          this.result = this.treeIndex;
+          this.consumed += this.excess;
+          this.excess = 0;
+        }
+      }
+      offset++;
+      this.excess++;
+    }
+    return -1;
+  }
+  /**
+   * Emit a named entity that was not terminated with a semicolon.
+   *
+   * @returns The number of characters consumed.
+   */
+  emitNotTerminatedNamedEntity() {
+    var _a3;
+    const { result, decodeTree } = this;
+    const valueLength = (decodeTree[result] & BinTrieFlags.VALUE_LENGTH) >> 14;
+    this.emitNamedEntityData(result, valueLength, this.consumed);
+    (_a3 = this.errors) === null || _a3 === void 0 ? void 0 : _a3.missingSemicolonAfterCharacterReference();
+    return this.consumed;
+  }
+  /**
+   * Emit a named entity.
+   *
+   * @param result The index of the entity in the decode tree.
+   * @param valueLength The number of bytes in the entity.
+   * @param consumed The number of characters consumed.
+   *
+   * @returns The number of characters consumed.
+   */
+  emitNamedEntityData(result, valueLength, consumed) {
+    const { decodeTree } = this;
+    this.emitCodePoint(valueLength === 1 ? decodeTree[result] & ~(BinTrieFlags.VALUE_LENGTH | BinTrieFlags.FLAG13) : decodeTree[result + 1], consumed);
+    if (valueLength === 3) {
+      this.emitCodePoint(decodeTree[result + 2], consumed);
+    }
+    return consumed;
+  }
+  /**
+   * Signal to the parser that the end of the input was reached.
+   *
+   * Remaining data will be emitted and relevant errors will be produced.
+   *
+   * @returns The number of characters consumed.
+   */
+  end() {
+    var _a3;
+    switch (this.state) {
+      case EntityDecoderState.NamedEntity: {
+        return this.result !== 0 && (this.decodeMode !== DecodingMode.Attribute || this.result === this.treeIndex) ? this.emitNotTerminatedNamedEntity() : 0;
+      }
+      // Otherwise, emit a numeric entity if we have one.
+      case EntityDecoderState.NumericDecimal: {
+        return this.emitNumericEntity(0, 2);
+      }
+      case EntityDecoderState.NumericHex: {
+        return this.emitNumericEntity(0, 3);
+      }
+      case EntityDecoderState.NumericStart: {
+        (_a3 = this.errors) === null || _a3 === void 0 ? void 0 : _a3.absenceOfDigitsInNumericCharacterReference(this.consumed);
+        return 0;
+      }
+      case EntityDecoderState.EntityStart: {
+        return 0;
+      }
+    }
+  }
+};
+function determineBranch(decodeTree, current, nodeIndex, char) {
+  const branchCount = (current & BinTrieFlags.BRANCH_LENGTH) >> 7;
+  const jumpOffset = current & BinTrieFlags.JUMP_TABLE;
+  if (branchCount === 0) {
+    return jumpOffset !== 0 && char === jumpOffset ? nodeIndex : -1;
+  }
+  if (jumpOffset) {
+    const value = char - jumpOffset;
+    return value < 0 || value >= branchCount ? -1 : decodeTree[nodeIndex + value] - 1;
+  }
+  const packedKeySlots = branchCount + 1 >> 1;
+  let lo = 0;
+  let hi = branchCount - 1;
+  while (lo <= hi) {
+    const mid = lo + hi >>> 1;
+    const slot = mid >> 1;
+    const packed = decodeTree[nodeIndex + slot];
+    const midKey = packed >> (mid & 1) * 8 & 255;
+    if (midKey < char) {
+      lo = mid + 1;
+    } else if (midKey > char) {
+      hi = mid - 1;
+    } else {
+      return decodeTree[nodeIndex + packedKeySlots + mid];
+    }
+  }
+  return -1;
+}
+
+// node_modules/htmlparser2/dist/esm/Tokenizer.js
+var CharCodes2;
+(function(CharCodes4) {
+  CharCodes4[CharCodes4["Tab"] = 9] = "Tab";
+  CharCodes4[CharCodes4["NewLine"] = 10] = "NewLine";
+  CharCodes4[CharCodes4["FormFeed"] = 12] = "FormFeed";
+  CharCodes4[CharCodes4["CarriageReturn"] = 13] = "CarriageReturn";
+  CharCodes4[CharCodes4["Space"] = 32] = "Space";
+  CharCodes4[CharCodes4["ExclamationMark"] = 33] = "ExclamationMark";
+  CharCodes4[CharCodes4["Number"] = 35] = "Number";
+  CharCodes4[CharCodes4["Amp"] = 38] = "Amp";
+  CharCodes4[CharCodes4["SingleQuote"] = 39] = "SingleQuote";
+  CharCodes4[CharCodes4["DoubleQuote"] = 34] = "DoubleQuote";
+  CharCodes4[CharCodes4["Dash"] = 45] = "Dash";
+  CharCodes4[CharCodes4["Slash"] = 47] = "Slash";
+  CharCodes4[CharCodes4["Zero"] = 48] = "Zero";
+  CharCodes4[CharCodes4["Nine"] = 57] = "Nine";
+  CharCodes4[CharCodes4["Semi"] = 59] = "Semi";
+  CharCodes4[CharCodes4["Lt"] = 60] = "Lt";
+  CharCodes4[CharCodes4["Eq"] = 61] = "Eq";
+  CharCodes4[CharCodes4["Gt"] = 62] = "Gt";
+  CharCodes4[CharCodes4["Questionmark"] = 63] = "Questionmark";
+  CharCodes4[CharCodes4["UpperA"] = 65] = "UpperA";
+  CharCodes4[CharCodes4["LowerA"] = 97] = "LowerA";
+  CharCodes4[CharCodes4["UpperF"] = 70] = "UpperF";
+  CharCodes4[CharCodes4["LowerF"] = 102] = "LowerF";
+  CharCodes4[CharCodes4["UpperZ"] = 90] = "UpperZ";
+  CharCodes4[CharCodes4["LowerZ"] = 122] = "LowerZ";
+  CharCodes4[CharCodes4["LowerX"] = 120] = "LowerX";
+  CharCodes4[CharCodes4["OpeningSquareBracket"] = 91] = "OpeningSquareBracket";
+})(CharCodes2 || (CharCodes2 = {}));
+var State;
+(function(State2) {
+  State2[State2["Text"] = 1] = "Text";
+  State2[State2["BeforeTagName"] = 2] = "BeforeTagName";
+  State2[State2["InTagName"] = 3] = "InTagName";
+  State2[State2["InSelfClosingTag"] = 4] = "InSelfClosingTag";
+  State2[State2["BeforeClosingTagName"] = 5] = "BeforeClosingTagName";
+  State2[State2["InClosingTagName"] = 6] = "InClosingTagName";
+  State2[State2["AfterClosingTagName"] = 7] = "AfterClosingTagName";
+  State2[State2["BeforeAttributeName"] = 8] = "BeforeAttributeName";
+  State2[State2["InAttributeName"] = 9] = "InAttributeName";
+  State2[State2["AfterAttributeName"] = 10] = "AfterAttributeName";
+  State2[State2["BeforeAttributeValue"] = 11] = "BeforeAttributeValue";
+  State2[State2["InAttributeValueDq"] = 12] = "InAttributeValueDq";
+  State2[State2["InAttributeValueSq"] = 13] = "InAttributeValueSq";
+  State2[State2["InAttributeValueNq"] = 14] = "InAttributeValueNq";
+  State2[State2["BeforeDeclaration"] = 15] = "BeforeDeclaration";
+  State2[State2["InDeclaration"] = 16] = "InDeclaration";
+  State2[State2["InProcessingInstruction"] = 17] = "InProcessingInstruction";
+  State2[State2["BeforeComment"] = 18] = "BeforeComment";
+  State2[State2["CDATASequence"] = 19] = "CDATASequence";
+  State2[State2["InSpecialComment"] = 20] = "InSpecialComment";
+  State2[State2["InCommentLike"] = 21] = "InCommentLike";
+  State2[State2["BeforeSpecialS"] = 22] = "BeforeSpecialS";
+  State2[State2["BeforeSpecialT"] = 23] = "BeforeSpecialT";
+  State2[State2["SpecialStartSequence"] = 24] = "SpecialStartSequence";
+  State2[State2["InSpecialTag"] = 25] = "InSpecialTag";
+  State2[State2["InEntity"] = 26] = "InEntity";
+})(State || (State = {}));
+function isWhitespace2(c) {
+  return c === CharCodes2.Space || c === CharCodes2.NewLine || c === CharCodes2.Tab || c === CharCodes2.FormFeed || c === CharCodes2.CarriageReturn;
+}
+function isEndOfTagSection(c) {
+  return c === CharCodes2.Slash || c === CharCodes2.Gt || isWhitespace2(c);
+}
+function isASCIIAlpha(c) {
+  return c >= CharCodes2.LowerA && c <= CharCodes2.LowerZ || c >= CharCodes2.UpperA && c <= CharCodes2.UpperZ;
+}
+var QuoteType;
+(function(QuoteType2) {
+  QuoteType2[QuoteType2["NoValue"] = 0] = "NoValue";
+  QuoteType2[QuoteType2["Unquoted"] = 1] = "Unquoted";
+  QuoteType2[QuoteType2["Single"] = 2] = "Single";
+  QuoteType2[QuoteType2["Double"] = 3] = "Double";
+})(QuoteType || (QuoteType = {}));
+var Sequences = {
+  Cdata: new Uint8Array([67, 68, 65, 84, 65, 91]),
+  // CDATA[
+  CdataEnd: new Uint8Array([93, 93, 62]),
+  // ]]>
+  CommentEnd: new Uint8Array([45, 45, 62]),
+  // `-->`
+  ScriptEnd: new Uint8Array([60, 47, 115, 99, 114, 105, 112, 116]),
+  // `</script`
+  StyleEnd: new Uint8Array([60, 47, 115, 116, 121, 108, 101]),
+  // `</style`
+  TitleEnd: new Uint8Array([60, 47, 116, 105, 116, 108, 101]),
+  // `</title`
+  TextareaEnd: new Uint8Array([
+    60,
+    47,
+    116,
+    101,
+    120,
+    116,
+    97,
+    114,
+    101,
+    97
+  ]),
+  // `</textarea`
+  XmpEnd: new Uint8Array([60, 47, 120, 109, 112])
+  // `</xmp`
+};
+var Tokenizer = class {
+  constructor({ xmlMode = false, decodeEntities = true }, cbs) {
+    this.cbs = cbs;
+    this.state = State.Text;
+    this.buffer = "";
+    this.sectionStart = 0;
+    this.index = 0;
+    this.entityStart = 0;
+    this.baseState = State.Text;
+    this.isSpecial = false;
+    this.running = true;
+    this.offset = 0;
+    this.currentSequence = void 0;
+    this.sequenceIndex = 0;
+    this.xmlMode = xmlMode;
+    this.decodeEntities = decodeEntities;
+    this.entityDecoder = new EntityDecoder(xmlMode ? xmlDecodeTree : htmlDecodeTree, (cp, consumed) => this.emitCodePoint(cp, consumed));
+  }
+  reset() {
+    this.state = State.Text;
+    this.buffer = "";
+    this.sectionStart = 0;
+    this.index = 0;
+    this.baseState = State.Text;
+    this.currentSequence = void 0;
+    this.running = true;
+    this.offset = 0;
+  }
+  write(chunk) {
+    this.offset += this.buffer.length;
+    this.buffer = chunk;
+    this.parse();
+  }
+  end() {
+    if (this.running)
+      this.finish();
+  }
+  pause() {
+    this.running = false;
+  }
+  resume() {
+    this.running = true;
+    if (this.index < this.buffer.length + this.offset) {
+      this.parse();
+    }
+  }
+  stateText(c) {
+    if (c === CharCodes2.Lt || !this.decodeEntities && this.fastForwardTo(CharCodes2.Lt)) {
+      if (this.index > this.sectionStart) {
+        this.cbs.ontext(this.sectionStart, this.index);
+      }
+      this.state = State.BeforeTagName;
+      this.sectionStart = this.index;
+    } else if (this.decodeEntities && c === CharCodes2.Amp) {
+      this.startEntity();
+    }
+  }
+  stateSpecialStartSequence(c) {
+    const isEnd = this.sequenceIndex === this.currentSequence.length;
+    const isMatch = isEnd ? (
+      // If we are at the end of the sequence, make sure the tag name has ended
+      isEndOfTagSection(c)
+    ) : (
+      // Otherwise, do a case-insensitive comparison
+      (c | 32) === this.currentSequence[this.sequenceIndex]
+    );
+    if (!isMatch) {
+      this.isSpecial = false;
+    } else if (!isEnd) {
+      this.sequenceIndex++;
+      return;
+    }
+    this.sequenceIndex = 0;
+    this.state = State.InTagName;
+    this.stateInTagName(c);
+  }
+  /** Look for an end tag. For <title> tags, also decode entities. */
+  stateInSpecialTag(c) {
+    if (this.sequenceIndex === this.currentSequence.length) {
+      if (c === CharCodes2.Gt || isWhitespace2(c)) {
+        const endOfText = this.index - this.currentSequence.length;
+        if (this.sectionStart < endOfText) {
+          const actualIndex = this.index;
+          this.index = endOfText;
+          this.cbs.ontext(this.sectionStart, endOfText);
+          this.index = actualIndex;
+        }
+        this.isSpecial = false;
+        this.sectionStart = endOfText + 2;
+        this.stateInClosingTagName(c);
+        return;
+      }
+      this.sequenceIndex = 0;
+    }
+    if ((c | 32) === this.currentSequence[this.sequenceIndex]) {
+      this.sequenceIndex += 1;
+    } else if (this.sequenceIndex === 0) {
+      if (this.currentSequence === Sequences.TitleEnd) {
+        if (this.decodeEntities && c === CharCodes2.Amp) {
+          this.startEntity();
+        }
+      } else if (this.fastForwardTo(CharCodes2.Lt)) {
+        this.sequenceIndex = 1;
+      }
+    } else {
+      this.sequenceIndex = Number(c === CharCodes2.Lt);
+    }
+  }
+  stateCDATASequence(c) {
+    if (c === Sequences.Cdata[this.sequenceIndex]) {
+      if (++this.sequenceIndex === Sequences.Cdata.length) {
+        this.state = State.InCommentLike;
+        this.currentSequence = Sequences.CdataEnd;
+        this.sequenceIndex = 0;
+        this.sectionStart = this.index + 1;
+      }
+    } else {
+      this.sequenceIndex = 0;
+      this.state = State.InDeclaration;
+      this.stateInDeclaration(c);
+    }
+  }
+  /**
+   * When we wait for one specific character, we can speed things up
+   * by skipping through the buffer until we find it.
+   *
+   * @returns Whether the character was found.
+   */
+  fastForwardTo(c) {
+    while (++this.index < this.buffer.length + this.offset) {
+      if (this.buffer.charCodeAt(this.index - this.offset) === c) {
+        return true;
+      }
+    }
+    this.index = this.buffer.length + this.offset - 1;
+    return false;
+  }
+  /**
+   * Comments and CDATA end with `-->` and `]]>`.
+   *
+   * Their common qualities are:
+   * - Their end sequences have a distinct character they start with.
+   * - That character is then repeated, so we have to check multiple repeats.
+   * - All characters but the start character of the sequence can be skipped.
+   */
+  stateInCommentLike(c) {
+    if (c === this.currentSequence[this.sequenceIndex]) {
+      if (++this.sequenceIndex === this.currentSequence.length) {
+        if (this.currentSequence === Sequences.CdataEnd) {
+          this.cbs.oncdata(this.sectionStart, this.index, 2);
+        } else {
+          this.cbs.oncomment(this.sectionStart, this.index, 2);
+        }
+        this.sequenceIndex = 0;
+        this.sectionStart = this.index + 1;
+        this.state = State.Text;
+      }
+    } else if (this.sequenceIndex === 0) {
+      if (this.fastForwardTo(this.currentSequence[0])) {
+        this.sequenceIndex = 1;
+      }
+    } else if (c !== this.currentSequence[this.sequenceIndex - 1]) {
+      this.sequenceIndex = 0;
+    }
+  }
+  /**
+   * HTML only allows ASCII alpha characters (a-z and A-Z) at the beginning of a tag name.
+   *
+   * XML allows a lot more characters here (@see https://www.w3.org/TR/REC-xml/#NT-NameStartChar).
+   * We allow anything that wouldn't end the tag.
+   */
+  isTagStartChar(c) {
+    return this.xmlMode ? !isEndOfTagSection(c) : isASCIIAlpha(c);
+  }
+  startSpecial(sequence, offset) {
+    this.isSpecial = true;
+    this.currentSequence = sequence;
+    this.sequenceIndex = offset;
+    this.state = State.SpecialStartSequence;
+  }
+  stateBeforeTagName(c) {
+    if (c === CharCodes2.ExclamationMark) {
+      this.state = State.BeforeDeclaration;
+      this.sectionStart = this.index + 1;
+    } else if (c === CharCodes2.Questionmark) {
+      this.state = State.InProcessingInstruction;
+      this.sectionStart = this.index + 1;
+    } else if (this.isTagStartChar(c)) {
+      const lower = c | 32;
+      this.sectionStart = this.index;
+      if (this.xmlMode) {
+        this.state = State.InTagName;
+      } else if (lower === Sequences.ScriptEnd[2]) {
+        this.state = State.BeforeSpecialS;
+      } else if (lower === Sequences.TitleEnd[2] || lower === Sequences.XmpEnd[2]) {
+        this.state = State.BeforeSpecialT;
+      } else {
+        this.state = State.InTagName;
+      }
+    } else if (c === CharCodes2.Slash) {
+      this.state = State.BeforeClosingTagName;
+    } else {
+      this.state = State.Text;
+      this.stateText(c);
+    }
+  }
+  stateInTagName(c) {
+    if (isEndOfTagSection(c)) {
+      this.cbs.onopentagname(this.sectionStart, this.index);
+      this.sectionStart = -1;
+      this.state = State.BeforeAttributeName;
+      this.stateBeforeAttributeName(c);
+    }
+  }
+  stateBeforeClosingTagName(c) {
+    if (isWhitespace2(c)) {
+    } else if (c === CharCodes2.Gt) {
+      this.state = State.Text;
+    } else {
+      this.state = this.isTagStartChar(c) ? State.InClosingTagName : State.InSpecialComment;
+      this.sectionStart = this.index;
+    }
+  }
+  stateInClosingTagName(c) {
+    if (c === CharCodes2.Gt || isWhitespace2(c)) {
+      this.cbs.onclosetag(this.sectionStart, this.index);
+      this.sectionStart = -1;
+      this.state = State.AfterClosingTagName;
+      this.stateAfterClosingTagName(c);
+    }
+  }
+  stateAfterClosingTagName(c) {
+    if (c === CharCodes2.Gt || this.fastForwardTo(CharCodes2.Gt)) {
+      this.state = State.Text;
+      this.sectionStart = this.index + 1;
+    }
+  }
+  stateBeforeAttributeName(c) {
+    if (c === CharCodes2.Gt) {
+      this.cbs.onopentagend(this.index);
+      if (this.isSpecial) {
+        this.state = State.InSpecialTag;
+        this.sequenceIndex = 0;
+      } else {
+        this.state = State.Text;
+      }
+      this.sectionStart = this.index + 1;
+    } else if (c === CharCodes2.Slash) {
+      this.state = State.InSelfClosingTag;
+    } else if (!isWhitespace2(c)) {
+      this.state = State.InAttributeName;
+      this.sectionStart = this.index;
+    }
+  }
+  stateInSelfClosingTag(c) {
+    if (c === CharCodes2.Gt) {
+      this.cbs.onselfclosingtag(this.index);
+      this.state = State.Text;
+      this.sectionStart = this.index + 1;
+      this.isSpecial = false;
+    } else if (!isWhitespace2(c)) {
+      this.state = State.BeforeAttributeName;
+      this.stateBeforeAttributeName(c);
+    }
+  }
+  stateInAttributeName(c) {
+    if (c === CharCodes2.Eq || isEndOfTagSection(c)) {
+      this.cbs.onattribname(this.sectionStart, this.index);
+      this.sectionStart = this.index;
+      this.state = State.AfterAttributeName;
+      this.stateAfterAttributeName(c);
+    }
+  }
+  stateAfterAttributeName(c) {
+    if (c === CharCodes2.Eq) {
+      this.state = State.BeforeAttributeValue;
+    } else if (c === CharCodes2.Slash || c === CharCodes2.Gt) {
+      this.cbs.onattribend(QuoteType.NoValue, this.sectionStart);
+      this.sectionStart = -1;
+      this.state = State.BeforeAttributeName;
+      this.stateBeforeAttributeName(c);
+    } else if (!isWhitespace2(c)) {
+      this.cbs.onattribend(QuoteType.NoValue, this.sectionStart);
+      this.state = State.InAttributeName;
+      this.sectionStart = this.index;
+    }
+  }
+  stateBeforeAttributeValue(c) {
+    if (c === CharCodes2.DoubleQuote) {
+      this.state = State.InAttributeValueDq;
+      this.sectionStart = this.index + 1;
+    } else if (c === CharCodes2.SingleQuote) {
+      this.state = State.InAttributeValueSq;
+      this.sectionStart = this.index + 1;
+    } else if (!isWhitespace2(c)) {
+      this.sectionStart = this.index;
+      this.state = State.InAttributeValueNq;
+      this.stateInAttributeValueNoQuotes(c);
+    }
+  }
+  handleInAttributeValue(c, quote) {
+    if (c === quote || !this.decodeEntities && this.fastForwardTo(quote)) {
+      this.cbs.onattribdata(this.sectionStart, this.index);
+      this.sectionStart = -1;
+      this.cbs.onattribend(quote === CharCodes2.DoubleQuote ? QuoteType.Double : QuoteType.Single, this.index + 1);
+      this.state = State.BeforeAttributeName;
+    } else if (this.decodeEntities && c === CharCodes2.Amp) {
+      this.startEntity();
+    }
+  }
+  stateInAttributeValueDoubleQuotes(c) {
+    this.handleInAttributeValue(c, CharCodes2.DoubleQuote);
+  }
+  stateInAttributeValueSingleQuotes(c) {
+    this.handleInAttributeValue(c, CharCodes2.SingleQuote);
+  }
+  stateInAttributeValueNoQuotes(c) {
+    if (isWhitespace2(c) || c === CharCodes2.Gt) {
+      this.cbs.onattribdata(this.sectionStart, this.index);
+      this.sectionStart = -1;
+      this.cbs.onattribend(QuoteType.Unquoted, this.index);
+      this.state = State.BeforeAttributeName;
+      this.stateBeforeAttributeName(c);
+    } else if (this.decodeEntities && c === CharCodes2.Amp) {
+      this.startEntity();
+    }
+  }
+  stateBeforeDeclaration(c) {
+    if (c === CharCodes2.OpeningSquareBracket) {
+      this.state = State.CDATASequence;
+      this.sequenceIndex = 0;
+    } else {
+      this.state = c === CharCodes2.Dash ? State.BeforeComment : State.InDeclaration;
+    }
+  }
+  stateInDeclaration(c) {
+    if (c === CharCodes2.Gt || this.fastForwardTo(CharCodes2.Gt)) {
+      this.cbs.ondeclaration(this.sectionStart, this.index);
+      this.state = State.Text;
+      this.sectionStart = this.index + 1;
+    }
+  }
+  stateInProcessingInstruction(c) {
+    if (c === CharCodes2.Gt || this.fastForwardTo(CharCodes2.Gt)) {
+      this.cbs.onprocessinginstruction(this.sectionStart, this.index);
+      this.state = State.Text;
+      this.sectionStart = this.index + 1;
+    }
+  }
+  stateBeforeComment(c) {
+    if (c === CharCodes2.Dash) {
+      this.state = State.InCommentLike;
+      this.currentSequence = Sequences.CommentEnd;
+      this.sequenceIndex = 2;
+      this.sectionStart = this.index + 1;
+    } else {
+      this.state = State.InDeclaration;
+    }
+  }
+  stateInSpecialComment(c) {
+    if (c === CharCodes2.Gt || this.fastForwardTo(CharCodes2.Gt)) {
+      this.cbs.oncomment(this.sectionStart, this.index, 0);
+      this.state = State.Text;
+      this.sectionStart = this.index + 1;
+    }
+  }
+  stateBeforeSpecialS(c) {
+    const lower = c | 32;
+    if (lower === Sequences.ScriptEnd[3]) {
+      this.startSpecial(Sequences.ScriptEnd, 4);
+    } else if (lower === Sequences.StyleEnd[3]) {
+      this.startSpecial(Sequences.StyleEnd, 4);
+    } else {
+      this.state = State.InTagName;
+      this.stateInTagName(c);
+    }
+  }
+  stateBeforeSpecialT(c) {
+    const lower = c | 32;
+    switch (lower) {
+      case Sequences.TitleEnd[3]: {
+        this.startSpecial(Sequences.TitleEnd, 4);
+        break;
+      }
+      case Sequences.TextareaEnd[3]: {
+        this.startSpecial(Sequences.TextareaEnd, 4);
+        break;
+      }
+      case Sequences.XmpEnd[3]: {
+        this.startSpecial(Sequences.XmpEnd, 4);
+        break;
+      }
+      default: {
+        this.state = State.InTagName;
+        this.stateInTagName(c);
+      }
+    }
+  }
+  startEntity() {
+    this.baseState = this.state;
+    this.state = State.InEntity;
+    this.entityStart = this.index;
+    this.entityDecoder.startEntity(this.xmlMode ? DecodingMode.Strict : this.baseState === State.Text || this.baseState === State.InSpecialTag ? DecodingMode.Legacy : DecodingMode.Attribute);
+  }
+  stateInEntity() {
+    const indexInBuffer = this.index - this.offset;
+    const length = this.entityDecoder.write(this.buffer, indexInBuffer);
+    if (length >= 0) {
+      this.state = this.baseState;
+      if (length === 0) {
+        this.index -= 1;
+      }
+    } else {
+      if (indexInBuffer < this.buffer.length && this.buffer.charCodeAt(indexInBuffer) === CharCodes2.Amp) {
+        this.state = this.baseState;
+        this.index -= 1;
+        return;
+      }
+      this.index = this.offset + this.buffer.length - 1;
+    }
+  }
+  /**
+   * Remove data that has already been consumed from the buffer.
+   */
+  cleanup() {
+    if (this.running && this.sectionStart !== this.index) {
+      if (this.state === State.Text || this.state === State.InSpecialTag && this.sequenceIndex === 0) {
+        this.cbs.ontext(this.sectionStart, this.index);
+        this.sectionStart = this.index;
+      } else if (this.state === State.InAttributeValueDq || this.state === State.InAttributeValueSq || this.state === State.InAttributeValueNq) {
+        this.cbs.onattribdata(this.sectionStart, this.index);
+        this.sectionStart = this.index;
+      }
+    }
+  }
+  shouldContinue() {
+    return this.index < this.buffer.length + this.offset && this.running;
+  }
+  /**
+   * Iterates through the buffer, calling the function corresponding to the current state.
+   *
+   * States that are more likely to be hit are higher up, as a performance improvement.
+   */
+  parse() {
+    while (this.shouldContinue()) {
+      const c = this.buffer.charCodeAt(this.index - this.offset);
+      switch (this.state) {
+        case State.Text: {
+          this.stateText(c);
+          break;
+        }
+        case State.SpecialStartSequence: {
+          this.stateSpecialStartSequence(c);
+          break;
+        }
+        case State.InSpecialTag: {
+          this.stateInSpecialTag(c);
+          break;
+        }
+        case State.CDATASequence: {
+          this.stateCDATASequence(c);
+          break;
+        }
+        case State.InAttributeValueDq: {
+          this.stateInAttributeValueDoubleQuotes(c);
+          break;
+        }
+        case State.InAttributeName: {
+          this.stateInAttributeName(c);
+          break;
+        }
+        case State.InCommentLike: {
+          this.stateInCommentLike(c);
+          break;
+        }
+        case State.InSpecialComment: {
+          this.stateInSpecialComment(c);
+          break;
+        }
+        case State.BeforeAttributeName: {
+          this.stateBeforeAttributeName(c);
+          break;
+        }
+        case State.InTagName: {
+          this.stateInTagName(c);
+          break;
+        }
+        case State.InClosingTagName: {
+          this.stateInClosingTagName(c);
+          break;
+        }
+        case State.BeforeTagName: {
+          this.stateBeforeTagName(c);
+          break;
+        }
+        case State.AfterAttributeName: {
+          this.stateAfterAttributeName(c);
+          break;
+        }
+        case State.InAttributeValueSq: {
+          this.stateInAttributeValueSingleQuotes(c);
+          break;
+        }
+        case State.BeforeAttributeValue: {
+          this.stateBeforeAttributeValue(c);
+          break;
+        }
+        case State.BeforeClosingTagName: {
+          this.stateBeforeClosingTagName(c);
+          break;
+        }
+        case State.AfterClosingTagName: {
+          this.stateAfterClosingTagName(c);
+          break;
+        }
+        case State.BeforeSpecialS: {
+          this.stateBeforeSpecialS(c);
+          break;
+        }
+        case State.BeforeSpecialT: {
+          this.stateBeforeSpecialT(c);
+          break;
+        }
+        case State.InAttributeValueNq: {
+          this.stateInAttributeValueNoQuotes(c);
+          break;
+        }
+        case State.InSelfClosingTag: {
+          this.stateInSelfClosingTag(c);
+          break;
+        }
+        case State.InDeclaration: {
+          this.stateInDeclaration(c);
+          break;
+        }
+        case State.BeforeDeclaration: {
+          this.stateBeforeDeclaration(c);
+          break;
+        }
+        case State.BeforeComment: {
+          this.stateBeforeComment(c);
+          break;
+        }
+        case State.InProcessingInstruction: {
+          this.stateInProcessingInstruction(c);
+          break;
+        }
+        case State.InEntity: {
+          this.stateInEntity();
+          break;
+        }
+      }
+      this.index++;
+    }
+    this.cleanup();
+  }
+  finish() {
+    if (this.state === State.InEntity) {
+      this.entityDecoder.end();
+      this.state = this.baseState;
+    }
+    this.handleTrailingData();
+    this.cbs.onend();
+  }
+  /** Handle any trailing data. */
+  handleTrailingData() {
+    const endIndex = this.buffer.length + this.offset;
+    if (this.sectionStart >= endIndex) {
+      return;
+    }
+    if (this.state === State.InCommentLike) {
+      if (this.currentSequence === Sequences.CdataEnd) {
+        this.cbs.oncdata(this.sectionStart, endIndex, 0);
+      } else {
+        this.cbs.oncomment(this.sectionStart, endIndex, 0);
+      }
+    } else if (this.state === State.InTagName || this.state === State.BeforeAttributeName || this.state === State.BeforeAttributeValue || this.state === State.AfterAttributeName || this.state === State.InAttributeName || this.state === State.InAttributeValueSq || this.state === State.InAttributeValueDq || this.state === State.InAttributeValueNq || this.state === State.InClosingTagName) {
+    } else {
+      this.cbs.ontext(this.sectionStart, endIndex);
+    }
+  }
+  emitCodePoint(cp, consumed) {
+    if (this.baseState !== State.Text && this.baseState !== State.InSpecialTag) {
+      if (this.sectionStart < this.entityStart) {
+        this.cbs.onattribdata(this.sectionStart, this.entityStart);
+      }
+      this.sectionStart = this.entityStart + consumed;
+      this.index = this.sectionStart - 1;
+      this.cbs.onattribentity(cp);
+    } else {
+      if (this.sectionStart < this.entityStart) {
+        this.cbs.ontext(this.sectionStart, this.entityStart);
+      }
+      this.sectionStart = this.entityStart + consumed;
+      this.index = this.sectionStart - 1;
+      this.cbs.ontextentity(cp, this.sectionStart);
+    }
+  }
+};
+
+// node_modules/htmlparser2/dist/esm/Parser.js
+var formTags = /* @__PURE__ */ new Set([
+  "input",
+  "option",
+  "optgroup",
+  "select",
+  "button",
+  "datalist",
+  "textarea"
+]);
+var pTag = /* @__PURE__ */ new Set(["p"]);
+var tableSectionTags = /* @__PURE__ */ new Set(["thead", "tbody"]);
+var ddtTags = /* @__PURE__ */ new Set(["dd", "dt"]);
+var rtpTags = /* @__PURE__ */ new Set(["rt", "rp"]);
+var openImpliesClose = /* @__PURE__ */ new Map([
+  ["tr", /* @__PURE__ */ new Set(["tr", "th", "td"])],
+  ["th", /* @__PURE__ */ new Set(["th"])],
+  ["td", /* @__PURE__ */ new Set(["thead", "th", "td"])],
+  ["body", /* @__PURE__ */ new Set(["head", "link", "script"])],
+  ["li", /* @__PURE__ */ new Set(["li"])],
+  ["p", pTag],
+  ["h1", pTag],
+  ["h2", pTag],
+  ["h3", pTag],
+  ["h4", pTag],
+  ["h5", pTag],
+  ["h6", pTag],
+  ["select", formTags],
+  ["input", formTags],
+  ["output", formTags],
+  ["button", formTags],
+  ["datalist", formTags],
+  ["textarea", formTags],
+  ["option", /* @__PURE__ */ new Set(["option"])],
+  ["optgroup", /* @__PURE__ */ new Set(["optgroup", "option"])],
+  ["dd", ddtTags],
+  ["dt", ddtTags],
+  ["address", pTag],
+  ["article", pTag],
+  ["aside", pTag],
+  ["blockquote", pTag],
+  ["details", pTag],
+  ["div", pTag],
+  ["dl", pTag],
+  ["fieldset", pTag],
+  ["figcaption", pTag],
+  ["figure", pTag],
+  ["footer", pTag],
+  ["form", pTag],
+  ["header", pTag],
+  ["hr", pTag],
+  ["main", pTag],
+  ["nav", pTag],
+  ["ol", pTag],
+  ["pre", pTag],
+  ["section", pTag],
+  ["table", pTag],
+  ["ul", pTag],
+  ["rt", rtpTags],
+  ["rp", rtpTags],
+  ["tbody", tableSectionTags],
+  ["tfoot", tableSectionTags]
+]);
+var voidElements = /* @__PURE__ */ new Set([
+  "area",
+  "base",
+  "basefont",
+  "br",
+  "col",
+  "command",
+  "embed",
+  "frame",
+  "hr",
+  "img",
+  "input",
+  "isindex",
+  "keygen",
+  "link",
+  "meta",
+  "param",
+  "source",
+  "track",
+  "wbr"
+]);
+var foreignContextElements = /* @__PURE__ */ new Set(["math", "svg"]);
+var htmlIntegrationElements = /* @__PURE__ */ new Set([
+  "mi",
+  "mo",
+  "mn",
+  "ms",
+  "mtext",
+  "annotation-xml",
+  "foreignobject",
+  "desc",
+  "title"
+]);
+var reNameEnd = /\s|\//;
+var Parser = class {
+  constructor(cbs, options = {}) {
+    var _a3, _b, _c, _d, _e, _f;
+    this.options = options;
+    this.startIndex = 0;
+    this.endIndex = 0;
+    this.openTagStart = 0;
+    this.tagname = "";
+    this.attribname = "";
+    this.attribvalue = "";
+    this.attribs = null;
+    this.stack = [];
+    this.buffers = [];
+    this.bufferOffset = 0;
+    this.writeIndex = 0;
+    this.ended = false;
+    this.cbs = cbs !== null && cbs !== void 0 ? cbs : {};
+    this.htmlMode = !this.options.xmlMode;
+    this.lowerCaseTagNames = (_a3 = options.lowerCaseTags) !== null && _a3 !== void 0 ? _a3 : this.htmlMode;
+    this.lowerCaseAttributeNames = (_b = options.lowerCaseAttributeNames) !== null && _b !== void 0 ? _b : this.htmlMode;
+    this.recognizeSelfClosing = (_c = options.recognizeSelfClosing) !== null && _c !== void 0 ? _c : !this.htmlMode;
+    this.tokenizer = new ((_d = options.Tokenizer) !== null && _d !== void 0 ? _d : Tokenizer)(this.options, this);
+    this.foreignContext = [!this.htmlMode];
+    (_f = (_e = this.cbs).onparserinit) === null || _f === void 0 ? void 0 : _f.call(_e, this);
+  }
+  // Tokenizer event handlers
+  /** @internal */
+  ontext(start, endIndex) {
+    var _a3, _b;
+    const data = this.getSlice(start, endIndex);
+    this.endIndex = endIndex - 1;
+    (_b = (_a3 = this.cbs).ontext) === null || _b === void 0 ? void 0 : _b.call(_a3, data);
+    this.startIndex = endIndex;
+  }
+  /** @internal */
+  ontextentity(cp, endIndex) {
+    var _a3, _b;
+    this.endIndex = endIndex - 1;
+    (_b = (_a3 = this.cbs).ontext) === null || _b === void 0 ? void 0 : _b.call(_a3, fromCodePoint(cp));
+    this.startIndex = endIndex;
+  }
+  /**
+   * Checks if the current tag is a void element. Override this if you want
+   * to specify your own additional void elements.
+   */
+  isVoidElement(name4) {
+    return this.htmlMode && voidElements.has(name4);
+  }
+  /** @internal */
+  onopentagname(start, endIndex) {
+    this.endIndex = endIndex;
+    let name4 = this.getSlice(start, endIndex);
+    if (this.lowerCaseTagNames) {
+      name4 = name4.toLowerCase();
+    }
+    this.emitOpenTag(name4);
+  }
+  emitOpenTag(name4) {
+    var _a3, _b, _c, _d;
+    this.openTagStart = this.startIndex;
+    this.tagname = name4;
+    const impliesClose = this.htmlMode && openImpliesClose.get(name4);
+    if (impliesClose) {
+      while (this.stack.length > 0 && impliesClose.has(this.stack[0])) {
+        const element = this.stack.shift();
+        (_b = (_a3 = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a3, element, true);
+      }
+    }
+    if (!this.isVoidElement(name4)) {
+      this.stack.unshift(name4);
+      if (this.htmlMode) {
+        if (foreignContextElements.has(name4)) {
+          this.foreignContext.unshift(true);
+        } else if (htmlIntegrationElements.has(name4)) {
+          this.foreignContext.unshift(false);
+        }
+      }
+    }
+    (_d = (_c = this.cbs).onopentagname) === null || _d === void 0 ? void 0 : _d.call(_c, name4);
+    if (this.cbs.onopentag)
+      this.attribs = {};
+  }
+  endOpenTag(isImplied) {
+    var _a3, _b;
+    this.startIndex = this.openTagStart;
+    if (this.attribs) {
+      (_b = (_a3 = this.cbs).onopentag) === null || _b === void 0 ? void 0 : _b.call(_a3, this.tagname, this.attribs, isImplied);
+      this.attribs = null;
+    }
+    if (this.cbs.onclosetag && this.isVoidElement(this.tagname)) {
+      this.cbs.onclosetag(this.tagname, true);
+    }
+    this.tagname = "";
+  }
+  /** @internal */
+  onopentagend(endIndex) {
+    this.endIndex = endIndex;
+    this.endOpenTag(false);
+    this.startIndex = endIndex + 1;
+  }
+  /** @internal */
+  onclosetag(start, endIndex) {
+    var _a3, _b, _c, _d, _e, _f, _g, _h;
+    this.endIndex = endIndex;
+    let name4 = this.getSlice(start, endIndex);
+    if (this.lowerCaseTagNames) {
+      name4 = name4.toLowerCase();
+    }
+    if (this.htmlMode && (foreignContextElements.has(name4) || htmlIntegrationElements.has(name4))) {
+      this.foreignContext.shift();
+    }
+    if (!this.isVoidElement(name4)) {
+      const pos = this.stack.indexOf(name4);
+      if (pos !== -1) {
+        for (let index = 0; index <= pos; index++) {
+          const element = this.stack.shift();
+          (_b = (_a3 = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a3, element, index !== pos);
+        }
+      } else if (this.htmlMode && name4 === "p") {
+        this.emitOpenTag("p");
+        this.closeCurrentTag(true);
+      }
+    } else if (this.htmlMode && name4 === "br") {
+      (_d = (_c = this.cbs).onopentagname) === null || _d === void 0 ? void 0 : _d.call(_c, "br");
+      (_f = (_e = this.cbs).onopentag) === null || _f === void 0 ? void 0 : _f.call(_e, "br", {}, true);
+      (_h = (_g = this.cbs).onclosetag) === null || _h === void 0 ? void 0 : _h.call(_g, "br", false);
+    }
+    this.startIndex = endIndex + 1;
+  }
+  /** @internal */
+  onselfclosingtag(endIndex) {
+    this.endIndex = endIndex;
+    if (this.recognizeSelfClosing || this.foreignContext[0]) {
+      this.closeCurrentTag(false);
+      this.startIndex = endIndex + 1;
+    } else {
+      this.onopentagend(endIndex);
+    }
+  }
+  closeCurrentTag(isOpenImplied) {
+    var _a3, _b;
+    const name4 = this.tagname;
+    this.endOpenTag(isOpenImplied);
+    if (this.stack[0] === name4) {
+      (_b = (_a3 = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a3, name4, !isOpenImplied);
+      this.stack.shift();
+    }
+  }
+  /** @internal */
+  onattribname(start, endIndex) {
+    this.startIndex = start;
+    const name4 = this.getSlice(start, endIndex);
+    this.attribname = this.lowerCaseAttributeNames ? name4.toLowerCase() : name4;
+  }
+  /** @internal */
+  onattribdata(start, endIndex) {
+    this.attribvalue += this.getSlice(start, endIndex);
+  }
+  /** @internal */
+  onattribentity(cp) {
+    this.attribvalue += fromCodePoint(cp);
+  }
+  /** @internal */
+  onattribend(quote, endIndex) {
+    var _a3, _b;
+    this.endIndex = endIndex;
+    (_b = (_a3 = this.cbs).onattribute) === null || _b === void 0 ? void 0 : _b.call(_a3, this.attribname, this.attribvalue, quote === QuoteType.Double ? '"' : quote === QuoteType.Single ? "'" : quote === QuoteType.NoValue ? void 0 : null);
+    if (this.attribs && !Object.prototype.hasOwnProperty.call(this.attribs, this.attribname)) {
+      this.attribs[this.attribname] = this.attribvalue;
+    }
+    this.attribvalue = "";
+  }
+  getInstructionName(value) {
+    const index = value.search(reNameEnd);
+    let name4 = index < 0 ? value : value.substr(0, index);
+    if (this.lowerCaseTagNames) {
+      name4 = name4.toLowerCase();
+    }
+    return name4;
+  }
+  /** @internal */
+  ondeclaration(start, endIndex) {
+    this.endIndex = endIndex;
+    const value = this.getSlice(start, endIndex);
+    if (this.cbs.onprocessinginstruction) {
+      const name4 = this.getInstructionName(value);
+      this.cbs.onprocessinginstruction(`!${name4}`, `!${value}`);
+    }
+    this.startIndex = endIndex + 1;
+  }
+  /** @internal */
+  onprocessinginstruction(start, endIndex) {
+    this.endIndex = endIndex;
+    const value = this.getSlice(start, endIndex);
+    if (this.cbs.onprocessinginstruction) {
+      const name4 = this.getInstructionName(value);
+      this.cbs.onprocessinginstruction(`?${name4}`, `?${value}`);
+    }
+    this.startIndex = endIndex + 1;
+  }
+  /** @internal */
+  oncomment(start, endIndex, offset) {
+    var _a3, _b, _c, _d;
+    this.endIndex = endIndex;
+    (_b = (_a3 = this.cbs).oncomment) === null || _b === void 0 ? void 0 : _b.call(_a3, this.getSlice(start, endIndex - offset));
+    (_d = (_c = this.cbs).oncommentend) === null || _d === void 0 ? void 0 : _d.call(_c);
+    this.startIndex = endIndex + 1;
+  }
+  /** @internal */
+  oncdata(start, endIndex, offset) {
+    var _a3, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+    this.endIndex = endIndex;
+    const value = this.getSlice(start, endIndex - offset);
+    if (!this.htmlMode || this.options.recognizeCDATA) {
+      (_b = (_a3 = this.cbs).oncdatastart) === null || _b === void 0 ? void 0 : _b.call(_a3);
+      (_d = (_c = this.cbs).ontext) === null || _d === void 0 ? void 0 : _d.call(_c, value);
+      (_f = (_e = this.cbs).oncdataend) === null || _f === void 0 ? void 0 : _f.call(_e);
+    } else {
+      (_h = (_g = this.cbs).oncomment) === null || _h === void 0 ? void 0 : _h.call(_g, `[CDATA[${value}]]`);
+      (_k = (_j = this.cbs).oncommentend) === null || _k === void 0 ? void 0 : _k.call(_j);
+    }
+    this.startIndex = endIndex + 1;
+  }
+  /** @internal */
+  onend() {
+    var _a3, _b;
+    if (this.cbs.onclosetag) {
+      this.endIndex = this.startIndex;
+      for (let index = 0; index < this.stack.length; index++) {
+        this.cbs.onclosetag(this.stack[index], true);
+      }
+    }
+    (_b = (_a3 = this.cbs).onend) === null || _b === void 0 ? void 0 : _b.call(_a3);
+  }
+  /**
+   * Resets the parser to a blank state, ready to parse a new HTML document
+   */
+  reset() {
+    var _a3, _b, _c, _d;
+    (_b = (_a3 = this.cbs).onreset) === null || _b === void 0 ? void 0 : _b.call(_a3);
+    this.tokenizer.reset();
+    this.tagname = "";
+    this.attribname = "";
+    this.attribs = null;
+    this.stack.length = 0;
+    this.startIndex = 0;
+    this.endIndex = 0;
+    (_d = (_c = this.cbs).onparserinit) === null || _d === void 0 ? void 0 : _d.call(_c, this);
+    this.buffers.length = 0;
+    this.foreignContext.length = 0;
+    this.foreignContext.unshift(!this.htmlMode);
+    this.bufferOffset = 0;
+    this.writeIndex = 0;
+    this.ended = false;
+  }
+  /**
+   * Resets the parser, then parses a complete document and
+   * pushes it to the handler.
+   *
+   * @param data Document to parse.
+   */
+  parseComplete(data) {
+    this.reset();
+    this.end(data);
+  }
+  getSlice(start, end) {
+    while (start - this.bufferOffset >= this.buffers[0].length) {
+      this.shiftBuffer();
+    }
+    let slice = this.buffers[0].slice(start - this.bufferOffset, end - this.bufferOffset);
+    while (end - this.bufferOffset > this.buffers[0].length) {
+      this.shiftBuffer();
+      slice += this.buffers[0].slice(0, end - this.bufferOffset);
+    }
+    return slice;
+  }
+  shiftBuffer() {
+    this.bufferOffset += this.buffers[0].length;
+    this.writeIndex--;
+    this.buffers.shift();
+  }
+  /**
+   * Parses a chunk of data and calls the corresponding callbacks.
+   *
+   * @param chunk Chunk to parse.
+   */
+  write(chunk) {
+    var _a3, _b;
+    if (this.ended) {
+      (_b = (_a3 = this.cbs).onerror) === null || _b === void 0 ? void 0 : _b.call(_a3, new Error(".write() after done!"));
+      return;
+    }
+    this.buffers.push(chunk);
+    if (this.tokenizer.running) {
+      this.tokenizer.write(chunk);
+      this.writeIndex++;
+    }
+  }
+  /**
+   * Parses the end of the buffer and clears the stack, calls onend.
+   *
+   * @param chunk Optional final chunk to parse.
+   */
+  end(chunk) {
+    var _a3, _b;
+    if (this.ended) {
+      (_b = (_a3 = this.cbs).onerror) === null || _b === void 0 ? void 0 : _b.call(_a3, new Error(".end() after done!"));
+      return;
+    }
+    if (chunk)
+      this.write(chunk);
+    this.ended = true;
+    this.tokenizer.end();
+  }
+  /**
+   * Pauses parsing. The parser won't emit events until `resume` is called.
+   */
+  pause() {
+    this.tokenizer.pause();
+  }
+  /**
+   * Resumes parsing after `pause` was called.
+   */
+  resume() {
+    this.tokenizer.resume();
+    while (this.tokenizer.running && this.writeIndex < this.buffers.length) {
+      this.tokenizer.write(this.buffers[this.writeIndex++]);
+    }
+    if (this.ended)
+      this.tokenizer.end();
+  }
+  /**
+   * Alias of `write`, for backwards compatibility.
+   *
+   * @param chunk Chunk to parse.
+   * @deprecated
+   */
+  parseChunk(chunk) {
+    this.write(chunk);
+  }
+  /**
+   * Alias of `end`, for backwards compatibility.
+   *
+   * @param chunk Optional final chunk to parse.
+   * @deprecated
+   */
+  done(chunk) {
+    this.end(chunk);
+  }
+};
+
+// node_modules/dom-serializer/node_modules/entities/lib/esm/generated/decode-data-html.js
+var decode_data_html_default = new Uint16Array(
+  // prettier-ignore
+  '\u1D41<\xD5\u0131\u028A\u049D\u057B\u05D0\u0675\u06DE\u07A2\u07D6\u080F\u0A4A\u0A91\u0DA1\u0E6D\u0F09\u0F26\u10CA\u1228\u12E1\u1415\u149D\u14C3\u14DF\u1525\0\0\0\0\0\0\u156B\u16CD\u198D\u1C12\u1DDD\u1F7E\u2060\u21B0\u228D\u23C0\u23FB\u2442\u2824\u2912\u2D08\u2E48\u2FCE\u3016\u32BA\u3639\u37AC\u38FE\u3A28\u3A71\u3AE0\u3B2E\u0800EMabcfglmnoprstu\\bfms\x7F\x84\x8B\x90\x95\x98\xA6\xB3\xB9\xC8\xCFlig\u803B\xC6\u40C6P\u803B&\u4026cute\u803B\xC1\u40C1reve;\u4102\u0100iyx}rc\u803B\xC2\u40C2;\u4410r;\uC000\u{1D504}rave\u803B\xC0\u40C0pha;\u4391acr;\u4100d;\u6A53\u0100gp\x9D\xA1on;\u4104f;\uC000\u{1D538}plyFunction;\u6061ing\u803B\xC5\u40C5\u0100cs\xBE\xC3r;\uC000\u{1D49C}ign;\u6254ilde\u803B\xC3\u40C3ml\u803B\xC4\u40C4\u0400aceforsu\xE5\xFB\xFE\u0117\u011C\u0122\u0127\u012A\u0100cr\xEA\xF2kslash;\u6216\u0176\xF6\xF8;\u6AE7ed;\u6306y;\u4411\u0180crt\u0105\u010B\u0114ause;\u6235noullis;\u612Ca;\u4392r;\uC000\u{1D505}pf;\uC000\u{1D539}eve;\u42D8c\xF2\u0113mpeq;\u624E\u0700HOacdefhilorsu\u014D\u0151\u0156\u0180\u019E\u01A2\u01B5\u01B7\u01BA\u01DC\u0215\u0273\u0278\u027Ecy;\u4427PY\u803B\xA9\u40A9\u0180cpy\u015D\u0162\u017Aute;\u4106\u0100;i\u0167\u0168\u62D2talDifferentialD;\u6145leys;\u612D\u0200aeio\u0189\u018E\u0194\u0198ron;\u410Cdil\u803B\xC7\u40C7rc;\u4108nint;\u6230ot;\u410A\u0100dn\u01A7\u01ADilla;\u40B8terDot;\u40B7\xF2\u017Fi;\u43A7rcle\u0200DMPT\u01C7\u01CB\u01D1\u01D6ot;\u6299inus;\u6296lus;\u6295imes;\u6297o\u0100cs\u01E2\u01F8kwiseContourIntegral;\u6232eCurly\u0100DQ\u0203\u020FoubleQuote;\u601Duote;\u6019\u0200lnpu\u021E\u0228\u0247\u0255on\u0100;e\u0225\u0226\u6237;\u6A74\u0180git\u022F\u0236\u023Aruent;\u6261nt;\u622FourIntegral;\u622E\u0100fr\u024C\u024E;\u6102oduct;\u6210nterClockwiseContourIntegral;\u6233oss;\u6A2Fcr;\uC000\u{1D49E}p\u0100;C\u0284\u0285\u62D3ap;\u624D\u0580DJSZacefios\u02A0\u02AC\u02B0\u02B4\u02B8\u02CB\u02D7\u02E1\u02E6\u0333\u048D\u0100;o\u0179\u02A5trahd;\u6911cy;\u4402cy;\u4405cy;\u440F\u0180grs\u02BF\u02C4\u02C7ger;\u6021r;\u61A1hv;\u6AE4\u0100ay\u02D0\u02D5ron;\u410E;\u4414l\u0100;t\u02DD\u02DE\u6207a;\u4394r;\uC000\u{1D507}\u0100af\u02EB\u0327\u0100cm\u02F0\u0322ritical\u0200ADGT\u0300\u0306\u0316\u031Ccute;\u40B4o\u0174\u030B\u030D;\u42D9bleAcute;\u42DDrave;\u4060ilde;\u42DCond;\u62C4ferentialD;\u6146\u0470\u033D\0\0\0\u0342\u0354\0\u0405f;\uC000\u{1D53B}\u0180;DE\u0348\u0349\u034D\u40A8ot;\u60DCqual;\u6250ble\u0300CDLRUV\u0363\u0372\u0382\u03CF\u03E2\u03F8ontourIntegra\xEC\u0239o\u0274\u0379\0\0\u037B\xBB\u0349nArrow;\u61D3\u0100eo\u0387\u03A4ft\u0180ART\u0390\u0396\u03A1rrow;\u61D0ightArrow;\u61D4e\xE5\u02CAng\u0100LR\u03AB\u03C4eft\u0100AR\u03B3\u03B9rrow;\u67F8ightArrow;\u67FAightArrow;\u67F9ight\u0100AT\u03D8\u03DErrow;\u61D2ee;\u62A8p\u0241\u03E9\0\0\u03EFrrow;\u61D1ownArrow;\u61D5erticalBar;\u6225n\u0300ABLRTa\u0412\u042A\u0430\u045E\u047F\u037Crrow\u0180;BU\u041D\u041E\u0422\u6193ar;\u6913pArrow;\u61F5reve;\u4311eft\u02D2\u043A\0\u0446\0\u0450ightVector;\u6950eeVector;\u695Eector\u0100;B\u0459\u045A\u61BDar;\u6956ight\u01D4\u0467\0\u0471eeVector;\u695Fector\u0100;B\u047A\u047B\u61C1ar;\u6957ee\u0100;A\u0486\u0487\u62A4rrow;\u61A7\u0100ct\u0492\u0497r;\uC000\u{1D49F}rok;\u4110\u0800NTacdfglmopqstux\u04BD\u04C0\u04C4\u04CB\u04DE\u04E2\u04E7\u04EE\u04F5\u0521\u052F\u0536\u0552\u055D\u0560\u0565G;\u414AH\u803B\xD0\u40D0cute\u803B\xC9\u40C9\u0180aiy\u04D2\u04D7\u04DCron;\u411Arc\u803B\xCA\u40CA;\u442Dot;\u4116r;\uC000\u{1D508}rave\u803B\xC8\u40C8ement;\u6208\u0100ap\u04FA\u04FEcr;\u4112ty\u0253\u0506\0\0\u0512mallSquare;\u65FBerySmallSquare;\u65AB\u0100gp\u0526\u052Aon;\u4118f;\uC000\u{1D53C}silon;\u4395u\u0100ai\u053C\u0549l\u0100;T\u0542\u0543\u6A75ilde;\u6242librium;\u61CC\u0100ci\u0557\u055Ar;\u6130m;\u6A73a;\u4397ml\u803B\xCB\u40CB\u0100ip\u056A\u056Fsts;\u6203onentialE;\u6147\u0280cfios\u0585\u0588\u058D\u05B2\u05CCy;\u4424r;\uC000\u{1D509}lled\u0253\u0597\0\0\u05A3mallSquare;\u65FCerySmallSquare;\u65AA\u0370\u05BA\0\u05BF\0\0\u05C4f;\uC000\u{1D53D}All;\u6200riertrf;\u6131c\xF2\u05CB\u0600JTabcdfgorst\u05E8\u05EC\u05EF\u05FA\u0600\u0612\u0616\u061B\u061D\u0623\u066C\u0672cy;\u4403\u803B>\u403Emma\u0100;d\u05F7\u05F8\u4393;\u43DCreve;\u411E\u0180eiy\u0607\u060C\u0610dil;\u4122rc;\u411C;\u4413ot;\u4120r;\uC000\u{1D50A};\u62D9pf;\uC000\u{1D53E}eater\u0300EFGLST\u0635\u0644\u064E\u0656\u065B\u0666qual\u0100;L\u063E\u063F\u6265ess;\u62DBullEqual;\u6267reater;\u6AA2ess;\u6277lantEqual;\u6A7Eilde;\u6273cr;\uC000\u{1D4A2};\u626B\u0400Aacfiosu\u0685\u068B\u0696\u069B\u069E\u06AA\u06BE\u06CARDcy;\u442A\u0100ct\u0690\u0694ek;\u42C7;\u405Eirc;\u4124r;\u610ClbertSpace;\u610B\u01F0\u06AF\0\u06B2f;\u610DizontalLine;\u6500\u0100ct\u06C3\u06C5\xF2\u06A9rok;\u4126mp\u0144\u06D0\u06D8ownHum\xF0\u012Fqual;\u624F\u0700EJOacdfgmnostu\u06FA\u06FE\u0703\u0707\u070E\u071A\u071E\u0721\u0728\u0744\u0778\u078B\u078F\u0795cy;\u4415lig;\u4132cy;\u4401cute\u803B\xCD\u40CD\u0100iy\u0713\u0718rc\u803B\xCE\u40CE;\u4418ot;\u4130r;\u6111rave\u803B\xCC\u40CC\u0180;ap\u0720\u072F\u073F\u0100cg\u0734\u0737r;\u412AinaryI;\u6148lie\xF3\u03DD\u01F4\u0749\0\u0762\u0100;e\u074D\u074E\u622C\u0100gr\u0753\u0758ral;\u622Bsection;\u62C2isible\u0100CT\u076C\u0772omma;\u6063imes;\u6062\u0180gpt\u077F\u0783\u0788on;\u412Ef;\uC000\u{1D540}a;\u4399cr;\u6110ilde;\u4128\u01EB\u079A\0\u079Ecy;\u4406l\u803B\xCF\u40CF\u0280cfosu\u07AC\u07B7\u07BC\u07C2\u07D0\u0100iy\u07B1\u07B5rc;\u4134;\u4419r;\uC000\u{1D50D}pf;\uC000\u{1D541}\u01E3\u07C7\0\u07CCr;\uC000\u{1D4A5}rcy;\u4408kcy;\u4404\u0380HJacfos\u07E4\u07E8\u07EC\u07F1\u07FD\u0802\u0808cy;\u4425cy;\u440Cppa;\u439A\u0100ey\u07F6\u07FBdil;\u4136;\u441Ar;\uC000\u{1D50E}pf;\uC000\u{1D542}cr;\uC000\u{1D4A6}\u0580JTaceflmost\u0825\u0829\u082C\u0850\u0863\u09B3\u09B8\u09C7\u09CD\u0A37\u0A47cy;\u4409\u803B<\u403C\u0280cmnpr\u0837\u083C\u0841\u0844\u084Dute;\u4139bda;\u439Bg;\u67EAlacetrf;\u6112r;\u619E\u0180aey\u0857\u085C\u0861ron;\u413Ddil;\u413B;\u441B\u0100fs\u0868\u0970t\u0500ACDFRTUVar\u087E\u08A9\u08B1\u08E0\u08E6\u08FC\u092F\u095B\u0390\u096A\u0100nr\u0883\u088FgleBracket;\u67E8row\u0180;BR\u0899\u089A\u089E\u6190ar;\u61E4ightArrow;\u61C6eiling;\u6308o\u01F5\u08B7\0\u08C3bleBracket;\u67E6n\u01D4\u08C8\0\u08D2eeVector;\u6961ector\u0100;B\u08DB\u08DC\u61C3ar;\u6959loor;\u630Aight\u0100AV\u08EF\u08F5rrow;\u6194ector;\u694E\u0100er\u0901\u0917e\u0180;AV\u0909\u090A\u0910\u62A3rrow;\u61A4ector;\u695Aiangle\u0180;BE\u0924\u0925\u0929\u62B2ar;\u69CFqual;\u62B4p\u0180DTV\u0937\u0942\u094CownVector;\u6951eeVector;\u6960ector\u0100;B\u0956\u0957\u61BFar;\u6958ector\u0100;B\u0965\u0966\u61BCar;\u6952ight\xE1\u039Cs\u0300EFGLST\u097E\u098B\u0995\u099D\u09A2\u09ADqualGreater;\u62DAullEqual;\u6266reater;\u6276ess;\u6AA1lantEqual;\u6A7Dilde;\u6272r;\uC000\u{1D50F}\u0100;e\u09BD\u09BE\u62D8ftarrow;\u61DAidot;\u413F\u0180npw\u09D4\u0A16\u0A1Bg\u0200LRlr\u09DE\u09F7\u0A02\u0A10eft\u0100AR\u09E6\u09ECrrow;\u67F5ightArrow;\u67F7ightArrow;\u67F6eft\u0100ar\u03B3\u0A0Aight\xE1\u03BFight\xE1\u03CAf;\uC000\u{1D543}er\u0100LR\u0A22\u0A2CeftArrow;\u6199ightArrow;\u6198\u0180cht\u0A3E\u0A40\u0A42\xF2\u084C;\u61B0rok;\u4141;\u626A\u0400acefiosu\u0A5A\u0A5D\u0A60\u0A77\u0A7C\u0A85\u0A8B\u0A8Ep;\u6905y;\u441C\u0100dl\u0A65\u0A6FiumSpace;\u605Flintrf;\u6133r;\uC000\u{1D510}nusPlus;\u6213pf;\uC000\u{1D544}c\xF2\u0A76;\u439C\u0480Jacefostu\u0AA3\u0AA7\u0AAD\u0AC0\u0B14\u0B19\u0D91\u0D97\u0D9Ecy;\u440Acute;\u4143\u0180aey\u0AB4\u0AB9\u0ABEron;\u4147dil;\u4145;\u441D\u0180gsw\u0AC7\u0AF0\u0B0Eative\u0180MTV\u0AD3\u0ADF\u0AE8ediumSpace;\u600Bhi\u0100cn\u0AE6\u0AD8\xEB\u0AD9eryThi\xEE\u0AD9ted\u0100GL\u0AF8\u0B06reaterGreate\xF2\u0673essLes\xF3\u0A48Line;\u400Ar;\uC000\u{1D511}\u0200Bnpt\u0B22\u0B28\u0B37\u0B3Areak;\u6060BreakingSpace;\u40A0f;\u6115\u0680;CDEGHLNPRSTV\u0B55\u0B56\u0B6A\u0B7C\u0BA1\u0BEB\u0C04\u0C5E\u0C84\u0CA6\u0CD8\u0D61\u0D85\u6AEC\u0100ou\u0B5B\u0B64ngruent;\u6262pCap;\u626DoubleVerticalBar;\u6226\u0180lqx\u0B83\u0B8A\u0B9Bement;\u6209ual\u0100;T\u0B92\u0B93\u6260ilde;\uC000\u2242\u0338ists;\u6204reater\u0380;EFGLST\u0BB6\u0BB7\u0BBD\u0BC9\u0BD3\u0BD8\u0BE5\u626Fqual;\u6271ullEqual;\uC000\u2267\u0338reater;\uC000\u226B\u0338ess;\u6279lantEqual;\uC000\u2A7E\u0338ilde;\u6275ump\u0144\u0BF2\u0BFDownHump;\uC000\u224E\u0338qual;\uC000\u224F\u0338e\u0100fs\u0C0A\u0C27tTriangle\u0180;BE\u0C1A\u0C1B\u0C21\u62EAar;\uC000\u29CF\u0338qual;\u62ECs\u0300;EGLST\u0C35\u0C36\u0C3C\u0C44\u0C4B\u0C58\u626Equal;\u6270reater;\u6278ess;\uC000\u226A\u0338lantEqual;\uC000\u2A7D\u0338ilde;\u6274ested\u0100GL\u0C68\u0C79reaterGreater;\uC000\u2AA2\u0338essLess;\uC000\u2AA1\u0338recedes\u0180;ES\u0C92\u0C93\u0C9B\u6280qual;\uC000\u2AAF\u0338lantEqual;\u62E0\u0100ei\u0CAB\u0CB9verseElement;\u620CghtTriangle\u0180;BE\u0CCB\u0CCC\u0CD2\u62EBar;\uC000\u29D0\u0338qual;\u62ED\u0100qu\u0CDD\u0D0CuareSu\u0100bp\u0CE8\u0CF9set\u0100;E\u0CF0\u0CF3\uC000\u228F\u0338qual;\u62E2erset\u0100;E\u0D03\u0D06\uC000\u2290\u0338qual;\u62E3\u0180bcp\u0D13\u0D24\u0D4Eset\u0100;E\u0D1B\u0D1E\uC000\u2282\u20D2qual;\u6288ceeds\u0200;EST\u0D32\u0D33\u0D3B\u0D46\u6281qual;\uC000\u2AB0\u0338lantEqual;\u62E1ilde;\uC000\u227F\u0338erset\u0100;E\u0D58\u0D5B\uC000\u2283\u20D2qual;\u6289ilde\u0200;EFT\u0D6E\u0D6F\u0D75\u0D7F\u6241qual;\u6244ullEqual;\u6247ilde;\u6249erticalBar;\u6224cr;\uC000\u{1D4A9}ilde\u803B\xD1\u40D1;\u439D\u0700Eacdfgmoprstuv\u0DBD\u0DC2\u0DC9\u0DD5\u0DDB\u0DE0\u0DE7\u0DFC\u0E02\u0E20\u0E22\u0E32\u0E3F\u0E44lig;\u4152cute\u803B\xD3\u40D3\u0100iy\u0DCE\u0DD3rc\u803B\xD4\u40D4;\u441Eblac;\u4150r;\uC000\u{1D512}rave\u803B\xD2\u40D2\u0180aei\u0DEE\u0DF2\u0DF6cr;\u414Cga;\u43A9cron;\u439Fpf;\uC000\u{1D546}enCurly\u0100DQ\u0E0E\u0E1AoubleQuote;\u601Cuote;\u6018;\u6A54\u0100cl\u0E27\u0E2Cr;\uC000\u{1D4AA}ash\u803B\xD8\u40D8i\u016C\u0E37\u0E3Cde\u803B\xD5\u40D5es;\u6A37ml\u803B\xD6\u40D6er\u0100BP\u0E4B\u0E60\u0100ar\u0E50\u0E53r;\u603Eac\u0100ek\u0E5A\u0E5C;\u63DEet;\u63B4arenthesis;\u63DC\u0480acfhilors\u0E7F\u0E87\u0E8A\u0E8F\u0E92\u0E94\u0E9D\u0EB0\u0EFCrtialD;\u6202y;\u441Fr;\uC000\u{1D513}i;\u43A6;\u43A0usMinus;\u40B1\u0100ip\u0EA2\u0EADncareplan\xE5\u069Df;\u6119\u0200;eio\u0EB9\u0EBA\u0EE0\u0EE4\u6ABBcedes\u0200;EST\u0EC8\u0EC9\u0ECF\u0EDA\u627Aqual;\u6AAFlantEqual;\u627Cilde;\u627Eme;\u6033\u0100dp\u0EE9\u0EEEuct;\u620Fortion\u0100;a\u0225\u0EF9l;\u621D\u0100ci\u0F01\u0F06r;\uC000\u{1D4AB};\u43A8\u0200Ufos\u0F11\u0F16\u0F1B\u0F1FOT\u803B"\u4022r;\uC000\u{1D514}pf;\u611Acr;\uC000\u{1D4AC}\u0600BEacefhiorsu\u0F3E\u0F43\u0F47\u0F60\u0F73\u0FA7\u0FAA\u0FAD\u1096\u10A9\u10B4\u10BEarr;\u6910G\u803B\xAE\u40AE\u0180cnr\u0F4E\u0F53\u0F56ute;\u4154g;\u67EBr\u0100;t\u0F5C\u0F5D\u61A0l;\u6916\u0180aey\u0F67\u0F6C\u0F71ron;\u4158dil;\u4156;\u4420\u0100;v\u0F78\u0F79\u611Cerse\u0100EU\u0F82\u0F99\u0100lq\u0F87\u0F8Eement;\u620Builibrium;\u61CBpEquilibrium;\u696Fr\xBB\u0F79o;\u43A1ght\u0400ACDFTUVa\u0FC1\u0FEB\u0FF3\u1022\u1028\u105B\u1087\u03D8\u0100nr\u0FC6\u0FD2gleBracket;\u67E9row\u0180;BL\u0FDC\u0FDD\u0FE1\u6192ar;\u61E5eftArrow;\u61C4eiling;\u6309o\u01F5\u0FF9\0\u1005bleBracket;\u67E7n\u01D4\u100A\0\u1014eeVector;\u695Dector\u0100;B\u101D\u101E\u61C2ar;\u6955loor;\u630B\u0100er\u102D\u1043e\u0180;AV\u1035\u1036\u103C\u62A2rrow;\u61A6ector;\u695Biangle\u0180;BE\u1050\u1051\u1055\u62B3ar;\u69D0qual;\u62B5p\u0180DTV\u1063\u106E\u1078ownVector;\u694FeeVector;\u695Cector\u0100;B\u1082\u1083\u61BEar;\u6954ector\u0100;B\u1091\u1092\u61C0ar;\u6953\u0100pu\u109B\u109Ef;\u611DndImplies;\u6970ightarrow;\u61DB\u0100ch\u10B9\u10BCr;\u611B;\u61B1leDelayed;\u69F4\u0680HOacfhimoqstu\u10E4\u10F1\u10F7\u10FD\u1119\u111E\u1151\u1156\u1161\u1167\u11B5\u11BB\u11BF\u0100Cc\u10E9\u10EEHcy;\u4429y;\u4428FTcy;\u442Ccute;\u415A\u0280;aeiy\u1108\u1109\u110E\u1113\u1117\u6ABCron;\u4160dil;\u415Erc;\u415C;\u4421r;\uC000\u{1D516}ort\u0200DLRU\u112A\u1134\u113E\u1149ownArrow\xBB\u041EeftArrow\xBB\u089AightArrow\xBB\u0FDDpArrow;\u6191gma;\u43A3allCircle;\u6218pf;\uC000\u{1D54A}\u0272\u116D\0\0\u1170t;\u621Aare\u0200;ISU\u117B\u117C\u1189\u11AF\u65A1ntersection;\u6293u\u0100bp\u118F\u119Eset\u0100;E\u1197\u1198\u628Fqual;\u6291erset\u0100;E\u11A8\u11A9\u6290qual;\u6292nion;\u6294cr;\uC000\u{1D4AE}ar;\u62C6\u0200bcmp\u11C8\u11DB\u1209\u120B\u0100;s\u11CD\u11CE\u62D0et\u0100;E\u11CD\u11D5qual;\u6286\u0100ch\u11E0\u1205eeds\u0200;EST\u11ED\u11EE\u11F4\u11FF\u627Bqual;\u6AB0lantEqual;\u627Dilde;\u627FTh\xE1\u0F8C;\u6211\u0180;es\u1212\u1213\u1223\u62D1rset\u0100;E\u121C\u121D\u6283qual;\u6287et\xBB\u1213\u0580HRSacfhiors\u123E\u1244\u1249\u1255\u125E\u1271\u1276\u129F\u12C2\u12C8\u12D1ORN\u803B\xDE\u40DEADE;\u6122\u0100Hc\u124E\u1252cy;\u440By;\u4426\u0100bu\u125A\u125C;\u4009;\u43A4\u0180aey\u1265\u126A\u126Fron;\u4164dil;\u4162;\u4422r;\uC000\u{1D517}\u0100ei\u127B\u1289\u01F2\u1280\0\u1287efore;\u6234a;\u4398\u0100cn\u128E\u1298kSpace;\uC000\u205F\u200ASpace;\u6009lde\u0200;EFT\u12AB\u12AC\u12B2\u12BC\u623Cqual;\u6243ullEqual;\u6245ilde;\u6248pf;\uC000\u{1D54B}ipleDot;\u60DB\u0100ct\u12D6\u12DBr;\uC000\u{1D4AF}rok;\u4166\u0AE1\u12F7\u130E\u131A\u1326\0\u132C\u1331\0\0\0\0\0\u1338\u133D\u1377\u1385\0\u13FF\u1404\u140A\u1410\u0100cr\u12FB\u1301ute\u803B\xDA\u40DAr\u0100;o\u1307\u1308\u619Fcir;\u6949r\u01E3\u1313\0\u1316y;\u440Eve;\u416C\u0100iy\u131E\u1323rc\u803B\xDB\u40DB;\u4423blac;\u4170r;\uC000\u{1D518}rave\u803B\xD9\u40D9acr;\u416A\u0100di\u1341\u1369er\u0100BP\u1348\u135D\u0100ar\u134D\u1350r;\u405Fac\u0100ek\u1357\u1359;\u63DFet;\u63B5arenthesis;\u63DDon\u0100;P\u1370\u1371\u62C3lus;\u628E\u0100gp\u137B\u137Fon;\u4172f;\uC000\u{1D54C}\u0400ADETadps\u1395\u13AE\u13B8\u13C4\u03E8\u13D2\u13D7\u13F3rrow\u0180;BD\u1150\u13A0\u13A4ar;\u6912ownArrow;\u61C5ownArrow;\u6195quilibrium;\u696Eee\u0100;A\u13CB\u13CC\u62A5rrow;\u61A5own\xE1\u03F3er\u0100LR\u13DE\u13E8eftArrow;\u6196ightArrow;\u6197i\u0100;l\u13F9\u13FA\u43D2on;\u43A5ing;\u416Ecr;\uC000\u{1D4B0}ilde;\u4168ml\u803B\xDC\u40DC\u0480Dbcdefosv\u1427\u142C\u1430\u1433\u143E\u1485\u148A\u1490\u1496ash;\u62ABar;\u6AEBy;\u4412ash\u0100;l\u143B\u143C\u62A9;\u6AE6\u0100er\u1443\u1445;\u62C1\u0180bty\u144C\u1450\u147Aar;\u6016\u0100;i\u144F\u1455cal\u0200BLST\u1461\u1465\u146A\u1474ar;\u6223ine;\u407Ceparator;\u6758ilde;\u6240ThinSpace;\u600Ar;\uC000\u{1D519}pf;\uC000\u{1D54D}cr;\uC000\u{1D4B1}dash;\u62AA\u0280cefos\u14A7\u14AC\u14B1\u14B6\u14BCirc;\u4174dge;\u62C0r;\uC000\u{1D51A}pf;\uC000\u{1D54E}cr;\uC000\u{1D4B2}\u0200fios\u14CB\u14D0\u14D2\u14D8r;\uC000\u{1D51B};\u439Epf;\uC000\u{1D54F}cr;\uC000\u{1D4B3}\u0480AIUacfosu\u14F1\u14F5\u14F9\u14FD\u1504\u150F\u1514\u151A\u1520cy;\u442Fcy;\u4407cy;\u442Ecute\u803B\xDD\u40DD\u0100iy\u1509\u150Drc;\u4176;\u442Br;\uC000\u{1D51C}pf;\uC000\u{1D550}cr;\uC000\u{1D4B4}ml;\u4178\u0400Hacdefos\u1535\u1539\u153F\u154B\u154F\u155D\u1560\u1564cy;\u4416cute;\u4179\u0100ay\u1544\u1549ron;\u417D;\u4417ot;\u417B\u01F2\u1554\0\u155BoWidt\xE8\u0AD9a;\u4396r;\u6128pf;\u6124cr;\uC000\u{1D4B5}\u0BE1\u1583\u158A\u1590\0\u15B0\u15B6\u15BF\0\0\0\0\u15C6\u15DB\u15EB\u165F\u166D\0\u1695\u169B\u16B2\u16B9\0\u16BEcute\u803B\xE1\u40E1reve;\u4103\u0300;Ediuy\u159C\u159D\u15A1\u15A3\u15A8\u15AD\u623E;\uC000\u223E\u0333;\u623Frc\u803B\xE2\u40E2te\u80BB\xB4\u0306;\u4430lig\u803B\xE6\u40E6\u0100;r\xB2\u15BA;\uC000\u{1D51E}rave\u803B\xE0\u40E0\u0100ep\u15CA\u15D6\u0100fp\u15CF\u15D4sym;\u6135\xE8\u15D3ha;\u43B1\u0100ap\u15DFc\u0100cl\u15E4\u15E7r;\u4101g;\u6A3F\u0264\u15F0\0\0\u160A\u0280;adsv\u15FA\u15FB\u15FF\u1601\u1607\u6227nd;\u6A55;\u6A5Clope;\u6A58;\u6A5A\u0380;elmrsz\u1618\u1619\u161B\u161E\u163F\u164F\u1659\u6220;\u69A4e\xBB\u1619sd\u0100;a\u1625\u1626\u6221\u0461\u1630\u1632\u1634\u1636\u1638\u163A\u163C\u163E;\u69A8;\u69A9;\u69AA;\u69AB;\u69AC;\u69AD;\u69AE;\u69AFt\u0100;v\u1645\u1646\u621Fb\u0100;d\u164C\u164D\u62BE;\u699D\u0100pt\u1654\u1657h;\u6222\xBB\xB9arr;\u637C\u0100gp\u1663\u1667on;\u4105f;\uC000\u{1D552}\u0380;Eaeiop\u12C1\u167B\u167D\u1682\u1684\u1687\u168A;\u6A70cir;\u6A6F;\u624Ad;\u624Bs;\u4027rox\u0100;e\u12C1\u1692\xF1\u1683ing\u803B\xE5\u40E5\u0180cty\u16A1\u16A6\u16A8r;\uC000\u{1D4B6};\u402Amp\u0100;e\u12C1\u16AF\xF1\u0288ilde\u803B\xE3\u40E3ml\u803B\xE4\u40E4\u0100ci\u16C2\u16C8onin\xF4\u0272nt;\u6A11\u0800Nabcdefiklnoprsu\u16ED\u16F1\u1730\u173C\u1743\u1748\u1778\u177D\u17E0\u17E6\u1839\u1850\u170D\u193D\u1948\u1970ot;\u6AED\u0100cr\u16F6\u171Ek\u0200ceps\u1700\u1705\u170D\u1713ong;\u624Cpsilon;\u43F6rime;\u6035im\u0100;e\u171A\u171B\u623Dq;\u62CD\u0176\u1722\u1726ee;\u62BDed\u0100;g\u172C\u172D\u6305e\xBB\u172Drk\u0100;t\u135C\u1737brk;\u63B6\u0100oy\u1701\u1741;\u4431quo;\u601E\u0280cmprt\u1753\u175B\u1761\u1764\u1768aus\u0100;e\u010A\u0109ptyv;\u69B0s\xE9\u170Cno\xF5\u0113\u0180ahw\u176F\u1771\u1773;\u43B2;\u6136een;\u626Cr;\uC000\u{1D51F}g\u0380costuvw\u178D\u179D\u17B3\u17C1\u17D5\u17DB\u17DE\u0180aiu\u1794\u1796\u179A\xF0\u0760rc;\u65EFp\xBB\u1371\u0180dpt\u17A4\u17A8\u17ADot;\u6A00lus;\u6A01imes;\u6A02\u0271\u17B9\0\0\u17BEcup;\u6A06ar;\u6605riangle\u0100du\u17CD\u17D2own;\u65BDp;\u65B3plus;\u6A04e\xE5\u1444\xE5\u14ADarow;\u690D\u0180ako\u17ED\u1826\u1835\u0100cn\u17F2\u1823k\u0180lst\u17FA\u05AB\u1802ozenge;\u69EBriangle\u0200;dlr\u1812\u1813\u1818\u181D\u65B4own;\u65BEeft;\u65C2ight;\u65B8k;\u6423\u01B1\u182B\0\u1833\u01B2\u182F\0\u1831;\u6592;\u65914;\u6593ck;\u6588\u0100eo\u183E\u184D\u0100;q\u1843\u1846\uC000=\u20E5uiv;\uC000\u2261\u20E5t;\u6310\u0200ptwx\u1859\u185E\u1867\u186Cf;\uC000\u{1D553}\u0100;t\u13CB\u1863om\xBB\u13CCtie;\u62C8\u0600DHUVbdhmptuv\u1885\u1896\u18AA\u18BB\u18D7\u18DB\u18EC\u18FF\u1905\u190A\u1910\u1921\u0200LRlr\u188E\u1890\u1892\u1894;\u6557;\u6554;\u6556;\u6553\u0280;DUdu\u18A1\u18A2\u18A4\u18A6\u18A8\u6550;\u6566;\u6569;\u6564;\u6567\u0200LRlr\u18B3\u18B5\u18B7\u18B9;\u655D;\u655A;\u655C;\u6559\u0380;HLRhlr\u18CA\u18CB\u18CD\u18CF\u18D1\u18D3\u18D5\u6551;\u656C;\u6563;\u6560;\u656B;\u6562;\u655Fox;\u69C9\u0200LRlr\u18E4\u18E6\u18E8\u18EA;\u6555;\u6552;\u6510;\u650C\u0280;DUdu\u06BD\u18F7\u18F9\u18FB\u18FD;\u6565;\u6568;\u652C;\u6534inus;\u629Flus;\u629Eimes;\u62A0\u0200LRlr\u1919\u191B\u191D\u191F;\u655B;\u6558;\u6518;\u6514\u0380;HLRhlr\u1930\u1931\u1933\u1935\u1937\u1939\u193B\u6502;\u656A;\u6561;\u655E;\u653C;\u6524;\u651C\u0100ev\u0123\u1942bar\u803B\xA6\u40A6\u0200ceio\u1951\u1956\u195A\u1960r;\uC000\u{1D4B7}mi;\u604Fm\u0100;e\u171A\u171Cl\u0180;bh\u1968\u1969\u196B\u405C;\u69C5sub;\u67C8\u016C\u1974\u197El\u0100;e\u1979\u197A\u6022t\xBB\u197Ap\u0180;Ee\u012F\u1985\u1987;\u6AAE\u0100;q\u06DC\u06DB\u0CE1\u19A7\0\u19E8\u1A11\u1A15\u1A32\0\u1A37\u1A50\0\0\u1AB4\0\0\u1AC1\0\0\u1B21\u1B2E\u1B4D\u1B52\0\u1BFD\0\u1C0C\u0180cpr\u19AD\u19B2\u19DDute;\u4107\u0300;abcds\u19BF\u19C0\u19C4\u19CA\u19D5\u19D9\u6229nd;\u6A44rcup;\u6A49\u0100au\u19CF\u19D2p;\u6A4Bp;\u6A47ot;\u6A40;\uC000\u2229\uFE00\u0100eo\u19E2\u19E5t;\u6041\xEE\u0693\u0200aeiu\u19F0\u19FB\u1A01\u1A05\u01F0\u19F5\0\u19F8s;\u6A4Don;\u410Ddil\u803B\xE7\u40E7rc;\u4109ps\u0100;s\u1A0C\u1A0D\u6A4Cm;\u6A50ot;\u410B\u0180dmn\u1A1B\u1A20\u1A26il\u80BB\xB8\u01ADptyv;\u69B2t\u8100\xA2;e\u1A2D\u1A2E\u40A2r\xE4\u01B2r;\uC000\u{1D520}\u0180cei\u1A3D\u1A40\u1A4Dy;\u4447ck\u0100;m\u1A47\u1A48\u6713ark\xBB\u1A48;\u43C7r\u0380;Ecefms\u1A5F\u1A60\u1A62\u1A6B\u1AA4\u1AAA\u1AAE\u65CB;\u69C3\u0180;el\u1A69\u1A6A\u1A6D\u42C6q;\u6257e\u0261\u1A74\0\0\u1A88rrow\u0100lr\u1A7C\u1A81eft;\u61BAight;\u61BB\u0280RSacd\u1A92\u1A94\u1A96\u1A9A\u1A9F\xBB\u0F47;\u64C8st;\u629Birc;\u629Aash;\u629Dnint;\u6A10id;\u6AEFcir;\u69C2ubs\u0100;u\u1ABB\u1ABC\u6663it\xBB\u1ABC\u02EC\u1AC7\u1AD4\u1AFA\0\u1B0Aon\u0100;e\u1ACD\u1ACE\u403A\u0100;q\xC7\xC6\u026D\u1AD9\0\0\u1AE2a\u0100;t\u1ADE\u1ADF\u402C;\u4040\u0180;fl\u1AE8\u1AE9\u1AEB\u6201\xEE\u1160e\u0100mx\u1AF1\u1AF6ent\xBB\u1AE9e\xF3\u024D\u01E7\u1AFE\0\u1B07\u0100;d\u12BB\u1B02ot;\u6A6Dn\xF4\u0246\u0180fry\u1B10\u1B14\u1B17;\uC000\u{1D554}o\xE4\u0254\u8100\xA9;s\u0155\u1B1Dr;\u6117\u0100ao\u1B25\u1B29rr;\u61B5ss;\u6717\u0100cu\u1B32\u1B37r;\uC000\u{1D4B8}\u0100bp\u1B3C\u1B44\u0100;e\u1B41\u1B42\u6ACF;\u6AD1\u0100;e\u1B49\u1B4A\u6AD0;\u6AD2dot;\u62EF\u0380delprvw\u1B60\u1B6C\u1B77\u1B82\u1BAC\u1BD4\u1BF9arr\u0100lr\u1B68\u1B6A;\u6938;\u6935\u0270\u1B72\0\0\u1B75r;\u62DEc;\u62DFarr\u0100;p\u1B7F\u1B80\u61B6;\u693D\u0300;bcdos\u1B8F\u1B90\u1B96\u1BA1\u1BA5\u1BA8\u622Arcap;\u6A48\u0100au\u1B9B\u1B9Ep;\u6A46p;\u6A4Aot;\u628Dr;\u6A45;\uC000\u222A\uFE00\u0200alrv\u1BB5\u1BBF\u1BDE\u1BE3rr\u0100;m\u1BBC\u1BBD\u61B7;\u693Cy\u0180evw\u1BC7\u1BD4\u1BD8q\u0270\u1BCE\0\0\u1BD2re\xE3\u1B73u\xE3\u1B75ee;\u62CEedge;\u62CFen\u803B\xA4\u40A4earrow\u0100lr\u1BEE\u1BF3eft\xBB\u1B80ight\xBB\u1BBDe\xE4\u1BDD\u0100ci\u1C01\u1C07onin\xF4\u01F7nt;\u6231lcty;\u632D\u0980AHabcdefhijlorstuwz\u1C38\u1C3B\u1C3F\u1C5D\u1C69\u1C75\u1C8A\u1C9E\u1CAC\u1CB7\u1CFB\u1CFF\u1D0D\u1D7B\u1D91\u1DAB\u1DBB\u1DC6\u1DCDr\xF2\u0381ar;\u6965\u0200glrs\u1C48\u1C4D\u1C52\u1C54ger;\u6020eth;\u6138\xF2\u1133h\u0100;v\u1C5A\u1C5B\u6010\xBB\u090A\u016B\u1C61\u1C67arow;\u690Fa\xE3\u0315\u0100ay\u1C6E\u1C73ron;\u410F;\u4434\u0180;ao\u0332\u1C7C\u1C84\u0100gr\u02BF\u1C81r;\u61CAtseq;\u6A77\u0180glm\u1C91\u1C94\u1C98\u803B\xB0\u40B0ta;\u43B4ptyv;\u69B1\u0100ir\u1CA3\u1CA8sht;\u697F;\uC000\u{1D521}ar\u0100lr\u1CB3\u1CB5\xBB\u08DC\xBB\u101E\u0280aegsv\u1CC2\u0378\u1CD6\u1CDC\u1CE0m\u0180;os\u0326\u1CCA\u1CD4nd\u0100;s\u0326\u1CD1uit;\u6666amma;\u43DDin;\u62F2\u0180;io\u1CE7\u1CE8\u1CF8\u40F7de\u8100\xF7;o\u1CE7\u1CF0ntimes;\u62C7n\xF8\u1CF7cy;\u4452c\u026F\u1D06\0\0\u1D0Arn;\u631Eop;\u630D\u0280lptuw\u1D18\u1D1D\u1D22\u1D49\u1D55lar;\u4024f;\uC000\u{1D555}\u0280;emps\u030B\u1D2D\u1D37\u1D3D\u1D42q\u0100;d\u0352\u1D33ot;\u6251inus;\u6238lus;\u6214quare;\u62A1blebarwedg\xE5\xFAn\u0180adh\u112E\u1D5D\u1D67ownarrow\xF3\u1C83arpoon\u0100lr\u1D72\u1D76ef\xF4\u1CB4igh\xF4\u1CB6\u0162\u1D7F\u1D85karo\xF7\u0F42\u026F\u1D8A\0\0\u1D8Ern;\u631Fop;\u630C\u0180cot\u1D98\u1DA3\u1DA6\u0100ry\u1D9D\u1DA1;\uC000\u{1D4B9};\u4455l;\u69F6rok;\u4111\u0100dr\u1DB0\u1DB4ot;\u62F1i\u0100;f\u1DBA\u1816\u65BF\u0100ah\u1DC0\u1DC3r\xF2\u0429a\xF2\u0FA6angle;\u69A6\u0100ci\u1DD2\u1DD5y;\u445Fgrarr;\u67FF\u0900Dacdefglmnopqrstux\u1E01\u1E09\u1E19\u1E38\u0578\u1E3C\u1E49\u1E61\u1E7E\u1EA5\u1EAF\u1EBD\u1EE1\u1F2A\u1F37\u1F44\u1F4E\u1F5A\u0100Do\u1E06\u1D34o\xF4\u1C89\u0100cs\u1E0E\u1E14ute\u803B\xE9\u40E9ter;\u6A6E\u0200aioy\u1E22\u1E27\u1E31\u1E36ron;\u411Br\u0100;c\u1E2D\u1E2E\u6256\u803B\xEA\u40EAlon;\u6255;\u444Dot;\u4117\u0100Dr\u1E41\u1E45ot;\u6252;\uC000\u{1D522}\u0180;rs\u1E50\u1E51\u1E57\u6A9Aave\u803B\xE8\u40E8\u0100;d\u1E5C\u1E5D\u6A96ot;\u6A98\u0200;ils\u1E6A\u1E6B\u1E72\u1E74\u6A99nters;\u63E7;\u6113\u0100;d\u1E79\u1E7A\u6A95ot;\u6A97\u0180aps\u1E85\u1E89\u1E97cr;\u4113ty\u0180;sv\u1E92\u1E93\u1E95\u6205et\xBB\u1E93p\u01001;\u1E9D\u1EA4\u0133\u1EA1\u1EA3;\u6004;\u6005\u6003\u0100gs\u1EAA\u1EAC;\u414Bp;\u6002\u0100gp\u1EB4\u1EB8on;\u4119f;\uC000\u{1D556}\u0180als\u1EC4\u1ECE\u1ED2r\u0100;s\u1ECA\u1ECB\u62D5l;\u69E3us;\u6A71i\u0180;lv\u1EDA\u1EDB\u1EDF\u43B5on\xBB\u1EDB;\u43F5\u0200csuv\u1EEA\u1EF3\u1F0B\u1F23\u0100io\u1EEF\u1E31rc\xBB\u1E2E\u0269\u1EF9\0\0\u1EFB\xED\u0548ant\u0100gl\u1F02\u1F06tr\xBB\u1E5Dess\xBB\u1E7A\u0180aei\u1F12\u1F16\u1F1Als;\u403Dst;\u625Fv\u0100;D\u0235\u1F20D;\u6A78parsl;\u69E5\u0100Da\u1F2F\u1F33ot;\u6253rr;\u6971\u0180cdi\u1F3E\u1F41\u1EF8r;\u612Fo\xF4\u0352\u0100ah\u1F49\u1F4B;\u43B7\u803B\xF0\u40F0\u0100mr\u1F53\u1F57l\u803B\xEB\u40EBo;\u60AC\u0180cip\u1F61\u1F64\u1F67l;\u4021s\xF4\u056E\u0100eo\u1F6C\u1F74ctatio\xEE\u0559nential\xE5\u0579\u09E1\u1F92\0\u1F9E\0\u1FA1\u1FA7\0\0\u1FC6\u1FCC\0\u1FD3\0\u1FE6\u1FEA\u2000\0\u2008\u205Allingdotse\xF1\u1E44y;\u4444male;\u6640\u0180ilr\u1FAD\u1FB3\u1FC1lig;\u8000\uFB03\u0269\u1FB9\0\0\u1FBDg;\u8000\uFB00ig;\u8000\uFB04;\uC000\u{1D523}lig;\u8000\uFB01lig;\uC000fj\u0180alt\u1FD9\u1FDC\u1FE1t;\u666Dig;\u8000\uFB02ns;\u65B1of;\u4192\u01F0\u1FEE\0\u1FF3f;\uC000\u{1D557}\u0100ak\u05BF\u1FF7\u0100;v\u1FFC\u1FFD\u62D4;\u6AD9artint;\u6A0D\u0100ao\u200C\u2055\u0100cs\u2011\u2052\u03B1\u201A\u2030\u2038\u2045\u2048\0\u2050\u03B2\u2022\u2025\u2027\u202A\u202C\0\u202E\u803B\xBD\u40BD;\u6153\u803B\xBC\u40BC;\u6155;\u6159;\u615B\u01B3\u2034\0\u2036;\u6154;\u6156\u02B4\u203E\u2041\0\0\u2043\u803B\xBE\u40BE;\u6157;\u615C5;\u6158\u01B6\u204C\0\u204E;\u615A;\u615D8;\u615El;\u6044wn;\u6322cr;\uC000\u{1D4BB}\u0880Eabcdefgijlnorstv\u2082\u2089\u209F\u20A5\u20B0\u20B4\u20F0\u20F5\u20FA\u20FF\u2103\u2112\u2138\u0317\u213E\u2152\u219E\u0100;l\u064D\u2087;\u6A8C\u0180cmp\u2090\u2095\u209Dute;\u41F5ma\u0100;d\u209C\u1CDA\u43B3;\u6A86reve;\u411F\u0100iy\u20AA\u20AErc;\u411D;\u4433ot;\u4121\u0200;lqs\u063E\u0642\u20BD\u20C9\u0180;qs\u063E\u064C\u20C4lan\xF4\u0665\u0200;cdl\u0665\u20D2\u20D5\u20E5c;\u6AA9ot\u0100;o\u20DC\u20DD\u6A80\u0100;l\u20E2\u20E3\u6A82;\u6A84\u0100;e\u20EA\u20ED\uC000\u22DB\uFE00s;\u6A94r;\uC000\u{1D524}\u0100;g\u0673\u061Bmel;\u6137cy;\u4453\u0200;Eaj\u065A\u210C\u210E\u2110;\u6A92;\u6AA5;\u6AA4\u0200Eaes\u211B\u211D\u2129\u2134;\u6269p\u0100;p\u2123\u2124\u6A8Arox\xBB\u2124\u0100;q\u212E\u212F\u6A88\u0100;q\u212E\u211Bim;\u62E7pf;\uC000\u{1D558}\u0100ci\u2143\u2146r;\u610Am\u0180;el\u066B\u214E\u2150;\u6A8E;\u6A90\u8300>;cdlqr\u05EE\u2160\u216A\u216E\u2173\u2179\u0100ci\u2165\u2167;\u6AA7r;\u6A7Aot;\u62D7Par;\u6995uest;\u6A7C\u0280adels\u2184\u216A\u2190\u0656\u219B\u01F0\u2189\0\u218Epro\xF8\u209Er;\u6978q\u0100lq\u063F\u2196les\xF3\u2088i\xED\u066B\u0100en\u21A3\u21ADrtneqq;\uC000\u2269\uFE00\xC5\u21AA\u0500Aabcefkosy\u21C4\u21C7\u21F1\u21F5\u21FA\u2218\u221D\u222F\u2268\u227Dr\xF2\u03A0\u0200ilmr\u21D0\u21D4\u21D7\u21DBrs\xF0\u1484f\xBB\u2024il\xF4\u06A9\u0100dr\u21E0\u21E4cy;\u444A\u0180;cw\u08F4\u21EB\u21EFir;\u6948;\u61ADar;\u610Firc;\u4125\u0180alr\u2201\u220E\u2213rts\u0100;u\u2209\u220A\u6665it\xBB\u220Alip;\u6026con;\u62B9r;\uC000\u{1D525}s\u0100ew\u2223\u2229arow;\u6925arow;\u6926\u0280amopr\u223A\u223E\u2243\u225E\u2263rr;\u61FFtht;\u623Bk\u0100lr\u2249\u2253eftarrow;\u61A9ightarrow;\u61AAf;\uC000\u{1D559}bar;\u6015\u0180clt\u226F\u2274\u2278r;\uC000\u{1D4BD}as\xE8\u21F4rok;\u4127\u0100bp\u2282\u2287ull;\u6043hen\xBB\u1C5B\u0AE1\u22A3\0\u22AA\0\u22B8\u22C5\u22CE\0\u22D5\u22F3\0\0\u22F8\u2322\u2367\u2362\u237F\0\u2386\u23AA\u23B4cute\u803B\xED\u40ED\u0180;iy\u0771\u22B0\u22B5rc\u803B\xEE\u40EE;\u4438\u0100cx\u22BC\u22BFy;\u4435cl\u803B\xA1\u40A1\u0100fr\u039F\u22C9;\uC000\u{1D526}rave\u803B\xEC\u40EC\u0200;ino\u073E\u22DD\u22E9\u22EE\u0100in\u22E2\u22E6nt;\u6A0Ct;\u622Dfin;\u69DCta;\u6129lig;\u4133\u0180aop\u22FE\u231A\u231D\u0180cgt\u2305\u2308\u2317r;\u412B\u0180elp\u071F\u230F\u2313in\xE5\u078Ear\xF4\u0720h;\u4131f;\u62B7ed;\u41B5\u0280;cfot\u04F4\u232C\u2331\u233D\u2341are;\u6105in\u0100;t\u2338\u2339\u621Eie;\u69DDdo\xF4\u2319\u0280;celp\u0757\u234C\u2350\u235B\u2361al;\u62BA\u0100gr\u2355\u2359er\xF3\u1563\xE3\u234Darhk;\u6A17rod;\u6A3C\u0200cgpt\u236F\u2372\u2376\u237By;\u4451on;\u412Ff;\uC000\u{1D55A}a;\u43B9uest\u803B\xBF\u40BF\u0100ci\u238A\u238Fr;\uC000\u{1D4BE}n\u0280;Edsv\u04F4\u239B\u239D\u23A1\u04F3;\u62F9ot;\u62F5\u0100;v\u23A6\u23A7\u62F4;\u62F3\u0100;i\u0777\u23AElde;\u4129\u01EB\u23B8\0\u23BCcy;\u4456l\u803B\xEF\u40EF\u0300cfmosu\u23CC\u23D7\u23DC\u23E1\u23E7\u23F5\u0100iy\u23D1\u23D5rc;\u4135;\u4439r;\uC000\u{1D527}ath;\u4237pf;\uC000\u{1D55B}\u01E3\u23EC\0\u23F1r;\uC000\u{1D4BF}rcy;\u4458kcy;\u4454\u0400acfghjos\u240B\u2416\u2422\u2427\u242D\u2431\u2435\u243Bppa\u0100;v\u2413\u2414\u43BA;\u43F0\u0100ey\u241B\u2420dil;\u4137;\u443Ar;\uC000\u{1D528}reen;\u4138cy;\u4445cy;\u445Cpf;\uC000\u{1D55C}cr;\uC000\u{1D4C0}\u0B80ABEHabcdefghjlmnoprstuv\u2470\u2481\u2486\u248D\u2491\u250E\u253D\u255A\u2580\u264E\u265E\u2665\u2679\u267D\u269A\u26B2\u26D8\u275D\u2768\u278B\u27C0\u2801\u2812\u0180art\u2477\u247A\u247Cr\xF2\u09C6\xF2\u0395ail;\u691Barr;\u690E\u0100;g\u0994\u248B;\u6A8Bar;\u6962\u0963\u24A5\0\u24AA\0\u24B1\0\0\0\0\0\u24B5\u24BA\0\u24C6\u24C8\u24CD\0\u24F9ute;\u413Amptyv;\u69B4ra\xEE\u084Cbda;\u43BBg\u0180;dl\u088E\u24C1\u24C3;\u6991\xE5\u088E;\u6A85uo\u803B\xAB\u40ABr\u0400;bfhlpst\u0899\u24DE\u24E6\u24E9\u24EB\u24EE\u24F1\u24F5\u0100;f\u089D\u24E3s;\u691Fs;\u691D\xEB\u2252p;\u61ABl;\u6939im;\u6973l;\u61A2\u0180;ae\u24FF\u2500\u2504\u6AABil;\u6919\u0100;s\u2509\u250A\u6AAD;\uC000\u2AAD\uFE00\u0180abr\u2515\u2519\u251Drr;\u690Crk;\u6772\u0100ak\u2522\u252Cc\u0100ek\u2528\u252A;\u407B;\u405B\u0100es\u2531\u2533;\u698Bl\u0100du\u2539\u253B;\u698F;\u698D\u0200aeuy\u2546\u254B\u2556\u2558ron;\u413E\u0100di\u2550\u2554il;\u413C\xEC\u08B0\xE2\u2529;\u443B\u0200cqrs\u2563\u2566\u256D\u257Da;\u6936uo\u0100;r\u0E19\u1746\u0100du\u2572\u2577har;\u6967shar;\u694Bh;\u61B2\u0280;fgqs\u258B\u258C\u0989\u25F3\u25FF\u6264t\u0280ahlrt\u2598\u25A4\u25B7\u25C2\u25E8rrow\u0100;t\u0899\u25A1a\xE9\u24F6arpoon\u0100du\u25AF\u25B4own\xBB\u045Ap\xBB\u0966eftarrows;\u61C7ight\u0180ahs\u25CD\u25D6\u25DErrow\u0100;s\u08F4\u08A7arpoon\xF3\u0F98quigarro\xF7\u21F0hreetimes;\u62CB\u0180;qs\u258B\u0993\u25FAlan\xF4\u09AC\u0280;cdgs\u09AC\u260A\u260D\u261D\u2628c;\u6AA8ot\u0100;o\u2614\u2615\u6A7F\u0100;r\u261A\u261B\u6A81;\u6A83\u0100;e\u2622\u2625\uC000\u22DA\uFE00s;\u6A93\u0280adegs\u2633\u2639\u263D\u2649\u264Bppro\xF8\u24C6ot;\u62D6q\u0100gq\u2643\u2645\xF4\u0989gt\xF2\u248C\xF4\u099Bi\xED\u09B2\u0180ilr\u2655\u08E1\u265Asht;\u697C;\uC000\u{1D529}\u0100;E\u099C\u2663;\u6A91\u0161\u2669\u2676r\u0100du\u25B2\u266E\u0100;l\u0965\u2673;\u696Alk;\u6584cy;\u4459\u0280;acht\u0A48\u2688\u268B\u2691\u2696r\xF2\u25C1orne\xF2\u1D08ard;\u696Bri;\u65FA\u0100io\u269F\u26A4dot;\u4140ust\u0100;a\u26AC\u26AD\u63B0che\xBB\u26AD\u0200Eaes\u26BB\u26BD\u26C9\u26D4;\u6268p\u0100;p\u26C3\u26C4\u6A89rox\xBB\u26C4\u0100;q\u26CE\u26CF\u6A87\u0100;q\u26CE\u26BBim;\u62E6\u0400abnoptwz\u26E9\u26F4\u26F7\u271A\u272F\u2741\u2747\u2750\u0100nr\u26EE\u26F1g;\u67ECr;\u61FDr\xEB\u08C1g\u0180lmr\u26FF\u270D\u2714eft\u0100ar\u09E6\u2707ight\xE1\u09F2apsto;\u67FCight\xE1\u09FDparrow\u0100lr\u2725\u2729ef\xF4\u24EDight;\u61AC\u0180afl\u2736\u2739\u273Dr;\u6985;\uC000\u{1D55D}us;\u6A2Dimes;\u6A34\u0161\u274B\u274Fst;\u6217\xE1\u134E\u0180;ef\u2757\u2758\u1800\u65CAnge\xBB\u2758ar\u0100;l\u2764\u2765\u4028t;\u6993\u0280achmt\u2773\u2776\u277C\u2785\u2787r\xF2\u08A8orne\xF2\u1D8Car\u0100;d\u0F98\u2783;\u696D;\u600Eri;\u62BF\u0300achiqt\u2798\u279D\u0A40\u27A2\u27AE\u27BBquo;\u6039r;\uC000\u{1D4C1}m\u0180;eg\u09B2\u27AA\u27AC;\u6A8D;\u6A8F\u0100bu\u252A\u27B3o\u0100;r\u0E1F\u27B9;\u601Arok;\u4142\u8400<;cdhilqr\u082B\u27D2\u2639\u27DC\u27E0\u27E5\u27EA\u27F0\u0100ci\u27D7\u27D9;\u6AA6r;\u6A79re\xE5\u25F2mes;\u62C9arr;\u6976uest;\u6A7B\u0100Pi\u27F5\u27F9ar;\u6996\u0180;ef\u2800\u092D\u181B\u65C3r\u0100du\u2807\u280Dshar;\u694Ahar;\u6966\u0100en\u2817\u2821rtneqq;\uC000\u2268\uFE00\xC5\u281E\u0700Dacdefhilnopsu\u2840\u2845\u2882\u288E\u2893\u28A0\u28A5\u28A8\u28DA\u28E2\u28E4\u0A83\u28F3\u2902Dot;\u623A\u0200clpr\u284E\u2852\u2863\u287Dr\u803B\xAF\u40AF\u0100et\u2857\u2859;\u6642\u0100;e\u285E\u285F\u6720se\xBB\u285F\u0100;s\u103B\u2868to\u0200;dlu\u103B\u2873\u2877\u287Bow\xEE\u048Cef\xF4\u090F\xF0\u13D1ker;\u65AE\u0100oy\u2887\u288Cmma;\u6A29;\u443Cash;\u6014asuredangle\xBB\u1626r;\uC000\u{1D52A}o;\u6127\u0180cdn\u28AF\u28B4\u28C9ro\u803B\xB5\u40B5\u0200;acd\u1464\u28BD\u28C0\u28C4s\xF4\u16A7ir;\u6AF0ot\u80BB\xB7\u01B5us\u0180;bd\u28D2\u1903\u28D3\u6212\u0100;u\u1D3C\u28D8;\u6A2A\u0163\u28DE\u28E1p;\u6ADB\xF2\u2212\xF0\u0A81\u0100dp\u28E9\u28EEels;\u62A7f;\uC000\u{1D55E}\u0100ct\u28F8\u28FDr;\uC000\u{1D4C2}pos\xBB\u159D\u0180;lm\u2909\u290A\u290D\u43BCtimap;\u62B8\u0C00GLRVabcdefghijlmoprstuvw\u2942\u2953\u297E\u2989\u2998\u29DA\u29E9\u2A15\u2A1A\u2A58\u2A5D\u2A83\u2A95\u2AA4\u2AA8\u2B04\u2B07\u2B44\u2B7F\u2BAE\u2C34\u2C67\u2C7C\u2CE9\u0100gt\u2947\u294B;\uC000\u22D9\u0338\u0100;v\u2950\u0BCF\uC000\u226B\u20D2\u0180elt\u295A\u2972\u2976ft\u0100ar\u2961\u2967rrow;\u61CDightarrow;\u61CE;\uC000\u22D8\u0338\u0100;v\u297B\u0C47\uC000\u226A\u20D2ightarrow;\u61CF\u0100Dd\u298E\u2993ash;\u62AFash;\u62AE\u0280bcnpt\u29A3\u29A7\u29AC\u29B1\u29CCla\xBB\u02DEute;\u4144g;\uC000\u2220\u20D2\u0280;Eiop\u0D84\u29BC\u29C0\u29C5\u29C8;\uC000\u2A70\u0338d;\uC000\u224B\u0338s;\u4149ro\xF8\u0D84ur\u0100;a\u29D3\u29D4\u666El\u0100;s\u29D3\u0B38\u01F3\u29DF\0\u29E3p\u80BB\xA0\u0B37mp\u0100;e\u0BF9\u0C00\u0280aeouy\u29F4\u29FE\u2A03\u2A10\u2A13\u01F0\u29F9\0\u29FB;\u6A43on;\u4148dil;\u4146ng\u0100;d\u0D7E\u2A0Aot;\uC000\u2A6D\u0338p;\u6A42;\u443Dash;\u6013\u0380;Aadqsx\u0B92\u2A29\u2A2D\u2A3B\u2A41\u2A45\u2A50rr;\u61D7r\u0100hr\u2A33\u2A36k;\u6924\u0100;o\u13F2\u13F0ot;\uC000\u2250\u0338ui\xF6\u0B63\u0100ei\u2A4A\u2A4Ear;\u6928\xED\u0B98ist\u0100;s\u0BA0\u0B9Fr;\uC000\u{1D52B}\u0200Eest\u0BC5\u2A66\u2A79\u2A7C\u0180;qs\u0BBC\u2A6D\u0BE1\u0180;qs\u0BBC\u0BC5\u2A74lan\xF4\u0BE2i\xED\u0BEA\u0100;r\u0BB6\u2A81\xBB\u0BB7\u0180Aap\u2A8A\u2A8D\u2A91r\xF2\u2971rr;\u61AEar;\u6AF2\u0180;sv\u0F8D\u2A9C\u0F8C\u0100;d\u2AA1\u2AA2\u62FC;\u62FAcy;\u445A\u0380AEadest\u2AB7\u2ABA\u2ABE\u2AC2\u2AC5\u2AF6\u2AF9r\xF2\u2966;\uC000\u2266\u0338rr;\u619Ar;\u6025\u0200;fqs\u0C3B\u2ACE\u2AE3\u2AEFt\u0100ar\u2AD4\u2AD9rro\xF7\u2AC1ightarro\xF7\u2A90\u0180;qs\u0C3B\u2ABA\u2AEAlan\xF4\u0C55\u0100;s\u0C55\u2AF4\xBB\u0C36i\xED\u0C5D\u0100;r\u0C35\u2AFEi\u0100;e\u0C1A\u0C25i\xE4\u0D90\u0100pt\u2B0C\u2B11f;\uC000\u{1D55F}\u8180\xAC;in\u2B19\u2B1A\u2B36\u40ACn\u0200;Edv\u0B89\u2B24\u2B28\u2B2E;\uC000\u22F9\u0338ot;\uC000\u22F5\u0338\u01E1\u0B89\u2B33\u2B35;\u62F7;\u62F6i\u0100;v\u0CB8\u2B3C\u01E1\u0CB8\u2B41\u2B43;\u62FE;\u62FD\u0180aor\u2B4B\u2B63\u2B69r\u0200;ast\u0B7B\u2B55\u2B5A\u2B5Flle\xEC\u0B7Bl;\uC000\u2AFD\u20E5;\uC000\u2202\u0338lint;\u6A14\u0180;ce\u0C92\u2B70\u2B73u\xE5\u0CA5\u0100;c\u0C98\u2B78\u0100;e\u0C92\u2B7D\xF1\u0C98\u0200Aait\u2B88\u2B8B\u2B9D\u2BA7r\xF2\u2988rr\u0180;cw\u2B94\u2B95\u2B99\u619B;\uC000\u2933\u0338;\uC000\u219D\u0338ghtarrow\xBB\u2B95ri\u0100;e\u0CCB\u0CD6\u0380chimpqu\u2BBD\u2BCD\u2BD9\u2B04\u0B78\u2BE4\u2BEF\u0200;cer\u0D32\u2BC6\u0D37\u2BC9u\xE5\u0D45;\uC000\u{1D4C3}ort\u026D\u2B05\0\0\u2BD6ar\xE1\u2B56m\u0100;e\u0D6E\u2BDF\u0100;q\u0D74\u0D73su\u0100bp\u2BEB\u2BED\xE5\u0CF8\xE5\u0D0B\u0180bcp\u2BF6\u2C11\u2C19\u0200;Ees\u2BFF\u2C00\u0D22\u2C04\u6284;\uC000\u2AC5\u0338et\u0100;e\u0D1B\u2C0Bq\u0100;q\u0D23\u2C00c\u0100;e\u0D32\u2C17\xF1\u0D38\u0200;Ees\u2C22\u2C23\u0D5F\u2C27\u6285;\uC000\u2AC6\u0338et\u0100;e\u0D58\u2C2Eq\u0100;q\u0D60\u2C23\u0200gilr\u2C3D\u2C3F\u2C45\u2C47\xEC\u0BD7lde\u803B\xF1\u40F1\xE7\u0C43iangle\u0100lr\u2C52\u2C5Ceft\u0100;e\u0C1A\u2C5A\xF1\u0C26ight\u0100;e\u0CCB\u2C65\xF1\u0CD7\u0100;m\u2C6C\u2C6D\u43BD\u0180;es\u2C74\u2C75\u2C79\u4023ro;\u6116p;\u6007\u0480DHadgilrs\u2C8F\u2C94\u2C99\u2C9E\u2CA3\u2CB0\u2CB6\u2CD3\u2CE3ash;\u62ADarr;\u6904p;\uC000\u224D\u20D2ash;\u62AC\u0100et\u2CA8\u2CAC;\uC000\u2265\u20D2;\uC000>\u20D2nfin;\u69DE\u0180Aet\u2CBD\u2CC1\u2CC5rr;\u6902;\uC000\u2264\u20D2\u0100;r\u2CCA\u2CCD\uC000<\u20D2ie;\uC000\u22B4\u20D2\u0100At\u2CD8\u2CDCrr;\u6903rie;\uC000\u22B5\u20D2im;\uC000\u223C\u20D2\u0180Aan\u2CF0\u2CF4\u2D02rr;\u61D6r\u0100hr\u2CFA\u2CFDk;\u6923\u0100;o\u13E7\u13E5ear;\u6927\u1253\u1A95\0\0\0\0\0\0\0\0\0\0\0\0\0\u2D2D\0\u2D38\u2D48\u2D60\u2D65\u2D72\u2D84\u1B07\0\0\u2D8D\u2DAB\0\u2DC8\u2DCE\0\u2DDC\u2E19\u2E2B\u2E3E\u2E43\u0100cs\u2D31\u1A97ute\u803B\xF3\u40F3\u0100iy\u2D3C\u2D45r\u0100;c\u1A9E\u2D42\u803B\xF4\u40F4;\u443E\u0280abios\u1AA0\u2D52\u2D57\u01C8\u2D5Alac;\u4151v;\u6A38old;\u69BClig;\u4153\u0100cr\u2D69\u2D6Dir;\u69BF;\uC000\u{1D52C}\u036F\u2D79\0\0\u2D7C\0\u2D82n;\u42DBave\u803B\xF2\u40F2;\u69C1\u0100bm\u2D88\u0DF4ar;\u69B5\u0200acit\u2D95\u2D98\u2DA5\u2DA8r\xF2\u1A80\u0100ir\u2D9D\u2DA0r;\u69BEoss;\u69BBn\xE5\u0E52;\u69C0\u0180aei\u2DB1\u2DB5\u2DB9cr;\u414Dga;\u43C9\u0180cdn\u2DC0\u2DC5\u01CDron;\u43BF;\u69B6pf;\uC000\u{1D560}\u0180ael\u2DD4\u2DD7\u01D2r;\u69B7rp;\u69B9\u0380;adiosv\u2DEA\u2DEB\u2DEE\u2E08\u2E0D\u2E10\u2E16\u6228r\xF2\u1A86\u0200;efm\u2DF7\u2DF8\u2E02\u2E05\u6A5Dr\u0100;o\u2DFE\u2DFF\u6134f\xBB\u2DFF\u803B\xAA\u40AA\u803B\xBA\u40BAgof;\u62B6r;\u6A56lope;\u6A57;\u6A5B\u0180clo\u2E1F\u2E21\u2E27\xF2\u2E01ash\u803B\xF8\u40F8l;\u6298i\u016C\u2E2F\u2E34de\u803B\xF5\u40F5es\u0100;a\u01DB\u2E3As;\u6A36ml\u803B\xF6\u40F6bar;\u633D\u0AE1\u2E5E\0\u2E7D\0\u2E80\u2E9D\0\u2EA2\u2EB9\0\0\u2ECB\u0E9C\0\u2F13\0\0\u2F2B\u2FBC\0\u2FC8r\u0200;ast\u0403\u2E67\u2E72\u0E85\u8100\xB6;l\u2E6D\u2E6E\u40B6le\xEC\u0403\u0269\u2E78\0\0\u2E7Bm;\u6AF3;\u6AFDy;\u443Fr\u0280cimpt\u2E8B\u2E8F\u2E93\u1865\u2E97nt;\u4025od;\u402Eil;\u6030enk;\u6031r;\uC000\u{1D52D}\u0180imo\u2EA8\u2EB0\u2EB4\u0100;v\u2EAD\u2EAE\u43C6;\u43D5ma\xF4\u0A76ne;\u660E\u0180;tv\u2EBF\u2EC0\u2EC8\u43C0chfork\xBB\u1FFD;\u43D6\u0100au\u2ECF\u2EDFn\u0100ck\u2ED5\u2EDDk\u0100;h\u21F4\u2EDB;\u610E\xF6\u21F4s\u0480;abcdemst\u2EF3\u2EF4\u1908\u2EF9\u2EFD\u2F04\u2F06\u2F0A\u2F0E\u402Bcir;\u6A23ir;\u6A22\u0100ou\u1D40\u2F02;\u6A25;\u6A72n\u80BB\xB1\u0E9Dim;\u6A26wo;\u6A27\u0180ipu\u2F19\u2F20\u2F25ntint;\u6A15f;\uC000\u{1D561}nd\u803B\xA3\u40A3\u0500;Eaceinosu\u0EC8\u2F3F\u2F41\u2F44\u2F47\u2F81\u2F89\u2F92\u2F7E\u2FB6;\u6AB3p;\u6AB7u\xE5\u0ED9\u0100;c\u0ECE\u2F4C\u0300;acens\u0EC8\u2F59\u2F5F\u2F66\u2F68\u2F7Eppro\xF8\u2F43urlye\xF1\u0ED9\xF1\u0ECE\u0180aes\u2F6F\u2F76\u2F7Approx;\u6AB9qq;\u6AB5im;\u62E8i\xED\u0EDFme\u0100;s\u2F88\u0EAE\u6032\u0180Eas\u2F78\u2F90\u2F7A\xF0\u2F75\u0180dfp\u0EEC\u2F99\u2FAF\u0180als\u2FA0\u2FA5\u2FAAlar;\u632Eine;\u6312urf;\u6313\u0100;t\u0EFB\u2FB4\xEF\u0EFBrel;\u62B0\u0100ci\u2FC0\u2FC5r;\uC000\u{1D4C5};\u43C8ncsp;\u6008\u0300fiopsu\u2FDA\u22E2\u2FDF\u2FE5\u2FEB\u2FF1r;\uC000\u{1D52E}pf;\uC000\u{1D562}rime;\u6057cr;\uC000\u{1D4C6}\u0180aeo\u2FF8\u3009\u3013t\u0100ei\u2FFE\u3005rnion\xF3\u06B0nt;\u6A16st\u0100;e\u3010\u3011\u403F\xF1\u1F19\xF4\u0F14\u0A80ABHabcdefhilmnoprstux\u3040\u3051\u3055\u3059\u30E0\u310E\u312B\u3147\u3162\u3172\u318E\u3206\u3215\u3224\u3229\u3258\u326E\u3272\u3290\u32B0\u32B7\u0180art\u3047\u304A\u304Cr\xF2\u10B3\xF2\u03DDail;\u691Car\xF2\u1C65ar;\u6964\u0380cdenqrt\u3068\u3075\u3078\u307F\u308F\u3094\u30CC\u0100eu\u306D\u3071;\uC000\u223D\u0331te;\u4155i\xE3\u116Emptyv;\u69B3g\u0200;del\u0FD1\u3089\u308B\u308D;\u6992;\u69A5\xE5\u0FD1uo\u803B\xBB\u40BBr\u0580;abcfhlpstw\u0FDC\u30AC\u30AF\u30B7\u30B9\u30BC\u30BE\u30C0\u30C3\u30C7\u30CAp;\u6975\u0100;f\u0FE0\u30B4s;\u6920;\u6933s;\u691E\xEB\u225D\xF0\u272El;\u6945im;\u6974l;\u61A3;\u619D\u0100ai\u30D1\u30D5il;\u691Ao\u0100;n\u30DB\u30DC\u6236al\xF3\u0F1E\u0180abr\u30E7\u30EA\u30EEr\xF2\u17E5rk;\u6773\u0100ak\u30F3\u30FDc\u0100ek\u30F9\u30FB;\u407D;\u405D\u0100es\u3102\u3104;\u698Cl\u0100du\u310A\u310C;\u698E;\u6990\u0200aeuy\u3117\u311C\u3127\u3129ron;\u4159\u0100di\u3121\u3125il;\u4157\xEC\u0FF2\xE2\u30FA;\u4440\u0200clqs\u3134\u3137\u313D\u3144a;\u6937dhar;\u6969uo\u0100;r\u020E\u020Dh;\u61B3\u0180acg\u314E\u315F\u0F44l\u0200;ips\u0F78\u3158\u315B\u109Cn\xE5\u10BBar\xF4\u0FA9t;\u65AD\u0180ilr\u3169\u1023\u316Esht;\u697D;\uC000\u{1D52F}\u0100ao\u3177\u3186r\u0100du\u317D\u317F\xBB\u047B\u0100;l\u1091\u3184;\u696C\u0100;v\u318B\u318C\u43C1;\u43F1\u0180gns\u3195\u31F9\u31FCht\u0300ahlrst\u31A4\u31B0\u31C2\u31D8\u31E4\u31EErrow\u0100;t\u0FDC\u31ADa\xE9\u30C8arpoon\u0100du\u31BB\u31BFow\xEE\u317Ep\xBB\u1092eft\u0100ah\u31CA\u31D0rrow\xF3\u0FEAarpoon\xF3\u0551ightarrows;\u61C9quigarro\xF7\u30CBhreetimes;\u62CCg;\u42DAingdotse\xF1\u1F32\u0180ahm\u320D\u3210\u3213r\xF2\u0FEAa\xF2\u0551;\u600Foust\u0100;a\u321E\u321F\u63B1che\xBB\u321Fmid;\u6AEE\u0200abpt\u3232\u323D\u3240\u3252\u0100nr\u3237\u323Ag;\u67EDr;\u61FEr\xEB\u1003\u0180afl\u3247\u324A\u324Er;\u6986;\uC000\u{1D563}us;\u6A2Eimes;\u6A35\u0100ap\u325D\u3267r\u0100;g\u3263\u3264\u4029t;\u6994olint;\u6A12ar\xF2\u31E3\u0200achq\u327B\u3280\u10BC\u3285quo;\u603Ar;\uC000\u{1D4C7}\u0100bu\u30FB\u328Ao\u0100;r\u0214\u0213\u0180hir\u3297\u329B\u32A0re\xE5\u31F8mes;\u62CAi\u0200;efl\u32AA\u1059\u1821\u32AB\u65B9tri;\u69CEluhar;\u6968;\u611E\u0D61\u32D5\u32DB\u32DF\u332C\u3338\u3371\0\u337A\u33A4\0\0\u33EC\u33F0\0\u3428\u3448\u345A\u34AD\u34B1\u34CA\u34F1\0\u3616\0\0\u3633cute;\u415Bqu\xEF\u27BA\u0500;Eaceinpsy\u11ED\u32F3\u32F5\u32FF\u3302\u330B\u330F\u331F\u3326\u3329;\u6AB4\u01F0\u32FA\0\u32FC;\u6AB8on;\u4161u\xE5\u11FE\u0100;d\u11F3\u3307il;\u415Frc;\u415D\u0180Eas\u3316\u3318\u331B;\u6AB6p;\u6ABAim;\u62E9olint;\u6A13i\xED\u1204;\u4441ot\u0180;be\u3334\u1D47\u3335\u62C5;\u6A66\u0380Aacmstx\u3346\u334A\u3357\u335B\u335E\u3363\u336Drr;\u61D8r\u0100hr\u3350\u3352\xEB\u2228\u0100;o\u0A36\u0A34t\u803B\xA7\u40A7i;\u403Bwar;\u6929m\u0100in\u3369\xF0nu\xF3\xF1t;\u6736r\u0100;o\u3376\u2055\uC000\u{1D530}\u0200acoy\u3382\u3386\u3391\u33A0rp;\u666F\u0100hy\u338B\u338Fcy;\u4449;\u4448rt\u026D\u3399\0\0\u339Ci\xE4\u1464ara\xEC\u2E6F\u803B\xAD\u40AD\u0100gm\u33A8\u33B4ma\u0180;fv\u33B1\u33B2\u33B2\u43C3;\u43C2\u0400;deglnpr\u12AB\u33C5\u33C9\u33CE\u33D6\u33DE\u33E1\u33E6ot;\u6A6A\u0100;q\u12B1\u12B0\u0100;E\u33D3\u33D4\u6A9E;\u6AA0\u0100;E\u33DB\u33DC\u6A9D;\u6A9Fe;\u6246lus;\u6A24arr;\u6972ar\xF2\u113D\u0200aeit\u33F8\u3408\u340F\u3417\u0100ls\u33FD\u3404lsetm\xE9\u336Ahp;\u6A33parsl;\u69E4\u0100dl\u1463\u3414e;\u6323\u0100;e\u341C\u341D\u6AAA\u0100;s\u3422\u3423\u6AAC;\uC000\u2AAC\uFE00\u0180flp\u342E\u3433\u3442tcy;\u444C\u0100;b\u3438\u3439\u402F\u0100;a\u343E\u343F\u69C4r;\u633Ff;\uC000\u{1D564}a\u0100dr\u344D\u0402es\u0100;u\u3454\u3455\u6660it\xBB\u3455\u0180csu\u3460\u3479\u349F\u0100au\u3465\u346Fp\u0100;s\u1188\u346B;\uC000\u2293\uFE00p\u0100;s\u11B4\u3475;\uC000\u2294\uFE00u\u0100bp\u347F\u348F\u0180;es\u1197\u119C\u3486et\u0100;e\u1197\u348D\xF1\u119D\u0180;es\u11A8\u11AD\u3496et\u0100;e\u11A8\u349D\xF1\u11AE\u0180;af\u117B\u34A6\u05B0r\u0165\u34AB\u05B1\xBB\u117Car\xF2\u1148\u0200cemt\u34B9\u34BE\u34C2\u34C5r;\uC000\u{1D4C8}tm\xEE\xF1i\xEC\u3415ar\xE6\u11BE\u0100ar\u34CE\u34D5r\u0100;f\u34D4\u17BF\u6606\u0100an\u34DA\u34EDight\u0100ep\u34E3\u34EApsilo\xEE\u1EE0h\xE9\u2EAFs\xBB\u2852\u0280bcmnp\u34FB\u355E\u1209\u358B\u358E\u0480;Edemnprs\u350E\u350F\u3511\u3515\u351E\u3523\u352C\u3531\u3536\u6282;\u6AC5ot;\u6ABD\u0100;d\u11DA\u351Aot;\u6AC3ult;\u6AC1\u0100Ee\u3528\u352A;\u6ACB;\u628Alus;\u6ABFarr;\u6979\u0180eiu\u353D\u3552\u3555t\u0180;en\u350E\u3545\u354Bq\u0100;q\u11DA\u350Feq\u0100;q\u352B\u3528m;\u6AC7\u0100bp\u355A\u355C;\u6AD5;\u6AD3c\u0300;acens\u11ED\u356C\u3572\u3579\u357B\u3326ppro\xF8\u32FAurlye\xF1\u11FE\xF1\u11F3\u0180aes\u3582\u3588\u331Bppro\xF8\u331Aq\xF1\u3317g;\u666A\u0680123;Edehlmnps\u35A9\u35AC\u35AF\u121C\u35B2\u35B4\u35C0\u35C9\u35D5\u35DA\u35DF\u35E8\u35ED\u803B\xB9\u40B9\u803B\xB2\u40B2\u803B\xB3\u40B3;\u6AC6\u0100os\u35B9\u35BCt;\u6ABEub;\u6AD8\u0100;d\u1222\u35C5ot;\u6AC4s\u0100ou\u35CF\u35D2l;\u67C9b;\u6AD7arr;\u697Bult;\u6AC2\u0100Ee\u35E4\u35E6;\u6ACC;\u628Blus;\u6AC0\u0180eiu\u35F4\u3609\u360Ct\u0180;en\u121C\u35FC\u3602q\u0100;q\u1222\u35B2eq\u0100;q\u35E7\u35E4m;\u6AC8\u0100bp\u3611\u3613;\u6AD4;\u6AD6\u0180Aan\u361C\u3620\u362Drr;\u61D9r\u0100hr\u3626\u3628\xEB\u222E\u0100;o\u0A2B\u0A29war;\u692Alig\u803B\xDF\u40DF\u0BE1\u3651\u365D\u3660\u12CE\u3673\u3679\0\u367E\u36C2\0\0\0\0\0\u36DB\u3703\0\u3709\u376C\0\0\0\u3787\u0272\u3656\0\0\u365Bget;\u6316;\u43C4r\xEB\u0E5F\u0180aey\u3666\u366B\u3670ron;\u4165dil;\u4163;\u4442lrec;\u6315r;\uC000\u{1D531}\u0200eiko\u3686\u369D\u36B5\u36BC\u01F2\u368B\0\u3691e\u01004f\u1284\u1281a\u0180;sv\u3698\u3699\u369B\u43B8ym;\u43D1\u0100cn\u36A2\u36B2k\u0100as\u36A8\u36AEppro\xF8\u12C1im\xBB\u12ACs\xF0\u129E\u0100as\u36BA\u36AE\xF0\u12C1rn\u803B\xFE\u40FE\u01EC\u031F\u36C6\u22E7es\u8180\xD7;bd\u36CF\u36D0\u36D8\u40D7\u0100;a\u190F\u36D5r;\u6A31;\u6A30\u0180eps\u36E1\u36E3\u3700\xE1\u2A4D\u0200;bcf\u0486\u36EC\u36F0\u36F4ot;\u6336ir;\u6AF1\u0100;o\u36F9\u36FC\uC000\u{1D565}rk;\u6ADA\xE1\u3362rime;\u6034\u0180aip\u370F\u3712\u3764d\xE5\u1248\u0380adempst\u3721\u374D\u3740\u3751\u3757\u375C\u375Fngle\u0280;dlqr\u3730\u3731\u3736\u3740\u3742\u65B5own\xBB\u1DBBeft\u0100;e\u2800\u373E\xF1\u092E;\u625Cight\u0100;e\u32AA\u374B\xF1\u105Aot;\u65ECinus;\u6A3Alus;\u6A39b;\u69CDime;\u6A3Bezium;\u63E2\u0180cht\u3772\u377D\u3781\u0100ry\u3777\u377B;\uC000\u{1D4C9};\u4446cy;\u445Brok;\u4167\u0100io\u378B\u378Ex\xF4\u1777head\u0100lr\u3797\u37A0eftarro\xF7\u084Fightarrow\xBB\u0F5D\u0900AHabcdfghlmoprstuw\u37D0\u37D3\u37D7\u37E4\u37F0\u37FC\u380E\u381C\u3823\u3834\u3851\u385D\u386B\u38A9\u38CC\u38D2\u38EA\u38F6r\xF2\u03EDar;\u6963\u0100cr\u37DC\u37E2ute\u803B\xFA\u40FA\xF2\u1150r\u01E3\u37EA\0\u37EDy;\u445Eve;\u416D\u0100iy\u37F5\u37FArc\u803B\xFB\u40FB;\u4443\u0180abh\u3803\u3806\u380Br\xF2\u13ADlac;\u4171a\xF2\u13C3\u0100ir\u3813\u3818sht;\u697E;\uC000\u{1D532}rave\u803B\xF9\u40F9\u0161\u3827\u3831r\u0100lr\u382C\u382E\xBB\u0957\xBB\u1083lk;\u6580\u0100ct\u3839\u384D\u026F\u383F\0\0\u384Arn\u0100;e\u3845\u3846\u631Cr\xBB\u3846op;\u630Fri;\u65F8\u0100al\u3856\u385Acr;\u416B\u80BB\xA8\u0349\u0100gp\u3862\u3866on;\u4173f;\uC000\u{1D566}\u0300adhlsu\u114B\u3878\u387D\u1372\u3891\u38A0own\xE1\u13B3arpoon\u0100lr\u3888\u388Cef\xF4\u382Digh\xF4\u382Fi\u0180;hl\u3899\u389A\u389C\u43C5\xBB\u13FAon\xBB\u389Aparrows;\u61C8\u0180cit\u38B0\u38C4\u38C8\u026F\u38B6\0\0\u38C1rn\u0100;e\u38BC\u38BD\u631Dr\xBB\u38BDop;\u630Eng;\u416Fri;\u65F9cr;\uC000\u{1D4CA}\u0180dir\u38D9\u38DD\u38E2ot;\u62F0lde;\u4169i\u0100;f\u3730\u38E8\xBB\u1813\u0100am\u38EF\u38F2r\xF2\u38A8l\u803B\xFC\u40FCangle;\u69A7\u0780ABDacdeflnoprsz\u391C\u391F\u3929\u392D\u39B5\u39B8\u39BD\u39DF\u39E4\u39E8\u39F3\u39F9\u39FD\u3A01\u3A20r\xF2\u03F7ar\u0100;v\u3926\u3927\u6AE8;\u6AE9as\xE8\u03E1\u0100nr\u3932\u3937grt;\u699C\u0380eknprst\u34E3\u3946\u394B\u3952\u395D\u3964\u3996app\xE1\u2415othin\xE7\u1E96\u0180hir\u34EB\u2EC8\u3959op\xF4\u2FB5\u0100;h\u13B7\u3962\xEF\u318D\u0100iu\u3969\u396Dgm\xE1\u33B3\u0100bp\u3972\u3984setneq\u0100;q\u397D\u3980\uC000\u228A\uFE00;\uC000\u2ACB\uFE00setneq\u0100;q\u398F\u3992\uC000\u228B\uFE00;\uC000\u2ACC\uFE00\u0100hr\u399B\u399Fet\xE1\u369Ciangle\u0100lr\u39AA\u39AFeft\xBB\u0925ight\xBB\u1051y;\u4432ash\xBB\u1036\u0180elr\u39C4\u39D2\u39D7\u0180;be\u2DEA\u39CB\u39CFar;\u62BBq;\u625Alip;\u62EE\u0100bt\u39DC\u1468a\xF2\u1469r;\uC000\u{1D533}tr\xE9\u39AEsu\u0100bp\u39EF\u39F1\xBB\u0D1C\xBB\u0D59pf;\uC000\u{1D567}ro\xF0\u0EFBtr\xE9\u39B4\u0100cu\u3A06\u3A0Br;\uC000\u{1D4CB}\u0100bp\u3A10\u3A18n\u0100Ee\u3980\u3A16\xBB\u397En\u0100Ee\u3992\u3A1E\xBB\u3990igzag;\u699A\u0380cefoprs\u3A36\u3A3B\u3A56\u3A5B\u3A54\u3A61\u3A6Airc;\u4175\u0100di\u3A40\u3A51\u0100bg\u3A45\u3A49ar;\u6A5Fe\u0100;q\u15FA\u3A4F;\u6259erp;\u6118r;\uC000\u{1D534}pf;\uC000\u{1D568}\u0100;e\u1479\u3A66at\xE8\u1479cr;\uC000\u{1D4CC}\u0AE3\u178E\u3A87\0\u3A8B\0\u3A90\u3A9B\0\0\u3A9D\u3AA8\u3AAB\u3AAF\0\0\u3AC3\u3ACE\0\u3AD8\u17DC\u17DFtr\xE9\u17D1r;\uC000\u{1D535}\u0100Aa\u3A94\u3A97r\xF2\u03C3r\xF2\u09F6;\u43BE\u0100Aa\u3AA1\u3AA4r\xF2\u03B8r\xF2\u09EBa\xF0\u2713is;\u62FB\u0180dpt\u17A4\u3AB5\u3ABE\u0100fl\u3ABA\u17A9;\uC000\u{1D569}im\xE5\u17B2\u0100Aa\u3AC7\u3ACAr\xF2\u03CEr\xF2\u0A01\u0100cq\u3AD2\u17B8r;\uC000\u{1D4CD}\u0100pt\u17D6\u3ADCr\xE9\u17D4\u0400acefiosu\u3AF0\u3AFD\u3B08\u3B0C\u3B11\u3B15\u3B1B\u3B21c\u0100uy\u3AF6\u3AFBte\u803B\xFD\u40FD;\u444F\u0100iy\u3B02\u3B06rc;\u4177;\u444Bn\u803B\xA5\u40A5r;\uC000\u{1D536}cy;\u4457pf;\uC000\u{1D56A}cr;\uC000\u{1D4CE}\u0100cm\u3B26\u3B29y;\u444El\u803B\xFF\u40FF\u0500acdefhiosw\u3B42\u3B48\u3B54\u3B58\u3B64\u3B69\u3B6D\u3B74\u3B7A\u3B80cute;\u417A\u0100ay\u3B4D\u3B52ron;\u417E;\u4437ot;\u417C\u0100et\u3B5D\u3B61tr\xE6\u155Fa;\u43B6r;\uC000\u{1D537}cy;\u4436grarr;\u61DDpf;\uC000\u{1D56B}cr;\uC000\u{1D4CF}\u0100jn\u3B85\u3B87;\u600Dj;\u600C'.split("").map((c) => c.charCodeAt(0))
+);
+
+// node_modules/dom-serializer/node_modules/entities/lib/esm/generated/decode-data-xml.js
+var decode_data_xml_default = new Uint16Array(
+  // prettier-ignore
+  "\u0200aglq	\x1B\u026D\0\0p;\u4026os;\u4027t;\u403Et;\u403Cuot;\u4022".split("").map((c) => c.charCodeAt(0))
+);
+
+// node_modules/dom-serializer/node_modules/entities/lib/esm/decode_codepoint.js
+var _a2;
+var decodeMap2 = /* @__PURE__ */ new Map([
+  [0, 65533],
+  // C1 Unicode control character reference replacements
+  [128, 8364],
+  [130, 8218],
+  [131, 402],
+  [132, 8222],
+  [133, 8230],
+  [134, 8224],
+  [135, 8225],
+  [136, 710],
+  [137, 8240],
+  [138, 352],
+  [139, 8249],
+  [140, 338],
+  [142, 381],
+  [145, 8216],
+  [146, 8217],
+  [147, 8220],
+  [148, 8221],
+  [149, 8226],
+  [150, 8211],
+  [151, 8212],
+  [152, 732],
+  [153, 8482],
+  [154, 353],
+  [155, 8250],
+  [156, 339],
+  [158, 382],
+  [159, 376]
+]);
+var fromCodePoint2 = (
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition, node/no-unsupported-features/es-builtins
+  (_a2 = String.fromCodePoint) !== null && _a2 !== void 0 ? _a2 : function(codePoint) {
+    let output = "";
+    if (codePoint > 65535) {
+      codePoint -= 65536;
+      output += String.fromCharCode(codePoint >>> 10 & 1023 | 55296);
+      codePoint = 56320 | codePoint & 1023;
+    }
+    output += String.fromCharCode(codePoint);
+    return output;
+  }
+);
+function replaceCodePoint2(codePoint) {
+  var _a3;
+  if (codePoint >= 55296 && codePoint <= 57343 || codePoint > 1114111) {
+    return 65533;
+  }
+  return (_a3 = decodeMap2.get(codePoint)) !== null && _a3 !== void 0 ? _a3 : codePoint;
+}
+
+// node_modules/dom-serializer/node_modules/entities/lib/esm/decode.js
+var CharCodes3;
+(function(CharCodes4) {
+  CharCodes4[CharCodes4["NUM"] = 35] = "NUM";
+  CharCodes4[CharCodes4["SEMI"] = 59] = "SEMI";
+  CharCodes4[CharCodes4["EQUALS"] = 61] = "EQUALS";
+  CharCodes4[CharCodes4["ZERO"] = 48] = "ZERO";
+  CharCodes4[CharCodes4["NINE"] = 57] = "NINE";
+  CharCodes4[CharCodes4["LOWER_A"] = 97] = "LOWER_A";
+  CharCodes4[CharCodes4["LOWER_F"] = 102] = "LOWER_F";
+  CharCodes4[CharCodes4["LOWER_X"] = 120] = "LOWER_X";
+  CharCodes4[CharCodes4["LOWER_Z"] = 122] = "LOWER_Z";
+  CharCodes4[CharCodes4["UPPER_A"] = 65] = "UPPER_A";
+  CharCodes4[CharCodes4["UPPER_F"] = 70] = "UPPER_F";
+  CharCodes4[CharCodes4["UPPER_Z"] = 90] = "UPPER_Z";
+})(CharCodes3 || (CharCodes3 = {}));
+var TO_LOWER_BIT2 = 32;
+var BinTrieFlags2;
+(function(BinTrieFlags3) {
+  BinTrieFlags3[BinTrieFlags3["VALUE_LENGTH"] = 49152] = "VALUE_LENGTH";
+  BinTrieFlags3[BinTrieFlags3["BRANCH_LENGTH"] = 16256] = "BRANCH_LENGTH";
+  BinTrieFlags3[BinTrieFlags3["JUMP_TABLE"] = 127] = "JUMP_TABLE";
+})(BinTrieFlags2 || (BinTrieFlags2 = {}));
+function isNumber2(code) {
+  return code >= CharCodes3.ZERO && code <= CharCodes3.NINE;
+}
+function isHexadecimalCharacter2(code) {
+  return code >= CharCodes3.UPPER_A && code <= CharCodes3.UPPER_F || code >= CharCodes3.LOWER_A && code <= CharCodes3.LOWER_F;
+}
+function isAsciiAlphaNumeric2(code) {
+  return code >= CharCodes3.UPPER_A && code <= CharCodes3.UPPER_Z || code >= CharCodes3.LOWER_A && code <= CharCodes3.LOWER_Z || isNumber2(code);
+}
+function isEntityInAttributeInvalidEnd2(code) {
+  return code === CharCodes3.EQUALS || isAsciiAlphaNumeric2(code);
+}
+var EntityDecoderState2;
+(function(EntityDecoderState3) {
+  EntityDecoderState3[EntityDecoderState3["EntityStart"] = 0] = "EntityStart";
+  EntityDecoderState3[EntityDecoderState3["NumericStart"] = 1] = "NumericStart";
+  EntityDecoderState3[EntityDecoderState3["NumericDecimal"] = 2] = "NumericDecimal";
+  EntityDecoderState3[EntityDecoderState3["NumericHex"] = 3] = "NumericHex";
+  EntityDecoderState3[EntityDecoderState3["NamedEntity"] = 4] = "NamedEntity";
+})(EntityDecoderState2 || (EntityDecoderState2 = {}));
+var DecodingMode2;
+(function(DecodingMode3) {
+  DecodingMode3[DecodingMode3["Legacy"] = 0] = "Legacy";
+  DecodingMode3[DecodingMode3["Strict"] = 1] = "Strict";
+  DecodingMode3[DecodingMode3["Attribute"] = 2] = "Attribute";
+})(DecodingMode2 || (DecodingMode2 = {}));
+var EntityDecoder2 = class {
+  constructor(decodeTree, emitCodePoint, errors2) {
+    this.decodeTree = decodeTree;
+    this.emitCodePoint = emitCodePoint;
+    this.errors = errors2;
+    this.state = EntityDecoderState2.EntityStart;
+    this.consumed = 1;
+    this.result = 0;
+    this.treeIndex = 0;
+    this.excess = 1;
+    this.decodeMode = DecodingMode2.Strict;
+  }
+  /** Resets the instance to make it reusable. */
+  startEntity(decodeMode) {
+    this.decodeMode = decodeMode;
+    this.state = EntityDecoderState2.EntityStart;
+    this.result = 0;
+    this.treeIndex = 0;
+    this.excess = 1;
+    this.consumed = 1;
+  }
+  /**
+   * Write an entity to the decoder. This can be called multiple times with partial entities.
+   * If the entity is incomplete, the decoder will return -1.
+   *
+   * Mirrors the implementation of `getDecoder`, but with the ability to stop decoding if the
+   * entity is incomplete, and resume when the next string is written.
+   *
+   * @param string The string containing the entity (or a continuation of the entity).
+   * @param offset The offset at which the entity begins. Should be 0 if this is not the first call.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  write(str, offset) {
+    switch (this.state) {
+      case EntityDecoderState2.EntityStart: {
+        if (str.charCodeAt(offset) === CharCodes3.NUM) {
+          this.state = EntityDecoderState2.NumericStart;
+          this.consumed += 1;
+          return this.stateNumericStart(str, offset + 1);
+        }
+        this.state = EntityDecoderState2.NamedEntity;
+        return this.stateNamedEntity(str, offset);
+      }
+      case EntityDecoderState2.NumericStart: {
+        return this.stateNumericStart(str, offset);
+      }
+      case EntityDecoderState2.NumericDecimal: {
+        return this.stateNumericDecimal(str, offset);
+      }
+      case EntityDecoderState2.NumericHex: {
+        return this.stateNumericHex(str, offset);
+      }
+      case EntityDecoderState2.NamedEntity: {
+        return this.stateNamedEntity(str, offset);
+      }
+    }
+  }
+  /**
+   * Switches between the numeric decimal and hexadecimal states.
+   *
+   * Equivalent to the `Numeric character reference state` in the HTML spec.
+   *
+   * @param str The string containing the entity (or a continuation of the entity).
+   * @param offset The current offset.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  stateNumericStart(str, offset) {
+    if (offset >= str.length) {
+      return -1;
+    }
+    if ((str.charCodeAt(offset) | TO_LOWER_BIT2) === CharCodes3.LOWER_X) {
+      this.state = EntityDecoderState2.NumericHex;
+      this.consumed += 1;
+      return this.stateNumericHex(str, offset + 1);
+    }
+    this.state = EntityDecoderState2.NumericDecimal;
+    return this.stateNumericDecimal(str, offset);
+  }
+  addToNumericResult(str, start, end, base2) {
+    if (start !== end) {
+      const digitCount = end - start;
+      this.result = this.result * Math.pow(base2, digitCount) + parseInt(str.substr(start, digitCount), base2);
+      this.consumed += digitCount;
+    }
+  }
+  /**
+   * Parses a hexadecimal numeric entity.
+   *
+   * Equivalent to the `Hexademical character reference state` in the HTML spec.
+   *
+   * @param str The string containing the entity (or a continuation of the entity).
+   * @param offset The current offset.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  stateNumericHex(str, offset) {
+    const startIdx = offset;
+    while (offset < str.length) {
+      const char = str.charCodeAt(offset);
+      if (isNumber2(char) || isHexadecimalCharacter2(char)) {
+        offset += 1;
+      } else {
+        this.addToNumericResult(str, startIdx, offset, 16);
+        return this.emitNumericEntity(char, 3);
+      }
+    }
+    this.addToNumericResult(str, startIdx, offset, 16);
+    return -1;
+  }
+  /**
+   * Parses a decimal numeric entity.
+   *
+   * Equivalent to the `Decimal character reference state` in the HTML spec.
+   *
+   * @param str The string containing the entity (or a continuation of the entity).
+   * @param offset The current offset.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  stateNumericDecimal(str, offset) {
+    const startIdx = offset;
+    while (offset < str.length) {
+      const char = str.charCodeAt(offset);
+      if (isNumber2(char)) {
+        offset += 1;
+      } else {
+        this.addToNumericResult(str, startIdx, offset, 10);
+        return this.emitNumericEntity(char, 2);
+      }
+    }
+    this.addToNumericResult(str, startIdx, offset, 10);
+    return -1;
+  }
+  /**
+   * Validate and emit a numeric entity.
+   *
+   * Implements the logic from the `Hexademical character reference start
+   * state` and `Numeric character reference end state` in the HTML spec.
+   *
+   * @param lastCp The last code point of the entity. Used to see if the
+   *               entity was terminated with a semicolon.
+   * @param expectedLength The minimum number of characters that should be
+   *                       consumed. Used to validate that at least one digit
+   *                       was consumed.
+   * @returns The number of characters that were consumed.
+   */
+  emitNumericEntity(lastCp, expectedLength) {
+    var _a3;
+    if (this.consumed <= expectedLength) {
+      (_a3 = this.errors) === null || _a3 === void 0 ? void 0 : _a3.absenceOfDigitsInNumericCharacterReference(this.consumed);
+      return 0;
+    }
+    if (lastCp === CharCodes3.SEMI) {
+      this.consumed += 1;
+    } else if (this.decodeMode === DecodingMode2.Strict) {
+      return 0;
+    }
+    this.emitCodePoint(replaceCodePoint2(this.result), this.consumed);
+    if (this.errors) {
+      if (lastCp !== CharCodes3.SEMI) {
+        this.errors.missingSemicolonAfterCharacterReference();
+      }
+      this.errors.validateNumericCharacterReference(this.result);
+    }
+    return this.consumed;
+  }
+  /**
+   * Parses a named entity.
+   *
+   * Equivalent to the `Named character reference state` in the HTML spec.
+   *
+   * @param str The string containing the entity (or a continuation of the entity).
+   * @param offset The current offset.
+   * @returns The number of characters that were consumed, or -1 if the entity is incomplete.
+   */
+  stateNamedEntity(str, offset) {
+    const { decodeTree } = this;
+    let current = decodeTree[this.treeIndex];
+    let valueLength = (current & BinTrieFlags2.VALUE_LENGTH) >> 14;
+    for (; offset < str.length; offset++, this.excess++) {
+      const char = str.charCodeAt(offset);
+      this.treeIndex = determineBranch2(decodeTree, current, this.treeIndex + Math.max(1, valueLength), char);
+      if (this.treeIndex < 0) {
+        return this.result === 0 || // If we are parsing an attribute
+        this.decodeMode === DecodingMode2.Attribute && // We shouldn't have consumed any characters after the entity,
+        (valueLength === 0 || // And there should be no invalid characters.
+        isEntityInAttributeInvalidEnd2(char)) ? 0 : this.emitNotTerminatedNamedEntity();
+      }
+      current = decodeTree[this.treeIndex];
+      valueLength = (current & BinTrieFlags2.VALUE_LENGTH) >> 14;
+      if (valueLength !== 0) {
+        if (char === CharCodes3.SEMI) {
+          return this.emitNamedEntityData(this.treeIndex, valueLength, this.consumed + this.excess);
+        }
+        if (this.decodeMode !== DecodingMode2.Strict) {
+          this.result = this.treeIndex;
+          this.consumed += this.excess;
+          this.excess = 0;
+        }
+      }
+    }
+    return -1;
+  }
+  /**
+   * Emit a named entity that was not terminated with a semicolon.
+   *
+   * @returns The number of characters consumed.
+   */
+  emitNotTerminatedNamedEntity() {
+    var _a3;
+    const { result, decodeTree } = this;
+    const valueLength = (decodeTree[result] & BinTrieFlags2.VALUE_LENGTH) >> 14;
+    this.emitNamedEntityData(result, valueLength, this.consumed);
+    (_a3 = this.errors) === null || _a3 === void 0 ? void 0 : _a3.missingSemicolonAfterCharacterReference();
+    return this.consumed;
+  }
+  /**
+   * Emit a named entity.
+   *
+   * @param result The index of the entity in the decode tree.
+   * @param valueLength The number of bytes in the entity.
+   * @param consumed The number of characters consumed.
+   *
+   * @returns The number of characters consumed.
+   */
+  emitNamedEntityData(result, valueLength, consumed) {
+    const { decodeTree } = this;
+    this.emitCodePoint(valueLength === 1 ? decodeTree[result] & ~BinTrieFlags2.VALUE_LENGTH : decodeTree[result + 1], consumed);
+    if (valueLength === 3) {
+      this.emitCodePoint(decodeTree[result + 2], consumed);
+    }
+    return consumed;
+  }
+  /**
+   * Signal to the parser that the end of the input was reached.
+   *
+   * Remaining data will be emitted and relevant errors will be produced.
+   *
+   * @returns The number of characters consumed.
+   */
+  end() {
+    var _a3;
+    switch (this.state) {
+      case EntityDecoderState2.NamedEntity: {
+        return this.result !== 0 && (this.decodeMode !== DecodingMode2.Attribute || this.result === this.treeIndex) ? this.emitNotTerminatedNamedEntity() : 0;
+      }
+      // Otherwise, emit a numeric entity if we have one.
+      case EntityDecoderState2.NumericDecimal: {
+        return this.emitNumericEntity(0, 2);
+      }
+      case EntityDecoderState2.NumericHex: {
+        return this.emitNumericEntity(0, 3);
+      }
+      case EntityDecoderState2.NumericStart: {
+        (_a3 = this.errors) === null || _a3 === void 0 ? void 0 : _a3.absenceOfDigitsInNumericCharacterReference(this.consumed);
+        return 0;
+      }
+      case EntityDecoderState2.EntityStart: {
+        return 0;
+      }
+    }
+  }
+};
+function getDecoder2(decodeTree) {
+  let ret = "";
+  const decoder = new EntityDecoder2(decodeTree, (str) => ret += fromCodePoint2(str));
+  return function decodeWithTrie(str, decodeMode) {
+    let lastIndex = 0;
+    let offset = 0;
+    while ((offset = str.indexOf("&", offset)) >= 0) {
+      ret += str.slice(lastIndex, offset);
+      decoder.startEntity(decodeMode);
+      const len = decoder.write(
+        str,
+        // Skip the "&"
+        offset + 1
+      );
+      if (len < 0) {
+        lastIndex = offset + decoder.end();
+        break;
+      }
+      lastIndex = offset + len;
+      offset = len === 0 ? lastIndex + 1 : lastIndex;
+    }
+    const result = ret + str.slice(lastIndex);
+    ret = "";
+    return result;
+  };
+}
+function determineBranch2(decodeTree, current, nodeIdx, char) {
+  const branchCount = (current & BinTrieFlags2.BRANCH_LENGTH) >> 7;
+  const jumpOffset = current & BinTrieFlags2.JUMP_TABLE;
+  if (branchCount === 0) {
+    return jumpOffset !== 0 && char === jumpOffset ? nodeIdx : -1;
+  }
+  if (jumpOffset) {
+    const value = char - jumpOffset;
+    return value < 0 || value >= branchCount ? -1 : decodeTree[nodeIdx + value] - 1;
+  }
+  let lo = nodeIdx;
+  let hi = lo + branchCount - 1;
+  while (lo <= hi) {
+    const mid = lo + hi >>> 1;
+    const midVal = decodeTree[mid];
+    if (midVal < char) {
+      lo = mid + 1;
+    } else if (midVal > char) {
+      hi = mid - 1;
+    } else {
+      return decodeTree[mid + branchCount];
+    }
+  }
+  return -1;
+}
+var htmlDecoder = getDecoder2(decode_data_html_default);
+var xmlDecoder = getDecoder2(decode_data_xml_default);
+
+// node_modules/dom-serializer/node_modules/entities/lib/esm/generated/encode-html.js
+function restoreDiff(arr) {
+  for (let i = 1; i < arr.length; i++) {
+    arr[i][0] += arr[i - 1][0] + 1;
+  }
+  return arr;
+}
+var encode_html_default = new Map(/* @__PURE__ */ restoreDiff([[9, "&Tab;"], [0, "&NewLine;"], [22, "&excl;"], [0, "&quot;"], [0, "&num;"], [0, "&dollar;"], [0, "&percnt;"], [0, "&amp;"], [0, "&apos;"], [0, "&lpar;"], [0, "&rpar;"], [0, "&ast;"], [0, "&plus;"], [0, "&comma;"], [1, "&period;"], [0, "&sol;"], [10, "&colon;"], [0, "&semi;"], [0, { v: "&lt;", n: 8402, o: "&nvlt;" }], [0, { v: "&equals;", n: 8421, o: "&bne;" }], [0, { v: "&gt;", n: 8402, o: "&nvgt;" }], [0, "&quest;"], [0, "&commat;"], [26, "&lbrack;"], [0, "&bsol;"], [0, "&rbrack;"], [0, "&Hat;"], [0, "&lowbar;"], [0, "&DiacriticalGrave;"], [5, { n: 106, o: "&fjlig;" }], [20, "&lbrace;"], [0, "&verbar;"], [0, "&rbrace;"], [34, "&nbsp;"], [0, "&iexcl;"], [0, "&cent;"], [0, "&pound;"], [0, "&curren;"], [0, "&yen;"], [0, "&brvbar;"], [0, "&sect;"], [0, "&die;"], [0, "&copy;"], [0, "&ordf;"], [0, "&laquo;"], [0, "&not;"], [0, "&shy;"], [0, "&circledR;"], [0, "&macr;"], [0, "&deg;"], [0, "&PlusMinus;"], [0, "&sup2;"], [0, "&sup3;"], [0, "&acute;"], [0, "&micro;"], [0, "&para;"], [0, "&centerdot;"], [0, "&cedil;"], [0, "&sup1;"], [0, "&ordm;"], [0, "&raquo;"], [0, "&frac14;"], [0, "&frac12;"], [0, "&frac34;"], [0, "&iquest;"], [0, "&Agrave;"], [0, "&Aacute;"], [0, "&Acirc;"], [0, "&Atilde;"], [0, "&Auml;"], [0, "&angst;"], [0, "&AElig;"], [0, "&Ccedil;"], [0, "&Egrave;"], [0, "&Eacute;"], [0, "&Ecirc;"], [0, "&Euml;"], [0, "&Igrave;"], [0, "&Iacute;"], [0, "&Icirc;"], [0, "&Iuml;"], [0, "&ETH;"], [0, "&Ntilde;"], [0, "&Ograve;"], [0, "&Oacute;"], [0, "&Ocirc;"], [0, "&Otilde;"], [0, "&Ouml;"], [0, "&times;"], [0, "&Oslash;"], [0, "&Ugrave;"], [0, "&Uacute;"], [0, "&Ucirc;"], [0, "&Uuml;"], [0, "&Yacute;"], [0, "&THORN;"], [0, "&szlig;"], [0, "&agrave;"], [0, "&aacute;"], [0, "&acirc;"], [0, "&atilde;"], [0, "&auml;"], [0, "&aring;"], [0, "&aelig;"], [0, "&ccedil;"], [0, "&egrave;"], [0, "&eacute;"], [0, "&ecirc;"], [0, "&euml;"], [0, "&igrave;"], [0, "&iacute;"], [0, "&icirc;"], [0, "&iuml;"], [0, "&eth;"], [0, "&ntilde;"], [0, "&ograve;"], [0, "&oacute;"], [0, "&ocirc;"], [0, "&otilde;"], [0, "&ouml;"], [0, "&div;"], [0, "&oslash;"], [0, "&ugrave;"], [0, "&uacute;"], [0, "&ucirc;"], [0, "&uuml;"], [0, "&yacute;"], [0, "&thorn;"], [0, "&yuml;"], [0, "&Amacr;"], [0, "&amacr;"], [0, "&Abreve;"], [0, "&abreve;"], [0, "&Aogon;"], [0, "&aogon;"], [0, "&Cacute;"], [0, "&cacute;"], [0, "&Ccirc;"], [0, "&ccirc;"], [0, "&Cdot;"], [0, "&cdot;"], [0, "&Ccaron;"], [0, "&ccaron;"], [0, "&Dcaron;"], [0, "&dcaron;"], [0, "&Dstrok;"], [0, "&dstrok;"], [0, "&Emacr;"], [0, "&emacr;"], [2, "&Edot;"], [0, "&edot;"], [0, "&Eogon;"], [0, "&eogon;"], [0, "&Ecaron;"], [0, "&ecaron;"], [0, "&Gcirc;"], [0, "&gcirc;"], [0, "&Gbreve;"], [0, "&gbreve;"], [0, "&Gdot;"], [0, "&gdot;"], [0, "&Gcedil;"], [1, "&Hcirc;"], [0, "&hcirc;"], [0, "&Hstrok;"], [0, "&hstrok;"], [0, "&Itilde;"], [0, "&itilde;"], [0, "&Imacr;"], [0, "&imacr;"], [2, "&Iogon;"], [0, "&iogon;"], [0, "&Idot;"], [0, "&imath;"], [0, "&IJlig;"], [0, "&ijlig;"], [0, "&Jcirc;"], [0, "&jcirc;"], [0, "&Kcedil;"], [0, "&kcedil;"], [0, "&kgreen;"], [0, "&Lacute;"], [0, "&lacute;"], [0, "&Lcedil;"], [0, "&lcedil;"], [0, "&Lcaron;"], [0, "&lcaron;"], [0, "&Lmidot;"], [0, "&lmidot;"], [0, "&Lstrok;"], [0, "&lstrok;"], [0, "&Nacute;"], [0, "&nacute;"], [0, "&Ncedil;"], [0, "&ncedil;"], [0, "&Ncaron;"], [0, "&ncaron;"], [0, "&napos;"], [0, "&ENG;"], [0, "&eng;"], [0, "&Omacr;"], [0, "&omacr;"], [2, "&Odblac;"], [0, "&odblac;"], [0, "&OElig;"], [0, "&oelig;"], [0, "&Racute;"], [0, "&racute;"], [0, "&Rcedil;"], [0, "&rcedil;"], [0, "&Rcaron;"], [0, "&rcaron;"], [0, "&Sacute;"], [0, "&sacute;"], [0, "&Scirc;"], [0, "&scirc;"], [0, "&Scedil;"], [0, "&scedil;"], [0, "&Scaron;"], [0, "&scaron;"], [0, "&Tcedil;"], [0, "&tcedil;"], [0, "&Tcaron;"], [0, "&tcaron;"], [0, "&Tstrok;"], [0, "&tstrok;"], [0, "&Utilde;"], [0, "&utilde;"], [0, "&Umacr;"], [0, "&umacr;"], [0, "&Ubreve;"], [0, "&ubreve;"], [0, "&Uring;"], [0, "&uring;"], [0, "&Udblac;"], [0, "&udblac;"], [0, "&Uogon;"], [0, "&uogon;"], [0, "&Wcirc;"], [0, "&wcirc;"], [0, "&Ycirc;"], [0, "&ycirc;"], [0, "&Yuml;"], [0, "&Zacute;"], [0, "&zacute;"], [0, "&Zdot;"], [0, "&zdot;"], [0, "&Zcaron;"], [0, "&zcaron;"], [19, "&fnof;"], [34, "&imped;"], [63, "&gacute;"], [65, "&jmath;"], [142, "&circ;"], [0, "&caron;"], [16, "&breve;"], [0, "&DiacriticalDot;"], [0, "&ring;"], [0, "&ogon;"], [0, "&DiacriticalTilde;"], [0, "&dblac;"], [51, "&DownBreve;"], [127, "&Alpha;"], [0, "&Beta;"], [0, "&Gamma;"], [0, "&Delta;"], [0, "&Epsilon;"], [0, "&Zeta;"], [0, "&Eta;"], [0, "&Theta;"], [0, "&Iota;"], [0, "&Kappa;"], [0, "&Lambda;"], [0, "&Mu;"], [0, "&Nu;"], [0, "&Xi;"], [0, "&Omicron;"], [0, "&Pi;"], [0, "&Rho;"], [1, "&Sigma;"], [0, "&Tau;"], [0, "&Upsilon;"], [0, "&Phi;"], [0, "&Chi;"], [0, "&Psi;"], [0, "&ohm;"], [7, "&alpha;"], [0, "&beta;"], [0, "&gamma;"], [0, "&delta;"], [0, "&epsi;"], [0, "&zeta;"], [0, "&eta;"], [0, "&theta;"], [0, "&iota;"], [0, "&kappa;"], [0, "&lambda;"], [0, "&mu;"], [0, "&nu;"], [0, "&xi;"], [0, "&omicron;"], [0, "&pi;"], [0, "&rho;"], [0, "&sigmaf;"], [0, "&sigma;"], [0, "&tau;"], [0, "&upsi;"], [0, "&phi;"], [0, "&chi;"], [0, "&psi;"], [0, "&omega;"], [7, "&thetasym;"], [0, "&Upsi;"], [2, "&phiv;"], [0, "&piv;"], [5, "&Gammad;"], [0, "&digamma;"], [18, "&kappav;"], [0, "&rhov;"], [3, "&epsiv;"], [0, "&backepsilon;"], [10, "&IOcy;"], [0, "&DJcy;"], [0, "&GJcy;"], [0, "&Jukcy;"], [0, "&DScy;"], [0, "&Iukcy;"], [0, "&YIcy;"], [0, "&Jsercy;"], [0, "&LJcy;"], [0, "&NJcy;"], [0, "&TSHcy;"], [0, "&KJcy;"], [1, "&Ubrcy;"], [0, "&DZcy;"], [0, "&Acy;"], [0, "&Bcy;"], [0, "&Vcy;"], [0, "&Gcy;"], [0, "&Dcy;"], [0, "&IEcy;"], [0, "&ZHcy;"], [0, "&Zcy;"], [0, "&Icy;"], [0, "&Jcy;"], [0, "&Kcy;"], [0, "&Lcy;"], [0, "&Mcy;"], [0, "&Ncy;"], [0, "&Ocy;"], [0, "&Pcy;"], [0, "&Rcy;"], [0, "&Scy;"], [0, "&Tcy;"], [0, "&Ucy;"], [0, "&Fcy;"], [0, "&KHcy;"], [0, "&TScy;"], [0, "&CHcy;"], [0, "&SHcy;"], [0, "&SHCHcy;"], [0, "&HARDcy;"], [0, "&Ycy;"], [0, "&SOFTcy;"], [0, "&Ecy;"], [0, "&YUcy;"], [0, "&YAcy;"], [0, "&acy;"], [0, "&bcy;"], [0, "&vcy;"], [0, "&gcy;"], [0, "&dcy;"], [0, "&iecy;"], [0, "&zhcy;"], [0, "&zcy;"], [0, "&icy;"], [0, "&jcy;"], [0, "&kcy;"], [0, "&lcy;"], [0, "&mcy;"], [0, "&ncy;"], [0, "&ocy;"], [0, "&pcy;"], [0, "&rcy;"], [0, "&scy;"], [0, "&tcy;"], [0, "&ucy;"], [0, "&fcy;"], [0, "&khcy;"], [0, "&tscy;"], [0, "&chcy;"], [0, "&shcy;"], [0, "&shchcy;"], [0, "&hardcy;"], [0, "&ycy;"], [0, "&softcy;"], [0, "&ecy;"], [0, "&yucy;"], [0, "&yacy;"], [1, "&iocy;"], [0, "&djcy;"], [0, "&gjcy;"], [0, "&jukcy;"], [0, "&dscy;"], [0, "&iukcy;"], [0, "&yicy;"], [0, "&jsercy;"], [0, "&ljcy;"], [0, "&njcy;"], [0, "&tshcy;"], [0, "&kjcy;"], [1, "&ubrcy;"], [0, "&dzcy;"], [7074, "&ensp;"], [0, "&emsp;"], [0, "&emsp13;"], [0, "&emsp14;"], [1, "&numsp;"], [0, "&puncsp;"], [0, "&ThinSpace;"], [0, "&hairsp;"], [0, "&NegativeMediumSpace;"], [0, "&zwnj;"], [0, "&zwj;"], [0, "&lrm;"], [0, "&rlm;"], [0, "&dash;"], [2, "&ndash;"], [0, "&mdash;"], [0, "&horbar;"], [0, "&Verbar;"], [1, "&lsquo;"], [0, "&CloseCurlyQuote;"], [0, "&lsquor;"], [1, "&ldquo;"], [0, "&CloseCurlyDoubleQuote;"], [0, "&bdquo;"], [1, "&dagger;"], [0, "&Dagger;"], [0, "&bull;"], [2, "&nldr;"], [0, "&hellip;"], [9, "&permil;"], [0, "&pertenk;"], [0, "&prime;"], [0, "&Prime;"], [0, "&tprime;"], [0, "&backprime;"], [3, "&lsaquo;"], [0, "&rsaquo;"], [3, "&oline;"], [2, "&caret;"], [1, "&hybull;"], [0, "&frasl;"], [10, "&bsemi;"], [7, "&qprime;"], [7, { v: "&MediumSpace;", n: 8202, o: "&ThickSpace;" }], [0, "&NoBreak;"], [0, "&af;"], [0, "&InvisibleTimes;"], [0, "&ic;"], [72, "&euro;"], [46, "&tdot;"], [0, "&DotDot;"], [37, "&complexes;"], [2, "&incare;"], [4, "&gscr;"], [0, "&hamilt;"], [0, "&Hfr;"], [0, "&Hopf;"], [0, "&planckh;"], [0, "&hbar;"], [0, "&imagline;"], [0, "&Ifr;"], [0, "&lagran;"], [0, "&ell;"], [1, "&naturals;"], [0, "&numero;"], [0, "&copysr;"], [0, "&weierp;"], [0, "&Popf;"], [0, "&Qopf;"], [0, "&realine;"], [0, "&real;"], [0, "&reals;"], [0, "&rx;"], [3, "&trade;"], [1, "&integers;"], [2, "&mho;"], [0, "&zeetrf;"], [0, "&iiota;"], [2, "&bernou;"], [0, "&Cayleys;"], [1, "&escr;"], [0, "&Escr;"], [0, "&Fouriertrf;"], [1, "&Mellintrf;"], [0, "&order;"], [0, "&alefsym;"], [0, "&beth;"], [0, "&gimel;"], [0, "&daleth;"], [12, "&CapitalDifferentialD;"], [0, "&dd;"], [0, "&ee;"], [0, "&ii;"], [10, "&frac13;"], [0, "&frac23;"], [0, "&frac15;"], [0, "&frac25;"], [0, "&frac35;"], [0, "&frac45;"], [0, "&frac16;"], [0, "&frac56;"], [0, "&frac18;"], [0, "&frac38;"], [0, "&frac58;"], [0, "&frac78;"], [49, "&larr;"], [0, "&ShortUpArrow;"], [0, "&rarr;"], [0, "&darr;"], [0, "&harr;"], [0, "&updownarrow;"], [0, "&nwarr;"], [0, "&nearr;"], [0, "&LowerRightArrow;"], [0, "&LowerLeftArrow;"], [0, "&nlarr;"], [0, "&nrarr;"], [1, { v: "&rarrw;", n: 824, o: "&nrarrw;" }], [0, "&Larr;"], [0, "&Uarr;"], [0, "&Rarr;"], [0, "&Darr;"], [0, "&larrtl;"], [0, "&rarrtl;"], [0, "&LeftTeeArrow;"], [0, "&mapstoup;"], [0, "&map;"], [0, "&DownTeeArrow;"], [1, "&hookleftarrow;"], [0, "&hookrightarrow;"], [0, "&larrlp;"], [0, "&looparrowright;"], [0, "&harrw;"], [0, "&nharr;"], [1, "&lsh;"], [0, "&rsh;"], [0, "&ldsh;"], [0, "&rdsh;"], [1, "&crarr;"], [0, "&cularr;"], [0, "&curarr;"], [2, "&circlearrowleft;"], [0, "&circlearrowright;"], [0, "&leftharpoonup;"], [0, "&DownLeftVector;"], [0, "&RightUpVector;"], [0, "&LeftUpVector;"], [0, "&rharu;"], [0, "&DownRightVector;"], [0, "&dharr;"], [0, "&dharl;"], [0, "&RightArrowLeftArrow;"], [0, "&udarr;"], [0, "&LeftArrowRightArrow;"], [0, "&leftleftarrows;"], [0, "&upuparrows;"], [0, "&rightrightarrows;"], [0, "&ddarr;"], [0, "&leftrightharpoons;"], [0, "&Equilibrium;"], [0, "&nlArr;"], [0, "&nhArr;"], [0, "&nrArr;"], [0, "&DoubleLeftArrow;"], [0, "&DoubleUpArrow;"], [0, "&DoubleRightArrow;"], [0, "&dArr;"], [0, "&DoubleLeftRightArrow;"], [0, "&DoubleUpDownArrow;"], [0, "&nwArr;"], [0, "&neArr;"], [0, "&seArr;"], [0, "&swArr;"], [0, "&lAarr;"], [0, "&rAarr;"], [1, "&zigrarr;"], [6, "&larrb;"], [0, "&rarrb;"], [15, "&DownArrowUpArrow;"], [7, "&loarr;"], [0, "&roarr;"], [0, "&hoarr;"], [0, "&forall;"], [0, "&comp;"], [0, { v: "&part;", n: 824, o: "&npart;" }], [0, "&exist;"], [0, "&nexist;"], [0, "&empty;"], [1, "&Del;"], [0, "&Element;"], [0, "&NotElement;"], [1, "&ni;"], [0, "&notni;"], [2, "&prod;"], [0, "&coprod;"], [0, "&sum;"], [0, "&minus;"], [0, "&MinusPlus;"], [0, "&dotplus;"], [1, "&Backslash;"], [0, "&lowast;"], [0, "&compfn;"], [1, "&radic;"], [2, "&prop;"], [0, "&infin;"], [0, "&angrt;"], [0, { v: "&ang;", n: 8402, o: "&nang;" }], [0, "&angmsd;"], [0, "&angsph;"], [0, "&mid;"], [0, "&nmid;"], [0, "&DoubleVerticalBar;"], [0, "&NotDoubleVerticalBar;"], [0, "&and;"], [0, "&or;"], [0, { v: "&cap;", n: 65024, o: "&caps;" }], [0, { v: "&cup;", n: 65024, o: "&cups;" }], [0, "&int;"], [0, "&Int;"], [0, "&iiint;"], [0, "&conint;"], [0, "&Conint;"], [0, "&Cconint;"], [0, "&cwint;"], [0, "&ClockwiseContourIntegral;"], [0, "&awconint;"], [0, "&there4;"], [0, "&becaus;"], [0, "&ratio;"], [0, "&Colon;"], [0, "&dotminus;"], [1, "&mDDot;"], [0, "&homtht;"], [0, { v: "&sim;", n: 8402, o: "&nvsim;" }], [0, { v: "&backsim;", n: 817, o: "&race;" }], [0, { v: "&ac;", n: 819, o: "&acE;" }], [0, "&acd;"], [0, "&VerticalTilde;"], [0, "&NotTilde;"], [0, { v: "&eqsim;", n: 824, o: "&nesim;" }], [0, "&sime;"], [0, "&NotTildeEqual;"], [0, "&cong;"], [0, "&simne;"], [0, "&ncong;"], [0, "&ap;"], [0, "&nap;"], [0, "&ape;"], [0, { v: "&apid;", n: 824, o: "&napid;" }], [0, "&backcong;"], [0, { v: "&asympeq;", n: 8402, o: "&nvap;" }], [0, { v: "&bump;", n: 824, o: "&nbump;" }], [0, { v: "&bumpe;", n: 824, o: "&nbumpe;" }], [0, { v: "&doteq;", n: 824, o: "&nedot;" }], [0, "&doteqdot;"], [0, "&efDot;"], [0, "&erDot;"], [0, "&Assign;"], [0, "&ecolon;"], [0, "&ecir;"], [0, "&circeq;"], [1, "&wedgeq;"], [0, "&veeeq;"], [1, "&triangleq;"], [2, "&equest;"], [0, "&ne;"], [0, { v: "&Congruent;", n: 8421, o: "&bnequiv;" }], [0, "&nequiv;"], [1, { v: "&le;", n: 8402, o: "&nvle;" }], [0, { v: "&ge;", n: 8402, o: "&nvge;" }], [0, { v: "&lE;", n: 824, o: "&nlE;" }], [0, { v: "&gE;", n: 824, o: "&ngE;" }], [0, { v: "&lnE;", n: 65024, o: "&lvertneqq;" }], [0, { v: "&gnE;", n: 65024, o: "&gvertneqq;" }], [0, { v: "&ll;", n: new Map(/* @__PURE__ */ restoreDiff([[824, "&nLtv;"], [7577, "&nLt;"]])) }], [0, { v: "&gg;", n: new Map(/* @__PURE__ */ restoreDiff([[824, "&nGtv;"], [7577, "&nGt;"]])) }], [0, "&between;"], [0, "&NotCupCap;"], [0, "&nless;"], [0, "&ngt;"], [0, "&nle;"], [0, "&nge;"], [0, "&lesssim;"], [0, "&GreaterTilde;"], [0, "&nlsim;"], [0, "&ngsim;"], [0, "&LessGreater;"], [0, "&gl;"], [0, "&NotLessGreater;"], [0, "&NotGreaterLess;"], [0, "&pr;"], [0, "&sc;"], [0, "&prcue;"], [0, "&sccue;"], [0, "&PrecedesTilde;"], [0, { v: "&scsim;", n: 824, o: "&NotSucceedsTilde;" }], [0, "&NotPrecedes;"], [0, "&NotSucceeds;"], [0, { v: "&sub;", n: 8402, o: "&NotSubset;" }], [0, { v: "&sup;", n: 8402, o: "&NotSuperset;" }], [0, "&nsub;"], [0, "&nsup;"], [0, "&sube;"], [0, "&supe;"], [0, "&NotSubsetEqual;"], [0, "&NotSupersetEqual;"], [0, { v: "&subne;", n: 65024, o: "&varsubsetneq;" }], [0, { v: "&supne;", n: 65024, o: "&varsupsetneq;" }], [1, "&cupdot;"], [0, "&UnionPlus;"], [0, { v: "&sqsub;", n: 824, o: "&NotSquareSubset;" }], [0, { v: "&sqsup;", n: 824, o: "&NotSquareSuperset;" }], [0, "&sqsube;"], [0, "&sqsupe;"], [0, { v: "&sqcap;", n: 65024, o: "&sqcaps;" }], [0, { v: "&sqcup;", n: 65024, o: "&sqcups;" }], [0, "&CirclePlus;"], [0, "&CircleMinus;"], [0, "&CircleTimes;"], [0, "&osol;"], [0, "&CircleDot;"], [0, "&circledcirc;"], [0, "&circledast;"], [1, "&circleddash;"], [0, "&boxplus;"], [0, "&boxminus;"], [0, "&boxtimes;"], [0, "&dotsquare;"], [0, "&RightTee;"], [0, "&dashv;"], [0, "&DownTee;"], [0, "&bot;"], [1, "&models;"], [0, "&DoubleRightTee;"], [0, "&Vdash;"], [0, "&Vvdash;"], [0, "&VDash;"], [0, "&nvdash;"], [0, "&nvDash;"], [0, "&nVdash;"], [0, "&nVDash;"], [0, "&prurel;"], [1, "&LeftTriangle;"], [0, "&RightTriangle;"], [0, { v: "&LeftTriangleEqual;", n: 8402, o: "&nvltrie;" }], [0, { v: "&RightTriangleEqual;", n: 8402, o: "&nvrtrie;" }], [0, "&origof;"], [0, "&imof;"], [0, "&multimap;"], [0, "&hercon;"], [0, "&intcal;"], [0, "&veebar;"], [1, "&barvee;"], [0, "&angrtvb;"], [0, "&lrtri;"], [0, "&bigwedge;"], [0, "&bigvee;"], [0, "&bigcap;"], [0, "&bigcup;"], [0, "&diam;"], [0, "&sdot;"], [0, "&sstarf;"], [0, "&divideontimes;"], [0, "&bowtie;"], [0, "&ltimes;"], [0, "&rtimes;"], [0, "&leftthreetimes;"], [0, "&rightthreetimes;"], [0, "&backsimeq;"], [0, "&curlyvee;"], [0, "&curlywedge;"], [0, "&Sub;"], [0, "&Sup;"], [0, "&Cap;"], [0, "&Cup;"], [0, "&fork;"], [0, "&epar;"], [0, "&lessdot;"], [0, "&gtdot;"], [0, { v: "&Ll;", n: 824, o: "&nLl;" }], [0, { v: "&Gg;", n: 824, o: "&nGg;" }], [0, { v: "&leg;", n: 65024, o: "&lesg;" }], [0, { v: "&gel;", n: 65024, o: "&gesl;" }], [2, "&cuepr;"], [0, "&cuesc;"], [0, "&NotPrecedesSlantEqual;"], [0, "&NotSucceedsSlantEqual;"], [0, "&NotSquareSubsetEqual;"], [0, "&NotSquareSupersetEqual;"], [2, "&lnsim;"], [0, "&gnsim;"], [0, "&precnsim;"], [0, "&scnsim;"], [0, "&nltri;"], [0, "&NotRightTriangle;"], [0, "&nltrie;"], [0, "&NotRightTriangleEqual;"], [0, "&vellip;"], [0, "&ctdot;"], [0, "&utdot;"], [0, "&dtdot;"], [0, "&disin;"], [0, "&isinsv;"], [0, "&isins;"], [0, { v: "&isindot;", n: 824, o: "&notindot;" }], [0, "&notinvc;"], [0, "&notinvb;"], [1, { v: "&isinE;", n: 824, o: "&notinE;" }], [0, "&nisd;"], [0, "&xnis;"], [0, "&nis;"], [0, "&notnivc;"], [0, "&notnivb;"], [6, "&barwed;"], [0, "&Barwed;"], [1, "&lceil;"], [0, "&rceil;"], [0, "&LeftFloor;"], [0, "&rfloor;"], [0, "&drcrop;"], [0, "&dlcrop;"], [0, "&urcrop;"], [0, "&ulcrop;"], [0, "&bnot;"], [1, "&profline;"], [0, "&profsurf;"], [1, "&telrec;"], [0, "&target;"], [5, "&ulcorn;"], [0, "&urcorn;"], [0, "&dlcorn;"], [0, "&drcorn;"], [2, "&frown;"], [0, "&smile;"], [9, "&cylcty;"], [0, "&profalar;"], [7, "&topbot;"], [6, "&ovbar;"], [1, "&solbar;"], [60, "&angzarr;"], [51, "&lmoustache;"], [0, "&rmoustache;"], [2, "&OverBracket;"], [0, "&bbrk;"], [0, "&bbrktbrk;"], [37, "&OverParenthesis;"], [0, "&UnderParenthesis;"], [0, "&OverBrace;"], [0, "&UnderBrace;"], [2, "&trpezium;"], [4, "&elinters;"], [59, "&blank;"], [164, "&circledS;"], [55, "&boxh;"], [1, "&boxv;"], [9, "&boxdr;"], [3, "&boxdl;"], [3, "&boxur;"], [3, "&boxul;"], [3, "&boxvr;"], [7, "&boxvl;"], [7, "&boxhd;"], [7, "&boxhu;"], [7, "&boxvh;"], [19, "&boxH;"], [0, "&boxV;"], [0, "&boxdR;"], [0, "&boxDr;"], [0, "&boxDR;"], [0, "&boxdL;"], [0, "&boxDl;"], [0, "&boxDL;"], [0, "&boxuR;"], [0, "&boxUr;"], [0, "&boxUR;"], [0, "&boxuL;"], [0, "&boxUl;"], [0, "&boxUL;"], [0, "&boxvR;"], [0, "&boxVr;"], [0, "&boxVR;"], [0, "&boxvL;"], [0, "&boxVl;"], [0, "&boxVL;"], [0, "&boxHd;"], [0, "&boxhD;"], [0, "&boxHD;"], [0, "&boxHu;"], [0, "&boxhU;"], [0, "&boxHU;"], [0, "&boxvH;"], [0, "&boxVh;"], [0, "&boxVH;"], [19, "&uhblk;"], [3, "&lhblk;"], [3, "&block;"], [8, "&blk14;"], [0, "&blk12;"], [0, "&blk34;"], [13, "&square;"], [8, "&blacksquare;"], [0, "&EmptyVerySmallSquare;"], [1, "&rect;"], [0, "&marker;"], [2, "&fltns;"], [1, "&bigtriangleup;"], [0, "&blacktriangle;"], [0, "&triangle;"], [2, "&blacktriangleright;"], [0, "&rtri;"], [3, "&bigtriangledown;"], [0, "&blacktriangledown;"], [0, "&dtri;"], [2, "&blacktriangleleft;"], [0, "&ltri;"], [6, "&loz;"], [0, "&cir;"], [32, "&tridot;"], [2, "&bigcirc;"], [8, "&ultri;"], [0, "&urtri;"], [0, "&lltri;"], [0, "&EmptySmallSquare;"], [0, "&FilledSmallSquare;"], [8, "&bigstar;"], [0, "&star;"], [7, "&phone;"], [49, "&female;"], [1, "&male;"], [29, "&spades;"], [2, "&clubs;"], [1, "&hearts;"], [0, "&diamondsuit;"], [3, "&sung;"], [2, "&flat;"], [0, "&natural;"], [0, "&sharp;"], [163, "&check;"], [3, "&cross;"], [8, "&malt;"], [21, "&sext;"], [33, "&VerticalSeparator;"], [25, "&lbbrk;"], [0, "&rbbrk;"], [84, "&bsolhsub;"], [0, "&suphsol;"], [28, "&LeftDoubleBracket;"], [0, "&RightDoubleBracket;"], [0, "&lang;"], [0, "&rang;"], [0, "&Lang;"], [0, "&Rang;"], [0, "&loang;"], [0, "&roang;"], [7, "&longleftarrow;"], [0, "&longrightarrow;"], [0, "&longleftrightarrow;"], [0, "&DoubleLongLeftArrow;"], [0, "&DoubleLongRightArrow;"], [0, "&DoubleLongLeftRightArrow;"], [1, "&longmapsto;"], [2, "&dzigrarr;"], [258, "&nvlArr;"], [0, "&nvrArr;"], [0, "&nvHarr;"], [0, "&Map;"], [6, "&lbarr;"], [0, "&bkarow;"], [0, "&lBarr;"], [0, "&dbkarow;"], [0, "&drbkarow;"], [0, "&DDotrahd;"], [0, "&UpArrowBar;"], [0, "&DownArrowBar;"], [2, "&Rarrtl;"], [2, "&latail;"], [0, "&ratail;"], [0, "&lAtail;"], [0, "&rAtail;"], [0, "&larrfs;"], [0, "&rarrfs;"], [0, "&larrbfs;"], [0, "&rarrbfs;"], [2, "&nwarhk;"], [0, "&nearhk;"], [0, "&hksearow;"], [0, "&hkswarow;"], [0, "&nwnear;"], [0, "&nesear;"], [0, "&seswar;"], [0, "&swnwar;"], [8, { v: "&rarrc;", n: 824, o: "&nrarrc;" }], [1, "&cudarrr;"], [0, "&ldca;"], [0, "&rdca;"], [0, "&cudarrl;"], [0, "&larrpl;"], [2, "&curarrm;"], [0, "&cularrp;"], [7, "&rarrpl;"], [2, "&harrcir;"], [0, "&Uarrocir;"], [0, "&lurdshar;"], [0, "&ldrushar;"], [2, "&LeftRightVector;"], [0, "&RightUpDownVector;"], [0, "&DownLeftRightVector;"], [0, "&LeftUpDownVector;"], [0, "&LeftVectorBar;"], [0, "&RightVectorBar;"], [0, "&RightUpVectorBar;"], [0, "&RightDownVectorBar;"], [0, "&DownLeftVectorBar;"], [0, "&DownRightVectorBar;"], [0, "&LeftUpVectorBar;"], [0, "&LeftDownVectorBar;"], [0, "&LeftTeeVector;"], [0, "&RightTeeVector;"], [0, "&RightUpTeeVector;"], [0, "&RightDownTeeVector;"], [0, "&DownLeftTeeVector;"], [0, "&DownRightTeeVector;"], [0, "&LeftUpTeeVector;"], [0, "&LeftDownTeeVector;"], [0, "&lHar;"], [0, "&uHar;"], [0, "&rHar;"], [0, "&dHar;"], [0, "&luruhar;"], [0, "&ldrdhar;"], [0, "&ruluhar;"], [0, "&rdldhar;"], [0, "&lharul;"], [0, "&llhard;"], [0, "&rharul;"], [0, "&lrhard;"], [0, "&udhar;"], [0, "&duhar;"], [0, "&RoundImplies;"], [0, "&erarr;"], [0, "&simrarr;"], [0, "&larrsim;"], [0, "&rarrsim;"], [0, "&rarrap;"], [0, "&ltlarr;"], [1, "&gtrarr;"], [0, "&subrarr;"], [1, "&suplarr;"], [0, "&lfisht;"], [0, "&rfisht;"], [0, "&ufisht;"], [0, "&dfisht;"], [5, "&lopar;"], [0, "&ropar;"], [4, "&lbrke;"], [0, "&rbrke;"], [0, "&lbrkslu;"], [0, "&rbrksld;"], [0, "&lbrksld;"], [0, "&rbrkslu;"], [0, "&langd;"], [0, "&rangd;"], [0, "&lparlt;"], [0, "&rpargt;"], [0, "&gtlPar;"], [0, "&ltrPar;"], [3, "&vzigzag;"], [1, "&vangrt;"], [0, "&angrtvbd;"], [6, "&ange;"], [0, "&range;"], [0, "&dwangle;"], [0, "&uwangle;"], [0, "&angmsdaa;"], [0, "&angmsdab;"], [0, "&angmsdac;"], [0, "&angmsdad;"], [0, "&angmsdae;"], [0, "&angmsdaf;"], [0, "&angmsdag;"], [0, "&angmsdah;"], [0, "&bemptyv;"], [0, "&demptyv;"], [0, "&cemptyv;"], [0, "&raemptyv;"], [0, "&laemptyv;"], [0, "&ohbar;"], [0, "&omid;"], [0, "&opar;"], [1, "&operp;"], [1, "&olcross;"], [0, "&odsold;"], [1, "&olcir;"], [0, "&ofcir;"], [0, "&olt;"], [0, "&ogt;"], [0, "&cirscir;"], [0, "&cirE;"], [0, "&solb;"], [0, "&bsolb;"], [3, "&boxbox;"], [3, "&trisb;"], [0, "&rtriltri;"], [0, { v: "&LeftTriangleBar;", n: 824, o: "&NotLeftTriangleBar;" }], [0, { v: "&RightTriangleBar;", n: 824, o: "&NotRightTriangleBar;" }], [11, "&iinfin;"], [0, "&infintie;"], [0, "&nvinfin;"], [4, "&eparsl;"], [0, "&smeparsl;"], [0, "&eqvparsl;"], [5, "&blacklozenge;"], [8, "&RuleDelayed;"], [1, "&dsol;"], [9, "&bigodot;"], [0, "&bigoplus;"], [0, "&bigotimes;"], [1, "&biguplus;"], [1, "&bigsqcup;"], [5, "&iiiint;"], [0, "&fpartint;"], [2, "&cirfnint;"], [0, "&awint;"], [0, "&rppolint;"], [0, "&scpolint;"], [0, "&npolint;"], [0, "&pointint;"], [0, "&quatint;"], [0, "&intlarhk;"], [10, "&pluscir;"], [0, "&plusacir;"], [0, "&simplus;"], [0, "&plusdu;"], [0, "&plussim;"], [0, "&plustwo;"], [1, "&mcomma;"], [0, "&minusdu;"], [2, "&loplus;"], [0, "&roplus;"], [0, "&Cross;"], [0, "&timesd;"], [0, "&timesbar;"], [1, "&smashp;"], [0, "&lotimes;"], [0, "&rotimes;"], [0, "&otimesas;"], [0, "&Otimes;"], [0, "&odiv;"], [0, "&triplus;"], [0, "&triminus;"], [0, "&tritime;"], [0, "&intprod;"], [2, "&amalg;"], [0, "&capdot;"], [1, "&ncup;"], [0, "&ncap;"], [0, "&capand;"], [0, "&cupor;"], [0, "&cupcap;"], [0, "&capcup;"], [0, "&cupbrcap;"], [0, "&capbrcup;"], [0, "&cupcup;"], [0, "&capcap;"], [0, "&ccups;"], [0, "&ccaps;"], [2, "&ccupssm;"], [2, "&And;"], [0, "&Or;"], [0, "&andand;"], [0, "&oror;"], [0, "&orslope;"], [0, "&andslope;"], [1, "&andv;"], [0, "&orv;"], [0, "&andd;"], [0, "&ord;"], [1, "&wedbar;"], [6, "&sdote;"], [3, "&simdot;"], [2, { v: "&congdot;", n: 824, o: "&ncongdot;" }], [0, "&easter;"], [0, "&apacir;"], [0, { v: "&apE;", n: 824, o: "&napE;" }], [0, "&eplus;"], [0, "&pluse;"], [0, "&Esim;"], [0, "&Colone;"], [0, "&Equal;"], [1, "&ddotseq;"], [0, "&equivDD;"], [0, "&ltcir;"], [0, "&gtcir;"], [0, "&ltquest;"], [0, "&gtquest;"], [0, { v: "&leqslant;", n: 824, o: "&nleqslant;" }], [0, { v: "&geqslant;", n: 824, o: "&ngeqslant;" }], [0, "&lesdot;"], [0, "&gesdot;"], [0, "&lesdoto;"], [0, "&gesdoto;"], [0, "&lesdotor;"], [0, "&gesdotol;"], [0, "&lap;"], [0, "&gap;"], [0, "&lne;"], [0, "&gne;"], [0, "&lnap;"], [0, "&gnap;"], [0, "&lEg;"], [0, "&gEl;"], [0, "&lsime;"], [0, "&gsime;"], [0, "&lsimg;"], [0, "&gsiml;"], [0, "&lgE;"], [0, "&glE;"], [0, "&lesges;"], [0, "&gesles;"], [0, "&els;"], [0, "&egs;"], [0, "&elsdot;"], [0, "&egsdot;"], [0, "&el;"], [0, "&eg;"], [2, "&siml;"], [0, "&simg;"], [0, "&simlE;"], [0, "&simgE;"], [0, { v: "&LessLess;", n: 824, o: "&NotNestedLessLess;" }], [0, { v: "&GreaterGreater;", n: 824, o: "&NotNestedGreaterGreater;" }], [1, "&glj;"], [0, "&gla;"], [0, "&ltcc;"], [0, "&gtcc;"], [0, "&lescc;"], [0, "&gescc;"], [0, "&smt;"], [0, "&lat;"], [0, { v: "&smte;", n: 65024, o: "&smtes;" }], [0, { v: "&late;", n: 65024, o: "&lates;" }], [0, "&bumpE;"], [0, { v: "&PrecedesEqual;", n: 824, o: "&NotPrecedesEqual;" }], [0, { v: "&sce;", n: 824, o: "&NotSucceedsEqual;" }], [2, "&prE;"], [0, "&scE;"], [0, "&precneqq;"], [0, "&scnE;"], [0, "&prap;"], [0, "&scap;"], [0, "&precnapprox;"], [0, "&scnap;"], [0, "&Pr;"], [0, "&Sc;"], [0, "&subdot;"], [0, "&supdot;"], [0, "&subplus;"], [0, "&supplus;"], [0, "&submult;"], [0, "&supmult;"], [0, "&subedot;"], [0, "&supedot;"], [0, { v: "&subE;", n: 824, o: "&nsubE;" }], [0, { v: "&supE;", n: 824, o: "&nsupE;" }], [0, "&subsim;"], [0, "&supsim;"], [2, { v: "&subnE;", n: 65024, o: "&varsubsetneqq;" }], [0, { v: "&supnE;", n: 65024, o: "&varsupsetneqq;" }], [2, "&csub;"], [0, "&csup;"], [0, "&csube;"], [0, "&csupe;"], [0, "&subsup;"], [0, "&supsub;"], [0, "&subsub;"], [0, "&supsup;"], [0, "&suphsub;"], [0, "&supdsub;"], [0, "&forkv;"], [0, "&topfork;"], [0, "&mlcp;"], [8, "&Dashv;"], [1, "&Vdashl;"], [0, "&Barv;"], [0, "&vBar;"], [0, "&vBarv;"], [1, "&Vbar;"], [0, "&Not;"], [0, "&bNot;"], [0, "&rnmid;"], [0, "&cirmid;"], [0, "&midcir;"], [0, "&topcir;"], [0, "&nhpar;"], [0, "&parsim;"], [9, { v: "&parsl;", n: 8421, o: "&nparsl;" }], [44343, { n: new Map(/* @__PURE__ */ restoreDiff([[56476, "&Ascr;"], [1, "&Cscr;"], [0, "&Dscr;"], [2, "&Gscr;"], [2, "&Jscr;"], [0, "&Kscr;"], [2, "&Nscr;"], [0, "&Oscr;"], [0, "&Pscr;"], [0, "&Qscr;"], [1, "&Sscr;"], [0, "&Tscr;"], [0, "&Uscr;"], [0, "&Vscr;"], [0, "&Wscr;"], [0, "&Xscr;"], [0, "&Yscr;"], [0, "&Zscr;"], [0, "&ascr;"], [0, "&bscr;"], [0, "&cscr;"], [0, "&dscr;"], [1, "&fscr;"], [1, "&hscr;"], [0, "&iscr;"], [0, "&jscr;"], [0, "&kscr;"], [0, "&lscr;"], [0, "&mscr;"], [0, "&nscr;"], [1, "&pscr;"], [0, "&qscr;"], [0, "&rscr;"], [0, "&sscr;"], [0, "&tscr;"], [0, "&uscr;"], [0, "&vscr;"], [0, "&wscr;"], [0, "&xscr;"], [0, "&yscr;"], [0, "&zscr;"], [52, "&Afr;"], [0, "&Bfr;"], [1, "&Dfr;"], [0, "&Efr;"], [0, "&Ffr;"], [0, "&Gfr;"], [2, "&Jfr;"], [0, "&Kfr;"], [0, "&Lfr;"], [0, "&Mfr;"], [0, "&Nfr;"], [0, "&Ofr;"], [0, "&Pfr;"], [0, "&Qfr;"], [1, "&Sfr;"], [0, "&Tfr;"], [0, "&Ufr;"], [0, "&Vfr;"], [0, "&Wfr;"], [0, "&Xfr;"], [0, "&Yfr;"], [1, "&afr;"], [0, "&bfr;"], [0, "&cfr;"], [0, "&dfr;"], [0, "&efr;"], [0, "&ffr;"], [0, "&gfr;"], [0, "&hfr;"], [0, "&ifr;"], [0, "&jfr;"], [0, "&kfr;"], [0, "&lfr;"], [0, "&mfr;"], [0, "&nfr;"], [0, "&ofr;"], [0, "&pfr;"], [0, "&qfr;"], [0, "&rfr;"], [0, "&sfr;"], [0, "&tfr;"], [0, "&ufr;"], [0, "&vfr;"], [0, "&wfr;"], [0, "&xfr;"], [0, "&yfr;"], [0, "&zfr;"], [0, "&Aopf;"], [0, "&Bopf;"], [1, "&Dopf;"], [0, "&Eopf;"], [0, "&Fopf;"], [0, "&Gopf;"], [1, "&Iopf;"], [0, "&Jopf;"], [0, "&Kopf;"], [0, "&Lopf;"], [0, "&Mopf;"], [1, "&Oopf;"], [3, "&Sopf;"], [0, "&Topf;"], [0, "&Uopf;"], [0, "&Vopf;"], [0, "&Wopf;"], [0, "&Xopf;"], [0, "&Yopf;"], [1, "&aopf;"], [0, "&bopf;"], [0, "&copf;"], [0, "&dopf;"], [0, "&eopf;"], [0, "&fopf;"], [0, "&gopf;"], [0, "&hopf;"], [0, "&iopf;"], [0, "&jopf;"], [0, "&kopf;"], [0, "&lopf;"], [0, "&mopf;"], [0, "&nopf;"], [0, "&oopf;"], [0, "&popf;"], [0, "&qopf;"], [0, "&ropf;"], [0, "&sopf;"], [0, "&topf;"], [0, "&uopf;"], [0, "&vopf;"], [0, "&wopf;"], [0, "&xopf;"], [0, "&yopf;"], [0, "&zopf;"]])) }], [8906, "&fflig;"], [0, "&filig;"], [0, "&fllig;"], [0, "&ffilig;"], [0, "&ffllig;"]]));
+
+// node_modules/dom-serializer/node_modules/entities/lib/esm/escape.js
+var xmlReplacer = /["&'<>$\x80-\uFFFF]/g;
+var xmlCodeMap = /* @__PURE__ */ new Map([
+  [34, "&quot;"],
+  [38, "&amp;"],
+  [39, "&apos;"],
+  [60, "&lt;"],
+  [62, "&gt;"]
+]);
+var getCodePoint = (
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  String.prototype.codePointAt != null ? (str, index) => str.codePointAt(index) : (
+    // http://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+    (c, index) => (c.charCodeAt(index) & 64512) === 55296 ? (c.charCodeAt(index) - 55296) * 1024 + c.charCodeAt(index + 1) - 56320 + 65536 : c.charCodeAt(index)
+  )
+);
+function encodeXML(str) {
+  let ret = "";
+  let lastIdx = 0;
+  let match2;
+  while ((match2 = xmlReplacer.exec(str)) !== null) {
+    const i = match2.index;
+    const char = str.charCodeAt(i);
+    const next = xmlCodeMap.get(char);
+    if (next !== void 0) {
+      ret += str.substring(lastIdx, i) + next;
+      lastIdx = i + 1;
+    } else {
+      ret += `${str.substring(lastIdx, i)}&#x${getCodePoint(str, i).toString(16)};`;
+      lastIdx = xmlReplacer.lastIndex += Number((char & 64512) === 55296);
+    }
+  }
+  return ret + str.substr(lastIdx);
+}
+function getEscaper(regex, map3) {
+  return function escape3(data) {
+    let match2;
+    let lastIdx = 0;
+    let result = "";
+    while (match2 = regex.exec(data)) {
+      if (lastIdx !== match2.index) {
+        result += data.substring(lastIdx, match2.index);
+      }
+      result += map3.get(match2[0].charCodeAt(0));
+      lastIdx = match2.index + 1;
+    }
+    return result + data.substring(lastIdx);
+  };
+}
+var escapeUTF8 = getEscaper(/[&<>'"]/g, xmlCodeMap);
+var escapeAttribute = getEscaper(/["&\u00A0]/g, /* @__PURE__ */ new Map([
+  [34, "&quot;"],
+  [38, "&amp;"],
+  [160, "&nbsp;"]
+]));
+var escapeText = getEscaper(/[&<>\u00A0]/g, /* @__PURE__ */ new Map([
+  [38, "&amp;"],
+  [60, "&lt;"],
+  [62, "&gt;"],
+  [160, "&nbsp;"]
+]));
+
+// node_modules/dom-serializer/node_modules/entities/lib/esm/index.js
+var EntityLevel;
+(function(EntityLevel2) {
+  EntityLevel2[EntityLevel2["XML"] = 0] = "XML";
+  EntityLevel2[EntityLevel2["HTML"] = 1] = "HTML";
+})(EntityLevel || (EntityLevel = {}));
+var EncodingMode;
+(function(EncodingMode2) {
+  EncodingMode2[EncodingMode2["UTF8"] = 0] = "UTF8";
+  EncodingMode2[EncodingMode2["ASCII"] = 1] = "ASCII";
+  EncodingMode2[EncodingMode2["Extensive"] = 2] = "Extensive";
+  EncodingMode2[EncodingMode2["Attribute"] = 3] = "Attribute";
+  EncodingMode2[EncodingMode2["Text"] = 4] = "Text";
+})(EncodingMode || (EncodingMode = {}));
+
+// node_modules/dom-serializer/lib/esm/foreignNames.js
+var elementNames = new Map([
+  "altGlyph",
+  "altGlyphDef",
+  "altGlyphItem",
+  "animateColor",
+  "animateMotion",
+  "animateTransform",
+  "clipPath",
+  "feBlend",
+  "feColorMatrix",
+  "feComponentTransfer",
+  "feComposite",
+  "feConvolveMatrix",
+  "feDiffuseLighting",
+  "feDisplacementMap",
+  "feDistantLight",
+  "feDropShadow",
+  "feFlood",
+  "feFuncA",
+  "feFuncB",
+  "feFuncG",
+  "feFuncR",
+  "feGaussianBlur",
+  "feImage",
+  "feMerge",
+  "feMergeNode",
+  "feMorphology",
+  "feOffset",
+  "fePointLight",
+  "feSpecularLighting",
+  "feSpotLight",
+  "feTile",
+  "feTurbulence",
+  "foreignObject",
+  "glyphRef",
+  "linearGradient",
+  "radialGradient",
+  "textPath"
+].map((val) => [val.toLowerCase(), val]));
+var attributeNames = new Map([
+  "definitionURL",
+  "attributeName",
+  "attributeType",
+  "baseFrequency",
+  "baseProfile",
+  "calcMode",
+  "clipPathUnits",
+  "diffuseConstant",
+  "edgeMode",
+  "filterUnits",
+  "glyphRef",
+  "gradientTransform",
+  "gradientUnits",
+  "kernelMatrix",
+  "kernelUnitLength",
+  "keyPoints",
+  "keySplines",
+  "keyTimes",
+  "lengthAdjust",
+  "limitingConeAngle",
+  "markerHeight",
+  "markerUnits",
+  "markerWidth",
+  "maskContentUnits",
+  "maskUnits",
+  "numOctaves",
+  "pathLength",
+  "patternContentUnits",
+  "patternTransform",
+  "patternUnits",
+  "pointsAtX",
+  "pointsAtY",
+  "pointsAtZ",
+  "preserveAlpha",
+  "preserveAspectRatio",
+  "primitiveUnits",
+  "refX",
+  "refY",
+  "repeatCount",
+  "repeatDur",
+  "requiredExtensions",
+  "requiredFeatures",
+  "specularConstant",
+  "specularExponent",
+  "spreadMethod",
+  "startOffset",
+  "stdDeviation",
+  "stitchTiles",
+  "surfaceScale",
+  "systemLanguage",
+  "tableValues",
+  "targetX",
+  "targetY",
+  "textLength",
+  "viewBox",
+  "viewTarget",
+  "xChannelSelector",
+  "yChannelSelector",
+  "zoomAndPan"
+].map((val) => [val.toLowerCase(), val]));
+
+// node_modules/dom-serializer/lib/esm/index.js
+var unencodedElements = /* @__PURE__ */ new Set([
+  "style",
+  "script",
+  "xmp",
+  "iframe",
+  "noembed",
+  "noframes",
+  "plaintext",
+  "noscript"
+]);
+function replaceQuotes(value) {
+  return value.replace(/"/g, "&quot;");
+}
+function formatAttributes(attributes, opts) {
+  var _a3;
+  if (!attributes)
+    return;
+  const encode7 = ((_a3 = opts.encodeEntities) !== null && _a3 !== void 0 ? _a3 : opts.decodeEntities) === false ? replaceQuotes : opts.xmlMode || opts.encodeEntities !== "utf8" ? encodeXML : escapeAttribute;
+  return Object.keys(attributes).map((key) => {
+    var _a4, _b;
+    const value = (_a4 = attributes[key]) !== null && _a4 !== void 0 ? _a4 : "";
+    if (opts.xmlMode === "foreign") {
+      key = (_b = attributeNames.get(key)) !== null && _b !== void 0 ? _b : key;
+    }
+    if (!opts.emptyAttrs && !opts.xmlMode && value === "") {
+      return key;
+    }
+    return `${key}="${encode7(value)}"`;
+  }).join(" ");
+}
+var singleTag = /* @__PURE__ */ new Set([
+  "area",
+  "base",
+  "basefont",
+  "br",
+  "col",
+  "command",
+  "embed",
+  "frame",
+  "hr",
+  "img",
+  "input",
+  "isindex",
+  "keygen",
+  "link",
+  "meta",
+  "param",
+  "source",
+  "track",
+  "wbr"
+]);
+function render(node, options = {}) {
+  const nodes = "length" in node ? node : [node];
+  let output = "";
+  for (let i = 0; i < nodes.length; i++) {
+    output += renderNode(nodes[i], options);
+  }
+  return output;
+}
+function renderNode(node, options) {
+  switch (node.type) {
+    case Root:
+      return render(node.children, options);
+    // @ts-expect-error We don't use `Doctype` yet
+    case Doctype:
+    case Directive:
+      return renderDirective(node);
+    case Comment:
+      return renderComment(node);
+    case CDATA:
+      return renderCdata(node);
+    case Script:
+    case Style:
+    case Tag:
+      return renderTag(node, options);
+    case Text:
+      return renderText(node, options);
+  }
+}
+var foreignModeIntegrationPoints = /* @__PURE__ */ new Set([
+  "mi",
+  "mo",
+  "mn",
+  "ms",
+  "mtext",
+  "annotation-xml",
+  "foreignObject",
+  "desc",
+  "title"
+]);
+var foreignElements = /* @__PURE__ */ new Set(["svg", "math"]);
+function renderTag(elem, opts) {
+  var _a3;
+  if (opts.xmlMode === "foreign") {
+    elem.name = (_a3 = elementNames.get(elem.name)) !== null && _a3 !== void 0 ? _a3 : elem.name;
+    if (elem.parent && foreignModeIntegrationPoints.has(elem.parent.name)) {
+      opts = { ...opts, xmlMode: false };
+    }
+  }
+  if (!opts.xmlMode && foreignElements.has(elem.name)) {
+    opts = { ...opts, xmlMode: "foreign" };
+  }
+  let tag2 = `<${elem.name}`;
+  const attribs = formatAttributes(elem.attribs, opts);
+  if (attribs) {
+    tag2 += ` ${attribs}`;
+  }
+  if (elem.children.length === 0 && (opts.xmlMode ? (
+    // In XML mode or foreign mode, and user hasn't explicitly turned off self-closing tags
+    opts.selfClosingTags !== false
+  ) : (
+    // User explicitly asked for self-closing tags, even in HTML mode
+    opts.selfClosingTags && singleTag.has(elem.name)
+  ))) {
+    if (!opts.xmlMode)
+      tag2 += " ";
+    tag2 += "/>";
+  } else {
+    tag2 += ">";
+    if (elem.children.length > 0) {
+      tag2 += render(elem.children, opts);
+    }
+    if (opts.xmlMode || !singleTag.has(elem.name)) {
+      tag2 += `</${elem.name}>`;
+    }
+  }
+  return tag2;
+}
+function renderDirective(elem) {
+  return `<${elem.data}>`;
+}
+function renderText(elem, opts) {
+  var _a3;
+  let data = elem.data || "";
+  if (((_a3 = opts.encodeEntities) !== null && _a3 !== void 0 ? _a3 : opts.decodeEntities) !== false && !(!opts.xmlMode && elem.parent && unencodedElements.has(elem.parent.name))) {
+    data = opts.xmlMode || opts.encodeEntities !== "utf8" ? encodeXML(data) : escapeText(data);
+  }
+  return data;
+}
+function renderCdata(elem) {
+  return `<![CDATA[${elem.children[0].data}]]>`;
+}
+function renderComment(elem) {
+  return `<!--${elem.data}-->`;
+}
+
+// node_modules/domutils/lib/esm/helpers.js
+var DocumentPosition;
+(function(DocumentPosition2) {
+  DocumentPosition2[DocumentPosition2["DISCONNECTED"] = 1] = "DISCONNECTED";
+  DocumentPosition2[DocumentPosition2["PRECEDING"] = 2] = "PRECEDING";
+  DocumentPosition2[DocumentPosition2["FOLLOWING"] = 4] = "FOLLOWING";
+  DocumentPosition2[DocumentPosition2["CONTAINS"] = 8] = "CONTAINS";
+  DocumentPosition2[DocumentPosition2["CONTAINED_BY"] = 16] = "CONTAINED_BY";
+})(DocumentPosition || (DocumentPosition = {}));
+
+// node_modules/htmlparser2/dist/esm/index.js
+function parseDocument(data, options) {
+  const handler = new DomHandler(void 0, options);
+  new Parser(handler, options).end(data);
+  return handler.root;
+}
+
+// node_modules/deepmerge-ts/dist/index.mjs
+var actions = {
+  defaultMerge: Symbol("deepmerge-ts: default merge"),
+  skip: Symbol("deepmerge-ts: skip")
+};
+var actionsInto = {
+  defaultMerge: actions.defaultMerge
+};
+function defaultMetaDataUpdater(previousMeta, mergeInfo) {
+  const ancestor = {
+    key: mergeInfo.key,
+    parents: mergeInfo.parents,
+    values: mergeInfo.values,
+    result: mergeInfo.result
+  };
+  const prevHierarchy = previousMeta?.hierarchy;
+  return {
+    ...ancestor,
+    hierarchy: prevHierarchy === void 0 ? [ancestor] : [...prevHierarchy, ancestor]
+  };
+}
+function defaultFilterValues(values, meta) {
+  return values.includes(void 0) ? values.filter((value) => value !== void 0) : values;
+}
+function shouldFallbackToDefault(utils, fallback, result) {
+  return result === actions.defaultMerge || utils.useImplicitDefaultMerging && result === void 0 && utils.mergeFunctions[fallback] !== utils.defaultMergeFunctions[fallback];
+}
+function resolveCustomMergeFunctions(options, defaultMergeFunctions) {
+  return {
+    ...defaultMergeFunctions,
+    ...Object.fromEntries(Object.entries(options).filter(([key]) => Object.hasOwn(defaultMergeFunctions, key)).map(([key, option2]) => option2 === false ? [key, defaultMergeFunctions.mergeOthers] : typeof option2 === "function" ? [key, option2] : [key, defaultMergeFunctions[key]]))
+  };
+}
+function mergeArrays$1(values, utils, meta) {
+  return values.flat();
+}
+function mergeSets$1(values, utils, meta) {
+  const result = /* @__PURE__ */ new Set();
+  for (const set of values) {
+    for (const element of set) {
+      result.add(element);
+    }
+  }
+  return result;
+}
+function mergeOthers$1(values, utils, meta) {
+  return values.at(-1);
+}
+var ObjectType;
+(function(ObjectType2) {
+  ObjectType2[ObjectType2["NOT"] = 0] = "NOT";
+  ObjectType2[ObjectType2["RECORD"] = 1] = "RECORD";
+  ObjectType2[ObjectType2["ARRAY"] = 2] = "ARRAY";
+  ObjectType2[ObjectType2["SET"] = 3] = "SET";
+  ObjectType2[ObjectType2["MAP"] = 4] = "MAP";
+  ObjectType2[ObjectType2["OTHER"] = 5] = "OTHER";
+})(ObjectType || (ObjectType = {}));
+function getObjectType(object) {
+  if (typeof object !== "object" || object === null) {
+    return ObjectType.NOT;
+  }
+  if (Array.isArray(object)) {
+    return ObjectType.ARRAY;
+  }
+  if (isRecord(object)) {
+    return ObjectType.RECORD;
+  }
+  if (object instanceof Set) {
+    return ObjectType.SET;
+  }
+  if (object instanceof Map) {
+    return ObjectType.MAP;
+  }
+  return ObjectType.OTHER;
+}
+function getKeysOfObjects(objects) {
+  const keys = /* @__PURE__ */ new Set();
+  for (const currentObject of objects) {
+    const stringKeys = Object.keys(currentObject);
+    for (const stringKey of stringKeys) {
+      keys.add(stringKey);
+    }
+    const symbols = Object.getOwnPropertySymbols(currentObject);
+    if (symbols.length > 0) {
+      for (const symbol of symbols) {
+        if (Object.prototype.propertyIsEnumerable.call(currentObject, symbol)) {
+          keys.add(symbol);
+        }
+      }
+    }
+  }
+  return keys;
+}
+function getKeysOfObject(object) {
+  const symbols = Object.getOwnPropertySymbols(object).filter((symbol) => Object.prototype.propertyIsEnumerable.call(object, symbol));
+  return [...Object.keys(object), ...symbols];
+}
+function objectHasProperty(object, property) {
+  return typeof object === "object" && Object.prototype.propertyIsEnumerable.call(object, property);
+}
+function isRecord(value) {
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype === null || prototype === Object.prototype) {
+    return true;
+  }
+  const objectToString = Object.prototype.toString.call(value);
+  if (objectToString !== "[object Object]" && objectToString !== "[object Module]") {
+    return false;
+  }
+  const { constructor } = value;
+  if (constructor === void 0) {
+    return true;
+  }
+  const constructorPrototype = constructor.prototype;
+  if (constructorPrototype === null || typeof constructorPrototype !== "object") {
+    return false;
+  }
+  const constructorToString = Object.prototype.toString.call(constructorPrototype);
+  if (constructorToString !== "[object Object]" && constructorToString !== "[object Module]") {
+    return false;
+  }
+  if (!Object.hasOwn(constructorPrototype, "isPrototypeOf")) {
+    return false;
+  }
+  return true;
+}
+function getCyclicReferenceDepth(object, hierarchy, index) {
+  if (hierarchy === void 0 || hierarchy.length === 0) {
+    return 0;
+  }
+  let mut_depth = 1;
+  for (let mut_index = hierarchy.length - 1; mut_index >= 0; mut_index--) {
+    const { parents } = hierarchy[mut_index];
+    if (parents[index] === object || parents.includes(object)) {
+      return mut_depth;
+    }
+    mut_depth += 1;
+  }
+  return 0;
+}
+function getMetaDataHierarchy(meta) {
+  return meta?.hierarchy;
+}
+function mergeRecords$1(values, utils, meta) {
+  if (values.length === 2) {
+    const result = {};
+    const mergeProperty = (key, propValues) => {
+      const updatedMeta = utils.metaDataUpdater(meta, {
+        key,
+        parents: values,
+        values: propValues,
+        result
+      });
+      const propertyResult = mergeUnknowns(propValues, utils, updatedMeta);
+      if (propertyResult === actions.skip) {
+        return;
+      }
+      if (key === "__proto__") {
+        Object.defineProperty(result, key, {
+          value: propertyResult,
+          configurable: true,
+          enumerable: true,
+          writable: true
+        });
+      } else {
+        result[key] = propertyResult;
+      }
+    };
+    const firstValue = values[0];
+    const secondValue = values[1];
+    for (const key of getKeysOfObject(firstValue)) {
+      mergeProperty(key, objectHasProperty(secondValue, key) ? [firstValue[key], secondValue[key]] : [firstValue[key]]);
+    }
+    for (const key of getKeysOfObject(secondValue)) {
+      if (!objectHasProperty(firstValue, key)) {
+        mergeProperty(key, [secondValue[key]]);
+      }
+    }
+    return result;
+  }
+  return mergeRecordsGeneral(values, utils, meta);
+}
+function mergeRecordsGeneral(values, utils, meta) {
+  const result = {};
+  for (const key of getKeysOfObjects(values)) {
+    const propValues = [];
+    for (const value of values) {
+      if (objectHasProperty(value, key)) {
+        propValues.push(value[key]);
+      }
+    }
+    const updatedMeta = utils.metaDataUpdater(meta, {
+      key,
+      parents: values,
+      values: propValues,
+      result
+    });
+    const propertyResult = mergeUnknowns(propValues, utils, updatedMeta);
+    if (propertyResult === actions.skip) {
+      continue;
+    }
+    if (key === "__proto__") {
+      Object.defineProperty(result, key, {
+        value: propertyResult,
+        configurable: true,
+        enumerable: true,
+        writable: true
+      });
+    } else {
+      result[key] = propertyResult;
+    }
+  }
+  return result;
+}
+function mergeMaps$1(values, utils, meta) {
+  const result = /* @__PURE__ */ new Map();
+  const valuesByKey = /* @__PURE__ */ new Map();
+  for (const map3 of values) {
+    for (const [key, value] of map3) {
+      const mut_keyValues = valuesByKey.get(key);
+      if (mut_keyValues === void 0) {
+        valuesByKey.set(key, [value]);
+      } else {
+        mut_keyValues.push(value);
+      }
+    }
+  }
+  for (const [key, keyValues] of valuesByKey) {
+    const updatedMeta = utils.metaDataUpdater(meta, {
+      key,
+      parents: values,
+      values: keyValues,
+      result
+    });
+    const keyResult = mergeUnknowns(keyValues, utils, updatedMeta);
+    if (keyResult === actions.skip) {
+      continue;
+    }
+    result.set(key, keyResult);
+  }
+  return result;
+}
+function resolveCyclicReferences(value, utils, meta) {
+  if (typeof value !== "object" || value === null) {
+    return value;
+  }
+  const hierarchy = getMetaDataHierarchy(meta);
+  const depth = getCyclicReferenceDepth(value, hierarchy, 0);
+  if (hierarchy !== void 0 && depth > 0) {
+    return hierarchy[hierarchy.length - depth]?.result;
+  }
+  const type = getObjectType(value);
+  if (type === ObjectType.RECORD) {
+    const record = value;
+    let mut_changed = false;
+    const result = {};
+    for (const key of getKeysOfObject(record)) {
+      const propVal = record[key];
+      const updatedMeta = utils.metaDataUpdater(meta, {
+        key,
+        parents: [record],
+        values: [propVal],
+        result
+      });
+      const resolvedProp = resolveCyclicReferences(propVal, utils, updatedMeta);
+      if (resolvedProp !== propVal) {
+        mut_changed = true;
+      }
+      if (key === "__proto__") {
+        Object.defineProperty(result, key, {
+          value: resolvedProp,
+          configurable: true,
+          enumerable: true,
+          writable: true
+        });
+      } else {
+        result[key] = resolvedProp;
+      }
+    }
+    return mut_changed ? result : value;
+  }
+  return value;
+}
+function mergeCircularReferences$1(values, cyclicDepths, utils, meta) {
+  const depth = cyclicDepths[0];
+  const hierarchy = getMetaDataHierarchy(meta);
+  for (let mut_index = 1; mut_index < values.length; mut_index++) {
+    if (cyclicDepths[mut_index] !== depth) {
+      const lastCyclicDepth = cyclicDepths.at(-1);
+      return lastCyclicDepth === 0 ? resolveCyclicReferences(values.at(-1), utils, meta) : hierarchy?.[hierarchy.length - lastCyclicDepth]?.result;
+    }
+  }
+  return hierarchy?.[hierarchy.length - depth]?.result;
+}
+var mergeFunctions = {
+  mergeRecords: mergeRecords$1,
+  mergeArrays: mergeArrays$1,
+  mergeSets: mergeSets$1,
+  mergeMaps: mergeMaps$1,
+  mergeCircularReferences: mergeCircularReferences$1,
+  mergeOthers: mergeOthers$1
+};
+function deepmergeCustom(options = {}, rootMetaData) {
+  const utils = getUtils$1(options, customizedDeepmerge);
+  function customizedDeepmerge(...objects) {
+    return mergeUnknowns(objects, utils, rootMetaData ?? void 0);
+  }
+  return customizedDeepmerge;
+}
+function getUtils$1(options, customizedDeepmerge) {
+  const defaultMergeFns = mergeFunctions;
+  const defaultMetaDataUpd = defaultMetaDataUpdater;
+  return {
+    defaultMergeFunctions: defaultMergeFns,
+    mergeFunctions: resolveCustomMergeFunctions(options, defaultMergeFns),
+    metaDataUpdater: typeof options.metaDataUpdater === "function" ? options.metaDataUpdater : defaultMetaDataUpd,
+    deepmerge: customizedDeepmerge,
+    useImplicitDefaultMerging: options.enableImplicitDefaultMerging ?? false,
+    filterValues: options.filterValues === false ? void 0 : typeof options.filterValues === "function" ? options.filterValues : defaultFilterValues,
+    maxDepth: typeof options.maxDepth === "number" && !Number.isNaN(options.maxDepth) && options.maxDepth >= 0 ? options.maxDepth : 1e3,
+    actions
+  };
+}
+function mergeUnknowns(values, utils, meta) {
+  const filteredValues = utils.filterValues?.(values, meta) ?? values;
+  if (filteredValues.length === 0) {
+    return void 0;
+  }
+  const hierarchy = getMetaDataHierarchy(meta);
+  const currentDepth = hierarchy?.length ?? (typeof meta === "number" ? meta : meta?.depth ?? 0);
+  if (utils.maxDepth !== void 0 && currentDepth >= utils.maxDepth) {
+    return mergeOthers(filteredValues, utils, meta);
+  }
+  if (filteredValues.length === 1) {
+    if (hierarchy !== void 0) {
+      const depth = getCyclicReferenceDepth(filteredValues[0], hierarchy, 0);
+      if (depth > 0) {
+        return hierarchy[hierarchy.length - depth]?.result ?? hierarchy[hierarchy.length - depth]?.parents[0];
+      }
+    }
+    return mergeOthers(filteredValues, utils, meta);
+  }
+  const type = getObjectType(filteredValues[0]);
+  if (type !== ObjectType.NOT && type !== ObjectType.OTHER) {
+    if (filteredValues.length === 2) {
+      if (getObjectType(filteredValues[1]) !== type) {
+        return mergeOthers(filteredValues, utils, meta);
+      }
+      const d0 = getCyclicReferenceDepth(filteredValues[0], hierarchy, 0);
+      const d1 = getCyclicReferenceDepth(filteredValues[1], hierarchy, 1);
+      if (d0 !== 0 || d1 !== 0) {
+        return mergeCircularReferences(filteredValues, [d0, d1], utils, meta);
+      }
+    } else {
+      const cyclicDepths = new Array(filteredValues.length);
+      cyclicDepths[0] = getCyclicReferenceDepth(filteredValues[0], hierarchy, 0);
+      for (let mut_index = 1; mut_index < filteredValues.length; mut_index++) {
+        if (getObjectType(filteredValues[mut_index]) !== type) {
+          return mergeOthers(filteredValues, utils, meta);
+        }
+        cyclicDepths[mut_index] = getCyclicReferenceDepth(filteredValues[mut_index], hierarchy, mut_index);
+      }
+      if (cyclicDepths.some((depth) => depth !== 0)) {
+        return mergeCircularReferences(filteredValues, cyclicDepths, utils, meta);
+      }
+    }
+  }
+  switch (type) {
+    case ObjectType.RECORD: {
+      return mergeRecords(filteredValues, utils, meta);
+    }
+    case ObjectType.ARRAY: {
+      return mergeArrays(filteredValues, utils, meta);
+    }
+    case ObjectType.SET: {
+      return mergeSets(filteredValues, utils, meta);
+    }
+    case ObjectType.MAP: {
+      return mergeMaps(filteredValues, utils, meta);
+    }
+    default: {
+      return mergeOthers(filteredValues, utils, meta);
+    }
+  }
+}
+function mergeRecords(values, utils, meta) {
+  const result = utils.mergeFunctions.mergeRecords(values, utils, meta);
+  if (shouldFallbackToDefault(utils, "mergeRecords", result)) {
+    return utils.defaultMergeFunctions.mergeRecords(values, utils, meta);
+  }
+  return result;
+}
+function mergeArrays(values, utils, meta) {
+  const result = utils.mergeFunctions.mergeArrays(values, utils, meta);
+  if (shouldFallbackToDefault(utils, "mergeArrays", result)) {
+    return utils.defaultMergeFunctions.mergeArrays(values);
+  }
+  return result;
+}
+function mergeSets(values, utils, meta) {
+  const result = utils.mergeFunctions.mergeSets(values, utils, meta);
+  if (shouldFallbackToDefault(utils, "mergeSets", result)) {
+    return utils.defaultMergeFunctions.mergeSets(values);
+  }
+  return result;
+}
+function mergeMaps(values, utils, meta) {
+  const result = utils.mergeFunctions.mergeMaps(values, utils, meta);
+  if (shouldFallbackToDefault(utils, "mergeMaps", result)) {
+    return utils.defaultMergeFunctions.mergeMaps(values, utils, meta);
+  }
+  return result;
+}
+function mergeCircularReferences(values, cyclicDepths, utils, meta) {
+  const result = utils.mergeFunctions.mergeCircularReferences(values, cyclicDepths, utils, meta);
+  if (shouldFallbackToDefault(utils, "mergeCircularReferences", result)) {
+    return utils.defaultMergeFunctions.mergeCircularReferences(values, cyclicDepths, utils, meta);
+  }
+  return result;
+}
+function mergeOthers(values, utils, meta) {
+  const result = utils.mergeFunctions.mergeOthers(values, utils, meta);
+  if (shouldFallbackToDefault(utils, "mergeOthers", result)) {
+    return utils.defaultMergeFunctions.mergeOthers(values);
+  }
+  return result;
+}
+
+// node_modules/html-to-text/lib/html-to-text.mjs
+function limitedDepthRecursive(n, f, g = () => void 0) {
+  if (n === void 0) {
+    const f1 = function(...args) {
+      return f(f1, ...args);
+    };
+    return f1;
+  }
+  if (n >= 0) {
+    return function(...args) {
+      return f(limitedDepthRecursive(n - 1, f, g), ...args);
+    };
+  }
+  return g;
+}
+function trimCharacter(str, char) {
+  let start = 0;
+  let end = str.length;
+  while (start < end && str[start] === char) {
+    ++start;
+  }
+  while (end > start && str[end - 1] === char) {
+    --end;
+  }
+  return start > 0 || end < str.length ? str.substring(start, end) : str;
+}
+function trimCharacterEnd(str, char) {
+  let end = str.length;
+  while (end > 0 && str[end - 1] === char) {
+    --end;
+  }
+  return end < str.length ? str.substring(0, end) : str;
+}
+function unicodeEscape(str) {
+  return str.replace(/[\s\S]/g, (c) => "\\u" + c.charCodeAt().toString(16).padStart(4, "0"));
+}
+function get(obj, path5) {
+  for (const key of path5) {
+    if (!obj) {
+      return void 0;
+    }
+    obj = obj[key];
+  }
+  return obj;
+}
+function numberToLetterSequence(num, baseChar = "a", base2 = 26) {
+  const digits = [];
+  do {
+    num -= 1;
+    digits.push(num % base2);
+    num = num / base2 >> 0;
+  } while (num > 0);
+  const baseCode = baseChar.charCodeAt(0);
+  return digits.reverse().map((n) => String.fromCharCode(baseCode + n)).join("");
+}
+var I = ["I", "X", "C", "M"];
+var V = ["V", "L", "D"];
+function numberToRoman(num) {
+  return [...num + ""].map((n) => +n).reverse().map((v, i) => v % 5 < 4 ? (v < 5 ? "" : V[i]) + I[i].repeat(v % 5) : I[i] + (v < 5 ? V[i] : I[i + 1])).reverse().join("");
+}
+var InlineTextBuilder = class {
+  /**
+   * Creates an instance of InlineTextBuilder.
+   *
+   * If `maxLineLength` is not provided then it is either `options.wordwrap` or unlimited.
+   *
+   * @param { Options } options           HtmlToText options.
+   * @param { number }  [ maxLineLength ] This builder will try to wrap text to fit this line length.
+   */
+  constructor(options, maxLineLength = void 0) {
+    this.lines = [];
+    this.nextLineWords = [];
+    this.maxLineLength = maxLineLength || options.wordwrap || Number.MAX_VALUE;
+    this.nextLineAvailableChars = this.maxLineLength;
+    this.wrapCharacters = get(options, ["longWordSplit", "wrapCharacters"]) || [];
+    this.forceWrapOnLimit = get(options, ["longWordSplit", "forceWrapOnLimit"]) || false;
+    this.stashedSpace = false;
+    this.wordBreakOpportunity = false;
+  }
+  /**
+   * Add a new word.
+   *
+   * @param { string } word A word to add.
+   * @param { boolean } [noWrap] Don't wrap text even if the line is too long.
+   */
+  pushWord(word, noWrap = false) {
+    if (this.nextLineAvailableChars <= 0 && !noWrap) {
+      this.startNewLine();
+    }
+    const isLineStart = this.nextLineWords.length === 0;
+    const cost = word.length + (isLineStart ? 0 : 1);
+    if (cost <= this.nextLineAvailableChars || noWrap) {
+      this.nextLineWords.push(word);
+      this.nextLineAvailableChars -= cost;
+    } else {
+      const [first2, ...rest] = this.splitLongWord(word);
+      if (!isLineStart) {
+        this.startNewLine();
+      }
+      this.nextLineWords.push(first2);
+      this.nextLineAvailableChars -= first2.length;
+      for (const part of rest) {
+        this.startNewLine();
+        this.nextLineWords.push(part);
+        this.nextLineAvailableChars -= part.length;
+      }
+    }
+  }
+  /**
+   * Pop a word from the currently built line.
+   * This doesn't affect completed lines.
+   *
+   * @returns { string }
+   */
+  popWord() {
+    const lastWord = this.nextLineWords.pop();
+    if (lastWord !== void 0) {
+      const isLineStart = this.nextLineWords.length === 0;
+      const cost = lastWord.length + (isLineStart ? 0 : 1);
+      this.nextLineAvailableChars += cost;
+    }
+    return lastWord;
+  }
+  /**
+   * Concat a word to the last word already in the builder.
+   * Adds a new word in case there are no words yet in the last line.
+   *
+   * @param { string } word A word to be concatenated.
+   * @param { boolean } [noWrap] Don't wrap text even if the line is too long.
+   */
+  concatWord(word, noWrap = false) {
+    if (this.wordBreakOpportunity && word.length > this.nextLineAvailableChars) {
+      this.pushWord(word, noWrap);
+      this.wordBreakOpportunity = false;
+    } else {
+      const lastWord = this.popWord();
+      this.pushWord(lastWord ? lastWord.concat(word) : word, noWrap);
+    }
+  }
+  /**
+   * Add current line (and more empty lines if provided argument > 1) to the list of complete lines and start a new one.
+   *
+   * @param { number } n Number of line breaks that will be added to the resulting string.
+   */
+  startNewLine(n = 1) {
+    this.lines.push(this.nextLineWords);
+    if (n > 1) {
+      this.lines.push(...Array.from({ length: n - 1 }, () => []));
+    }
+    this.nextLineWords = [];
+    this.nextLineAvailableChars = this.maxLineLength;
+  }
+  /**
+   * No words in this builder.
+   *
+   * @returns { boolean }
+   */
+  isEmpty() {
+    return this.lines.length === 0 && this.nextLineWords.length === 0;
+  }
+  clear() {
+    this.lines.length = 0;
+    this.nextLineWords.length = 0;
+    this.nextLineAvailableChars = this.maxLineLength;
+  }
+  /**
+   * Join all lines of words inside the InlineTextBuilder into a complete string.
+   *
+   * @returns { string }
+   */
+  toString() {
+    return [...this.lines, this.nextLineWords].map((words) => words.join(" ")).join("\n");
+  }
+  /**
+   * Split a long word up to fit within the word wrap limit.
+   * Use either a character to split looking back from the word wrap limit,
+   * or truncate to the word wrap limit.
+   *
+   * @param   { string }   word Input word.
+   * @returns { string[] }      Parts of the word.
+   */
+  splitLongWord(word) {
+    const parts = [];
+    let idx = 0;
+    while (word.length > this.maxLineLength) {
+      const firstLine = word.substring(0, this.maxLineLength);
+      const remainingChars = word.substring(this.maxLineLength);
+      const splitIndex = firstLine.lastIndexOf(this.wrapCharacters[idx]);
+      if (splitIndex > -1) {
+        word = firstLine.substring(splitIndex + 1) + remainingChars;
+        parts.push(firstLine.substring(0, splitIndex + 1));
+      } else {
+        idx++;
+        if (idx < this.wrapCharacters.length) {
+          word = firstLine + remainingChars;
+        } else {
+          if (this.forceWrapOnLimit) {
+            parts.push(firstLine);
+            word = remainingChars;
+            if (word.length > this.maxLineLength) {
+              continue;
+            }
+          } else {
+            word = firstLine + remainingChars;
+          }
+          break;
+        }
+      }
+    }
+    parts.push(word);
+    return parts;
+  }
+};
+var StackItem = class {
+  constructor(next = null) {
+    this.next = next;
+  }
+  getRoot() {
+    return this.next ? this.next : this;
+  }
+};
+var BlockStackItem = class extends StackItem {
+  constructor(options, next = null, leadingLineBreaks = 1, maxLineLength = void 0) {
+    super(next);
+    this.leadingLineBreaks = leadingLineBreaks;
+    this.inlineTextBuilder = new InlineTextBuilder(options, maxLineLength);
+    this.rawText = "";
+    this.stashedLineBreaks = 0;
+    this.isPre = next && next.isPre;
+    this.isNoWrap = next && next.isNoWrap;
+  }
+};
+var ListStackItem = class extends BlockStackItem {
+  constructor(options, next = null, {
+    interRowLineBreaks = 1,
+    leadingLineBreaks = 2,
+    maxLineLength = void 0,
+    maxPrefixLength = 0,
+    prefixAlign = "left"
+  } = {}) {
+    super(options, next, leadingLineBreaks, maxLineLength);
+    this.maxPrefixLength = maxPrefixLength;
+    this.prefixAlign = prefixAlign;
+    this.interRowLineBreaks = interRowLineBreaks;
+  }
+};
+var ListItemStackItem = class extends BlockStackItem {
+  constructor(options, next = null, {
+    leadingLineBreaks = 1,
+    maxLineLength = void 0,
+    prefix = ""
+  } = {}) {
+    super(options, next, leadingLineBreaks, maxLineLength);
+    this.prefix = prefix;
+  }
+};
+var TableStackItem = class extends StackItem {
+  constructor(next = null) {
+    super(next);
+    this.rows = [];
+    this.isPre = next && next.isPre;
+    this.isNoWrap = next && next.isNoWrap;
+  }
+};
+var TableRowStackItem = class extends StackItem {
+  constructor(next = null) {
+    super(next);
+    this.cells = [];
+    this.isPre = next && next.isPre;
+    this.isNoWrap = next && next.isNoWrap;
+  }
+};
+var TableCellStackItem = class extends StackItem {
+  constructor(options, next = null, maxColumnWidth = void 0) {
+    super(next);
+    this.inlineTextBuilder = new InlineTextBuilder(options, maxColumnWidth);
+    this.rawText = "";
+    this.stashedLineBreaks = 0;
+    this.isPre = next && next.isPre;
+    this.isNoWrap = next && next.isNoWrap;
+  }
+};
+var TransformerStackItem = class extends StackItem {
+  constructor(next = null, transform) {
+    super(next);
+    this.transform = transform;
+  }
+};
+function charactersToCodes(str) {
+  return [...str].map((c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0")).join("");
+}
+var WhitespaceProcessor = class {
+  /**
+   * Creates an instance of WhitespaceProcessor.
+   *
+   * @param { Options } options    HtmlToText options.
+   * @memberof WhitespaceProcessor
+   */
+  constructor(options) {
+    this.whitespaceChars = options.preserveNewlines ? options.whitespaceCharacters.replace(/\n/g, "") : options.whitespaceCharacters;
+    const whitespaceCodes = charactersToCodes(this.whitespaceChars);
+    this.leadingWhitespaceRe = new RegExp(`^[${whitespaceCodes}]`);
+    this.trailingWhitespaceRe = new RegExp(`[${whitespaceCodes}]$`);
+    this.allWhitespaceOrEmptyRe = new RegExp(`^[${whitespaceCodes}]*$`);
+    this.newlineOrNonWhitespaceRe = new RegExp(`(\\n|[^\\n${whitespaceCodes}])`, "g");
+    this.newlineOrNonNewlineStringRe = new RegExp(`(\\n|[^\\n]+)`, "g");
+    if (options.preserveNewlines) {
+      const wordOrNewlineRe = new RegExp(`\\n|[^\\n${whitespaceCodes}]+`, "gm");
+      this.shrinkWrapAdd = function(text, inlineTextBuilder, transform = ((str) => str), noWrap = false) {
+        if (!text) {
+          return;
+        }
+        const previouslyStashedSpace = inlineTextBuilder.stashedSpace;
+        let anyMatch = false;
+        let m = wordOrNewlineRe.exec(text);
+        if (m) {
+          anyMatch = true;
+          if (m[0] === "\n") {
+            inlineTextBuilder.startNewLine();
+          } else if (previouslyStashedSpace || this.testLeadingWhitespace(text)) {
+            inlineTextBuilder.pushWord(transform(m[0]), noWrap);
+          } else {
+            inlineTextBuilder.concatWord(transform(m[0]), noWrap);
+          }
+          while ((m = wordOrNewlineRe.exec(text)) !== null) {
+            if (m[0] === "\n") {
+              inlineTextBuilder.startNewLine();
+            } else {
+              inlineTextBuilder.pushWord(transform(m[0]), noWrap);
+            }
+          }
+        }
+        inlineTextBuilder.stashedSpace = previouslyStashedSpace && !anyMatch || this.testTrailingWhitespace(text);
+      };
+    } else {
+      const wordRe = new RegExp(`[^${whitespaceCodes}]+`, "g");
+      this.shrinkWrapAdd = function(text, inlineTextBuilder, transform = ((str) => str), noWrap = false) {
+        if (!text) {
+          return;
+        }
+        const previouslyStashedSpace = inlineTextBuilder.stashedSpace;
+        let anyMatch = false;
+        let m = wordRe.exec(text);
+        if (m) {
+          anyMatch = true;
+          if (previouslyStashedSpace || this.testLeadingWhitespace(text)) {
+            inlineTextBuilder.pushWord(transform(m[0]), noWrap);
+          } else {
+            inlineTextBuilder.concatWord(transform(m[0]), noWrap);
+          }
+          while ((m = wordRe.exec(text)) !== null) {
+            inlineTextBuilder.pushWord(transform(m[0]), noWrap);
+          }
+        }
+        inlineTextBuilder.stashedSpace = previouslyStashedSpace && !anyMatch || this.testTrailingWhitespace(text);
+      };
+    }
+  }
+  /**
+   * Add text with only minimal processing.
+   * Everything between newlines considered a single word.
+   * No whitespace is trimmed.
+   * Not affected by preserveNewlines option - `\n` always starts a new line.
+   *
+   * `noWrap` argument is `true` by default - this won't start a new line
+   * even if there is not enough space left in the current line.
+   *
+   * @param { string }            text              Input text.
+   * @param { InlineTextBuilder } inlineTextBuilder A builder to receive processed text.
+   * @param { boolean }           [noWrap] Don't wrap text even if the line is too long.
+   */
+  addLiteral(text, inlineTextBuilder, noWrap = true) {
+    if (!text) {
+      return;
+    }
+    const previouslyStashedSpace = inlineTextBuilder.stashedSpace;
+    let anyMatch = false;
+    let m = this.newlineOrNonNewlineStringRe.exec(text);
+    if (m) {
+      anyMatch = true;
+      if (m[0] === "\n") {
+        inlineTextBuilder.startNewLine();
+      } else if (previouslyStashedSpace) {
+        inlineTextBuilder.pushWord(m[0], noWrap);
+      } else {
+        inlineTextBuilder.concatWord(m[0], noWrap);
+      }
+      while ((m = this.newlineOrNonNewlineStringRe.exec(text)) !== null) {
+        if (m[0] === "\n") {
+          inlineTextBuilder.startNewLine();
+        } else {
+          inlineTextBuilder.pushWord(m[0], noWrap);
+        }
+      }
+    }
+    inlineTextBuilder.stashedSpace = previouslyStashedSpace && !anyMatch;
+  }
+  /**
+   * Test whether the given text starts with HTML whitespace character.
+   *
+   * @param   { string }  text  The string to test.
+   * @returns { boolean }
+   */
+  testLeadingWhitespace(text) {
+    return this.leadingWhitespaceRe.test(text);
+  }
+  /**
+   * Test whether the given text ends with HTML whitespace character.
+   *
+   * @param   { string }  text  The string to test.
+   * @returns { boolean }
+   */
+  testTrailingWhitespace(text) {
+    return this.trailingWhitespaceRe.test(text);
+  }
+  /**
+   * Test whether the given text contains any non-whitespace characters.
+   *
+   * @param   { string }  text  The string to test.
+   * @returns { boolean }
+   */
+  testContainsWords(text) {
+    return !this.allWhitespaceOrEmptyRe.test(text);
+  }
+  /**
+   * Return the number of newlines if there are no words.
+   *
+   * If any word is found then return zero regardless of the actual number of newlines.
+   *
+   * @param   { string }  text  Input string.
+   * @returns { number }
+   */
+  countNewlinesNoWords(text) {
+    this.newlineOrNonWhitespaceRe.lastIndex = 0;
+    let counter = 0;
+    let match2;
+    while ((match2 = this.newlineOrNonWhitespaceRe.exec(text)) !== null) {
+      if (match2[0] === "\n") {
+        counter++;
+      } else {
+        return 0;
+      }
+    }
+    return counter;
+  }
+};
+var BlockTextBuilder = class {
+  /**
+   * Creates an instance of BlockTextBuilder.
+   *
+   * @param { Options } options HtmlToText options.
+   * @param { import('selderee').Picker<DomNode, TagDefinition> } picker Selectors decision tree picker.
+   * @param { any} [metadata] Optional metadata for HTML document, for use in formatters.
+   */
+  constructor(options, picker, metadata = void 0) {
+    this.options = options;
+    this.picker = picker;
+    this.metadata = metadata;
+    this.whitespaceProcessor = new WhitespaceProcessor(options);
+    this._stackItem = new BlockStackItem(options);
+    this._wordTransformer = void 0;
+  }
+  /**
+   * Put a word-by-word transform function onto the transformations stack.
+   *
+   * Mainly used for uppercasing. Can be bypassed to add unformatted text such as URLs.
+   *
+   * Word transformations applied before wrapping.
+   *
+   * @param { (str: string) => string } wordTransform Word transformation function.
+   */
+  pushWordTransform(wordTransform) {
+    this._wordTransformer = new TransformerStackItem(this._wordTransformer, wordTransform);
+  }
+  /**
+   * Remove a function from the word transformations stack.
+   *
+   * @returns { (str: string) => string } A function that was removed.
+   */
+  popWordTransform() {
+    if (!this._wordTransformer) {
+      return void 0;
+    }
+    const transform = this._wordTransformer.transform;
+    this._wordTransformer = this._wordTransformer.next;
+    return transform;
+  }
+  /**
+   * Ignore wordwrap option in followup inline additions and disable automatic wrapping.
+   */
+  startNoWrap() {
+    this._stackItem.isNoWrap = true;
+  }
+  /**
+   * Return automatic wrapping to behavior defined by options.
+   */
+  stopNoWrap() {
+    this._stackItem.isNoWrap = false;
+  }
+  /** @returns { (str: string) => string } */
+  _getCombinedWordTransformer() {
+    const wt = this._wordTransformer ? ((str) => applyTransformer(str, this._wordTransformer)) : void 0;
+    const ce = this.options.encodeCharacters;
+    return wt ? ce ? (str) => ce(wt(str)) : wt : ce;
+  }
+  _popStackItem() {
+    const item = this._stackItem;
+    this._stackItem = item.next;
+    return item;
+  }
+  /**
+   * Add a line break into currently built block.
+   */
+  addLineBreak() {
+    if (!(this._stackItem instanceof BlockStackItem || this._stackItem instanceof ListItemStackItem || this._stackItem instanceof TableCellStackItem)) {
+      return;
+    }
+    if (this._stackItem.isPre) {
+      this._stackItem.rawText += "\n";
+    } else {
+      this._stackItem.inlineTextBuilder.startNewLine();
+    }
+  }
+  /**
+   * Allow to break line in case directly following text will not fit.
+   */
+  addWordBreakOpportunity() {
+    if (this._stackItem instanceof BlockStackItem || this._stackItem instanceof ListItemStackItem || this._stackItem instanceof TableCellStackItem) {
+      this._stackItem.inlineTextBuilder.wordBreakOpportunity = true;
+    }
+  }
+  /**
+   * Add a node inline into the currently built block.
+   *
+   * @param { string } str
+   * Text content of a node to add.
+   *
+   * @param { object } [param1]
+   * Object holding the parameters of the operation.
+   *
+   * @param { boolean } [param1.noWordTransform]
+   * Ignore word transformers if there are any.
+   * Don't encode characters as well.
+   * (Use this for things like URL addresses).
+   */
+  addInline(str, { noWordTransform = false } = {}) {
+    if (!(this._stackItem instanceof BlockStackItem || this._stackItem instanceof ListItemStackItem || this._stackItem instanceof TableCellStackItem)) {
+      return;
+    }
+    if (this._stackItem.isPre) {
+      this._stackItem.rawText += str;
+      return;
+    }
+    if (str.length === 0 || // empty string
+    this._stackItem.stashedLineBreaks && // stashed linebreaks make whitespace irrelevant
+    !this.whitespaceProcessor.testContainsWords(str)) {
+      return;
+    }
+    if (this.options.preserveNewlines) {
+      const newlinesNumber = this.whitespaceProcessor.countNewlinesNoWords(str);
+      if (newlinesNumber > 0) {
+        this._stackItem.inlineTextBuilder.startNewLine(newlinesNumber);
+        return;
+      }
+    }
+    if (this._stackItem.stashedLineBreaks) {
+      this._stackItem.inlineTextBuilder.startNewLine(this._stackItem.stashedLineBreaks);
+    }
+    this.whitespaceProcessor.shrinkWrapAdd(
+      str,
+      this._stackItem.inlineTextBuilder,
+      noWordTransform ? void 0 : this._getCombinedWordTransformer(),
+      this._stackItem.isNoWrap
+    );
+    this._stackItem.stashedLineBreaks = 0;
+  }
+  /**
+   * Add a string inline into the currently built block.
+   *
+   * Use this for markup elements that don't have to adhere
+   * to text layout rules.
+   *
+   * @param { string } str Text to add.
+   */
+  addLiteral(str) {
+    if (!(this._stackItem instanceof BlockStackItem || this._stackItem instanceof ListItemStackItem || this._stackItem instanceof TableCellStackItem)) {
+      return;
+    }
+    if (str.length === 0) {
+      return;
+    }
+    if (this._stackItem.isPre) {
+      this._stackItem.rawText += str;
+      return;
+    }
+    if (this._stackItem.stashedLineBreaks) {
+      this._stackItem.inlineTextBuilder.startNewLine(this._stackItem.stashedLineBreaks);
+    }
+    this.whitespaceProcessor.addLiteral(
+      str,
+      this._stackItem.inlineTextBuilder,
+      this._stackItem.isNoWrap
+    );
+    this._stackItem.stashedLineBreaks = 0;
+  }
+  /**
+   * Start building a new block.
+   *
+   * @param { object } [param0]
+   * Object holding the parameters of the block.
+   *
+   * @param { number } [param0.leadingLineBreaks]
+   * This block should have at least this number of line breaks to separate it from any preceding block.
+   *
+   * @param { number }  [param0.reservedLineLength]
+   * Reserve this number of characters on each line for block markup.
+   *
+   * @param { boolean } [param0.isPre]
+   * Should HTML whitespace be preserved inside this block.
+   */
+  openBlock({ leadingLineBreaks = 1, reservedLineLength = 0, isPre = false } = {}) {
+    const maxLineLength = Math.max(20, this._stackItem.inlineTextBuilder.maxLineLength - reservedLineLength);
+    this._stackItem = new BlockStackItem(
+      this.options,
+      this._stackItem,
+      leadingLineBreaks,
+      maxLineLength
+    );
+    if (isPre) {
+      this._stackItem.isPre = true;
+    }
+  }
+  /**
+   * Finalize currently built block, add it's content to the parent block.
+   *
+   * @param { object } [param0]
+   * Object holding the parameters of the block.
+   *
+   * @param { number } [param0.trailingLineBreaks]
+   * This block should have at least this number of line breaks to separate it from any following block.
+   *
+   * @param { (str: string) => string } [param0.blockTransform]
+   * A function to transform the block text before adding to the parent block.
+   * This happens after word wrap and should be used in combination with reserved line length
+   * in order to keep line lengths correct.
+   * Used for whole block markup.
+   */
+  closeBlock({ trailingLineBreaks = 1, blockTransform = void 0 } = {}) {
+    const block = this._popStackItem();
+    const blockText = blockTransform ? blockTransform(getText(block)) : getText(block);
+    addText(this._stackItem, blockText, block.leadingLineBreaks, Math.max(block.stashedLineBreaks, trailingLineBreaks));
+  }
+  /**
+   * Start building a new list.
+   *
+   * @param { object } [param0]
+   * Object holding the parameters of the list.
+   *
+   * @param { number } [param0.maxPrefixLength]
+   * Length of the longest list item prefix.
+   * If not supplied or too small then list items won't be aligned properly.
+   *
+   * @param { 'left' | 'right' } [param0.prefixAlign]
+   * Specify how prefixes of different lengths have to be aligned
+   * within a column.
+   *
+   * @param { number } [param0.interRowLineBreaks]
+   * Minimum number of line breaks between list items.
+   *
+   * @param { number } [param0.leadingLineBreaks]
+   * This list should have at least this number of line breaks to separate it from any preceding block.
+   */
+  openList({ maxPrefixLength = 0, prefixAlign = "left", interRowLineBreaks = 1, leadingLineBreaks = 2 } = {}) {
+    this._stackItem = new ListStackItem(this.options, this._stackItem, {
+      interRowLineBreaks,
+      leadingLineBreaks,
+      maxLineLength: this._stackItem.inlineTextBuilder.maxLineLength,
+      maxPrefixLength,
+      prefixAlign
+    });
+  }
+  /**
+   * Start building a new list item.
+   *
+   * @param {object} param0
+   * Object holding the parameters of the list item.
+   *
+   * @param { string } [param0.prefix]
+   * Prefix for this list item (item number, bullet point, etc).
+   */
+  openListItem({ prefix = "" } = {}) {
+    if (!(this._stackItem instanceof ListStackItem)) {
+      throw new Error("Can't add a list item to something that is not a list! Check the formatter.");
+    }
+    const list3 = this._stackItem;
+    const prefixLength = Math.max(prefix.length, list3.maxPrefixLength);
+    const maxLineLength = Math.max(20, list3.inlineTextBuilder.maxLineLength - prefixLength);
+    this._stackItem = new ListItemStackItem(this.options, list3, {
+      prefix,
+      maxLineLength,
+      leadingLineBreaks: list3.interRowLineBreaks
+    });
+  }
+  /**
+   * Finalize currently built list item, add it's content to the parent list.
+   */
+  closeListItem() {
+    const listItem = this._popStackItem();
+    const list3 = listItem.next;
+    const prefixLength = Math.max(listItem.prefix.length, list3.maxPrefixLength);
+    const spacing = "\n" + " ".repeat(prefixLength);
+    const prefix = list3.prefixAlign === "right" ? listItem.prefix.padStart(prefixLength) : listItem.prefix.padEnd(prefixLength);
+    const text = prefix + getText(listItem).replace(/\n/g, spacing);
+    addText(
+      list3,
+      text,
+      listItem.leadingLineBreaks,
+      Math.max(listItem.stashedLineBreaks, list3.interRowLineBreaks)
+    );
+  }
+  /**
+   * Finalize currently built list, add it's content to the parent block.
+   *
+   * @param { object } param0
+   * Object holding the parameters of the list.
+   *
+   * @param { number } [param0.trailingLineBreaks]
+   * This list should have at least this number of line breaks to separate it from any following block.
+   */
+  closeList({ trailingLineBreaks = 2 } = {}) {
+    const list3 = this._popStackItem();
+    const text = getText(list3);
+    if (text) {
+      addText(this._stackItem, text, list3.leadingLineBreaks, trailingLineBreaks);
+    }
+  }
+  /**
+   * Start building a table.
+   */
+  openTable() {
+    this._stackItem = new TableStackItem(this._stackItem);
+  }
+  /**
+   * Start building a table row.
+   */
+  openTableRow() {
+    if (!(this._stackItem instanceof TableStackItem)) {
+      throw new Error("Can't add a table row to something that is not a table! Check the formatter.");
+    }
+    this._stackItem = new TableRowStackItem(this._stackItem);
+  }
+  /**
+   * Start building a table cell.
+   *
+   * @param { object } [param0]
+   * Object holding the parameters of the cell.
+   *
+   * @param { number } [param0.maxColumnWidth]
+   * Wrap cell content to this width. Fall back to global wordwrap value if undefined.
+   */
+  openTableCell({ maxColumnWidth = void 0 } = {}) {
+    if (!(this._stackItem instanceof TableRowStackItem)) {
+      throw new Error("Can't add a table cell to something that is not a table row! Check the formatter.");
+    }
+    this._stackItem = new TableCellStackItem(this.options, this._stackItem, maxColumnWidth);
+  }
+  /**
+   * Finalize currently built table cell and add it to parent table row's cells.
+   *
+   * @param { object } [param0]
+   * Object holding the parameters of the cell.
+   *
+   * @param { number } [param0.colspan] How many columns this cell should occupy.
+   * @param { number } [param0.rowspan] How many rows this cell should occupy.
+   */
+  closeTableCell({ colspan = 1, rowspan = 1 } = {}) {
+    const cell = this._popStackItem();
+    const text = trimCharacter(getText(cell), "\n");
+    cell.next.cells.push({ colspan, rowspan, text });
+  }
+  /**
+   * Finalize currently built table row and add it to parent table's rows.
+   */
+  closeTableRow() {
+    const row = this._popStackItem();
+    row.next.rows.push(row.cells);
+  }
+  /**
+   * Finalize currently built table and add the rendered text to the parent block.
+   *
+   * @param { object } param0
+   * Object holding the parameters of the table.
+   *
+   * @param { TablePrinter } param0.tableToString
+   * A function to convert a table of stringified cells into a complete table.
+   *
+   * @param { number } [param0.leadingLineBreaks]
+   * This table should have at least this number of line breaks to separate if from any preceding block.
+   *
+   * @param { number } [param0.trailingLineBreaks]
+   * This table should have at least this number of line breaks to separate it from any following block.
+   */
+  closeTable({ tableToString: tableToString2, leadingLineBreaks = 2, trailingLineBreaks = 2 }) {
+    const table = this._popStackItem();
+    const output = tableToString2(table.rows);
+    if (output) {
+      addText(this._stackItem, output, leadingLineBreaks, trailingLineBreaks);
+    }
+  }
+  /**
+   * Return the rendered text content of this builder.
+   *
+   * @returns { string }
+   */
+  toString() {
+    return getText(this._stackItem.getRoot());
+  }
+};
+function getText(stackItem) {
+  if (!(stackItem instanceof BlockStackItem || stackItem instanceof ListItemStackItem || stackItem instanceof TableCellStackItem)) {
+    throw new Error("Only blocks, list items and table cells can be requested for text contents.");
+  }
+  return stackItem.inlineTextBuilder.isEmpty() ? stackItem.rawText : stackItem.rawText + stackItem.inlineTextBuilder.toString();
+}
+function addText(stackItem, text, leadingLineBreaks, trailingLineBreaks) {
+  if (!(stackItem instanceof BlockStackItem || stackItem instanceof ListItemStackItem || stackItem instanceof TableCellStackItem)) {
+    throw new Error("Only blocks, list items and table cells can contain text.");
+  }
+  const parentText = getText(stackItem);
+  const lineBreaks = Math.max(stackItem.stashedLineBreaks, leadingLineBreaks);
+  stackItem.inlineTextBuilder.clear();
+  if (parentText) {
+    stackItem.rawText = parentText + "\n".repeat(lineBreaks) + text;
+  } else {
+    stackItem.rawText = text;
+    stackItem.leadingLineBreaks = lineBreaks;
+  }
+  stackItem.stashedLineBreaks = trailingLineBreaks;
+}
+function applyTransformer(str, transformer) {
+  return transformer ? applyTransformer(transformer.transform(str), transformer.next) : str;
+}
+function compile$1(options = {}) {
+  const selectorsWithoutFormat = options.selectors.filter((s) => !s.format);
+  if (selectorsWithoutFormat.length) {
+    throw new Error(
+      "Following selectors have no specified format: " + selectorsWithoutFormat.map((s) => `\`${s.selector}\``).join(", ")
+    );
+  }
+  const picker = new DecisionTree(
+    options.selectors.map((s) => [s.selector, s])
+  ).build(hp2Builder);
+  if (typeof options.encodeCharacters !== "function") {
+    options.encodeCharacters = makeReplacerFromDict(options.encodeCharacters);
+  }
+  const baseSelectorsPicker = new DecisionTree(
+    options.baseElements.selectors.map((s, i) => [s, i + 1])
+  ).build(hp2Builder);
+  function findBaseElements(dom) {
+    return findBases(dom, options, baseSelectorsPicker);
+  }
+  const limitedWalk = limitedDepthRecursive(
+    options.limits.maxDepth,
+    recursiveWalk,
+    function(dom, builder) {
+      builder.addInline(options.limits.ellipsis || "");
+    }
+  );
+  return function(html, metadata = void 0) {
+    return process2(html, metadata, options, picker, findBaseElements, limitedWalk);
+  };
+}
+function process2(html, metadata, options, picker, findBaseElements, walk) {
+  const maxInputLength = options.limits.maxInputLength;
+  if (maxInputLength && html && html.length > maxInputLength) {
+    console.warn(
+      `Input length ${html.length} is above allowed limit of ${maxInputLength}. Truncating without ellipsis.`
+    );
+    html = html.substring(0, maxInputLength);
+  }
+  const document = parseDocument(html, { decodeEntities: options.decodeEntities });
+  const bases = findBaseElements(document.children);
+  const builder = new BlockTextBuilder(options, picker, metadata);
+  walk(bases, builder);
+  return builder.toString();
+}
+function findBases(dom, options, baseSelectorsPicker) {
+  const results = [];
+  function recursiveWalk2(walk, dom2) {
+    dom2 = dom2.slice(0, options.limits.maxChildNodes);
+    for (const elem of dom2) {
+      if (elem.type !== "tag") {
+        continue;
+      }
+      const pickedSelectorIndex = baseSelectorsPicker.pick1(elem);
+      if (pickedSelectorIndex > 0) {
+        results.push({ selectorIndex: pickedSelectorIndex, element: elem });
+      } else if (elem.children) {
+        walk(elem.children);
+      }
+      if (results.length >= options.limits.maxBaseElements) {
+        return;
+      }
+    }
+  }
+  const limitedWalk = limitedDepthRecursive(
+    options.limits.maxDepth,
+    recursiveWalk2
+  );
+  limitedWalk(dom);
+  if (options.baseElements.orderBy !== "occurrence") {
+    results.sort((a, b) => a.selectorIndex - b.selectorIndex);
+  }
+  return options.baseElements.returnDomByDefault && results.length === 0 ? dom : results.map((x) => x.element);
+}
+function recursiveWalk(walk, dom, builder) {
+  if (!dom) {
+    return;
+  }
+  const options = builder.options;
+  const tooManyChildNodes = dom.length > options.limits.maxChildNodes;
+  if (tooManyChildNodes) {
+    dom = dom.slice(0, options.limits.maxChildNodes);
+    dom.push({
+      data: options.limits.ellipsis,
+      type: "text"
+    });
+  }
+  for (const elem of dom) {
+    switch (elem.type) {
+      case "text": {
+        builder.addInline(elem.data);
+        break;
+      }
+      case "tag": {
+        const tagDefinition = builder.picker.pick1(elem);
+        const format = options.formatters[tagDefinition.format];
+        format(elem, walk, builder, tagDefinition.options || {});
+        break;
+      }
+    }
+  }
+  return;
+}
+function makeReplacerFromDict(dict) {
+  if (!dict || Object.keys(dict).length === 0) {
+    return void 0;
+  }
+  const entries = Object.entries(dict).filter(([, v]) => v !== false);
+  const regex = new RegExp(
+    entries.map(([c]) => `(${unicodeEscape([...c][0])})`).join("|"),
+    "g"
+  );
+  const values = entries.map(([, v]) => v);
+  const replacer = (m, ...cgs) => values[cgs.findIndex((cg) => cg)];
+  return (str) => str.replace(regex, replacer);
+}
+function formatSkip(elem, walk, builder, formatOptions) {
+}
+function formatInlineString(elem, walk, builder, formatOptions) {
+  builder.addLiteral(formatOptions.string || "");
+}
+function formatBlockString(elem, walk, builder, formatOptions) {
+  builder.openBlock({ leadingLineBreaks: formatOptions.leadingLineBreaks || 2 });
+  builder.addLiteral(formatOptions.string || "");
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks || 2 });
+}
+function formatInline(elem, walk, builder, formatOptions) {
+  walk(elem.children, builder);
+}
+function formatBlock$1(elem, walk, builder, formatOptions) {
+  builder.openBlock({ leadingLineBreaks: formatOptions.leadingLineBreaks || 2 });
+  walk(elem.children, builder);
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks || 2 });
+}
+function renderOpenTag(elem) {
+  const attrs = elem.attribs && elem.attribs.length ? " " + Object.entries(elem.attribs).map(([k, v]) => v === "" ? k : `${k}=${v.replace(/"/g, "&quot;")}`).join(" ") : "";
+  return `<${elem.name}${attrs}>`;
+}
+function renderCloseTag(elem) {
+  return `</${elem.name}>`;
+}
+function formatInlineTag(elem, walk, builder, formatOptions) {
+  builder.startNoWrap();
+  builder.addLiteral(renderOpenTag(elem));
+  builder.stopNoWrap();
+  walk(elem.children, builder);
+  builder.startNoWrap();
+  builder.addLiteral(renderCloseTag(elem));
+  builder.stopNoWrap();
+}
+function formatBlockTag(elem, walk, builder, formatOptions) {
+  builder.openBlock({ leadingLineBreaks: formatOptions.leadingLineBreaks || 2 });
+  builder.startNoWrap();
+  builder.addLiteral(renderOpenTag(elem));
+  builder.stopNoWrap();
+  walk(elem.children, builder);
+  builder.startNoWrap();
+  builder.addLiteral(renderCloseTag(elem));
+  builder.stopNoWrap();
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks || 2 });
+}
+function formatInlineHtml(elem, walk, builder, formatOptions) {
+  builder.startNoWrap();
+  builder.addLiteral(
+    render(elem, { decodeEntities: builder.options.decodeEntities })
+  );
+  builder.stopNoWrap();
+}
+function formatBlockHtml(elem, walk, builder, formatOptions) {
+  builder.openBlock({ leadingLineBreaks: formatOptions.leadingLineBreaks || 2 });
+  builder.startNoWrap();
+  builder.addLiteral(
+    render(elem, { decodeEntities: builder.options.decodeEntities })
+  );
+  builder.stopNoWrap();
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks || 2 });
+}
+function formatInlineSurround(elem, walk, builder, formatOptions) {
+  builder.addLiteral(formatOptions.prefix || "");
+  walk(elem.children, builder);
+  builder.addLiteral(formatOptions.suffix || "");
+}
+var genericFormatters = /* @__PURE__ */ Object.freeze({
+  __proto__: null,
+  block: formatBlock$1,
+  blockHtml: formatBlockHtml,
+  blockString: formatBlockString,
+  blockTag: formatBlockTag,
+  inline: formatInline,
+  inlineHtml: formatInlineHtml,
+  inlineString: formatInlineString,
+  inlineSurround: formatInlineSurround,
+  inlineTag: formatInlineTag,
+  skip: formatSkip
+});
+var mergeArraysOverwrite = (values) => {
+  const lastValue = values[values.length - 1];
+  return Array.isArray(lastValue) ? [...lastValue] : [];
+};
+var deepMergeWithOverwriteArrays = deepmergeCustom({
+  filterValues: false,
+  mergeArrays: mergeArraysOverwrite
+});
+var deepMergeWithOptionsComposeRules = deepmergeCustom({
+  filterValues: false,
+  mergeArrays: (values, utils, meta) => {
+    const keyPath = meta?.keyPath ? meta.keyPath : [];
+    const isRootSelectors = keyPath.length === 1 && keyPath[0] === "selectors";
+    return isRootSelectors ? values.flatMap((value) => value) : mergeArraysOverwrite(values);
+  },
+  metaDataUpdater: (previousMeta, metaMeta) => {
+    if (previousMeta === void 0) {
+      return metaMeta.key === void 0 ? { keyPath: [] } : { keyPath: [metaMeta.key] };
+    }
+    if (metaMeta.key === void 0) {
+      return previousMeta;
+    }
+    return { keyPath: [...previousMeta.keyPath, metaMeta.key] };
+  }
+});
+function mergeDuplicatesPreferLast(items, getKey) {
+  const map3 = /* @__PURE__ */ new Map();
+  for (let i = items.length; i-- > 0; ) {
+    const item = items[i];
+    const key = getKey(item);
+    map3.set(
+      key,
+      map3.has(key) ? deepMergeWithOverwriteArrays(item, map3.get(key)) : item
+    );
+  }
+  return [...map3.values()].reverse();
+}
+function composeOptions({
+  defaultOptions: defaultOptions2,
+  userOptions = {},
+  genericFormatters: genericFormatters2,
+  packageFormatters,
+  handleMergedOptions
+}) {
+  const options = deepMergeWithOptionsComposeRules(defaultOptions2, userOptions);
+  options.formatters = Object.assign({}, genericFormatters2, packageFormatters, options.formatters);
+  options.selectors = mergeDuplicatesPreferLast(options.selectors, ((s) => s.selector));
+  if (handleMergedOptions) {
+    handleMergedOptions(options);
+  }
+  return options;
+}
+function getRow(matrix, j) {
+  if (!matrix[j]) {
+    matrix[j] = [];
+  }
+  return matrix[j];
+}
+function findFirstVacantIndex(row, x = 0) {
+  while (row[x]) {
+    x++;
+  }
+  return x;
+}
+function transposeInPlace(matrix, maxSize) {
+  for (let i = 0; i < maxSize; i++) {
+    const rowI = getRow(matrix, i);
+    for (let j = 0; j < i; j++) {
+      const rowJ = getRow(matrix, j);
+      if (rowI[j] || rowJ[i]) {
+        const temp = rowI[j];
+        rowI[j] = rowJ[i];
+        rowJ[i] = temp;
+      }
+    }
+  }
+}
+function putCellIntoLayout(cell, layout, baseRow, baseCol) {
+  for (let r = 0; r < cell.rowspan; r++) {
+    const layoutRow = getRow(layout, baseRow + r);
+    for (let c = 0; c < cell.colspan; c++) {
+      layoutRow[baseCol + c] = cell;
+    }
+  }
+}
+function getOrInitOffset(offsets, index) {
+  if (offsets[index] === void 0) {
+    offsets[index] = index === 0 ? 0 : 1 + getOrInitOffset(offsets, index - 1);
+  }
+  return offsets[index];
+}
+function updateOffset(offsets, base2, span, value) {
+  offsets[base2 + span] = Math.max(
+    getOrInitOffset(offsets, base2 + span),
+    getOrInitOffset(offsets, base2) + value
+  );
+}
+function tableToString(tableRows, rowSpacing, colSpacing) {
+  const layout = [];
+  let colNumber = 0;
+  const rowNumber = tableRows.length;
+  const rowOffsets = [0];
+  for (let j = 0; j < rowNumber; j++) {
+    const layoutRow = getRow(layout, j);
+    const cells = tableRows[j];
+    let x = 0;
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      x = findFirstVacantIndex(layoutRow, x);
+      putCellIntoLayout(cell, layout, j, x);
+      x += cell.colspan;
+      cell.lines = cell.text.split("\n");
+      const cellHeight = cell.lines.length;
+      updateOffset(rowOffsets, j, cell.rowspan, cellHeight + rowSpacing);
+    }
+    colNumber = layoutRow.length > colNumber ? layoutRow.length : colNumber;
+  }
+  transposeInPlace(layout, rowNumber > colNumber ? rowNumber : colNumber);
+  const outputLines = [];
+  const colOffsets = [0];
+  for (let x = 0; x < colNumber; x++) {
+    let y = 0;
+    let cell;
+    const rowsInThisColumn = Math.min(rowNumber, layout[x].length);
+    while (y < rowsInThisColumn) {
+      cell = layout[x][y];
+      if (cell) {
+        if (!cell.rendered) {
+          let cellWidth = 0;
+          for (let j = 0; j < cell.lines.length; j++) {
+            const line = cell.lines[j];
+            const lineOffset = rowOffsets[y] + j;
+            outputLines[lineOffset] = (outputLines[lineOffset] || "").padEnd(colOffsets[x]) + line;
+            cellWidth = line.length > cellWidth ? line.length : cellWidth;
+          }
+          updateOffset(colOffsets, x, cell.colspan, cellWidth + colSpacing);
+          cell.rendered = true;
+        }
+        y += cell.rowspan;
+      } else {
+        const lineOffset = rowOffsets[y];
+        outputLines[lineOffset] = outputLines[lineOffset] || "";
+        y++;
+      }
+    }
+  }
+  return outputLines.join("\n");
+}
+function formatLineBreak(elem, walk, builder, formatOptions) {
+  builder.addLineBreak();
+}
+function formatWbr(elem, walk, builder, formatOptions) {
+  builder.addWordBreakOpportunity();
+}
+function formatHorizontalLine(elem, walk, builder, formatOptions) {
+  builder.openBlock({ leadingLineBreaks: formatOptions.leadingLineBreaks || 2 });
+  builder.addInline("-".repeat(formatOptions.length || builder.options.wordwrap || 40));
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks || 2 });
+}
+function formatParagraph(elem, walk, builder, formatOptions) {
+  builder.openBlock({ leadingLineBreaks: formatOptions.leadingLineBreaks || 2 });
+  walk(elem.children, builder);
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks || 2 });
+}
+function formatPre(elem, walk, builder, formatOptions) {
+  builder.openBlock({
+    isPre: true,
+    leadingLineBreaks: formatOptions.leadingLineBreaks || 2
+  });
+  walk(elem.children, builder);
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks || 2 });
+}
+function formatHeading(elem, walk, builder, formatOptions) {
+  builder.openBlock({ leadingLineBreaks: formatOptions.leadingLineBreaks || 2 });
+  if (formatOptions.uppercase !== false) {
+    builder.pushWordTransform((str) => str.toUpperCase());
+    walk(elem.children, builder);
+    builder.popWordTransform();
+  } else {
+    walk(elem.children, builder);
+  }
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks || 2 });
+}
+function formatBlockquote(elem, walk, builder, formatOptions) {
+  builder.openBlock({
+    leadingLineBreaks: formatOptions.leadingLineBreaks || 2,
+    reservedLineLength: 2
+  });
+  walk(elem.children, builder);
+  builder.closeBlock({
+    trailingLineBreaks: formatOptions.trailingLineBreaks || 2,
+    blockTransform: (str) => (formatOptions.trimEmptyLines !== false ? trimCharacter(str, "\n") : str).split("\n").map((line) => "> " + line).join("\n")
+  });
+}
+function withBrackets(str, brackets) {
+  if (!brackets) {
+    return str;
+  }
+  const lbr = typeof brackets[0] === "string" ? brackets[0] : "[";
+  const rbr = typeof brackets[1] === "string" ? brackets[1] : "]";
+  return lbr + str + rbr;
+}
+function pathRewrite(path5, rewriter, baseUrl, metadata, elem) {
+  const modifiedPath = typeof rewriter === "function" ? rewriter(path5, metadata, elem) : path5;
+  return modifiedPath[0] === "/" && baseUrl ? trimCharacterEnd(baseUrl, "/") + modifiedPath : modifiedPath;
+}
+function formatImage(elem, walk, builder, formatOptions) {
+  const attribs = elem.attribs || {};
+  const alt = attribs.alt ? attribs.alt : "";
+  const src = !attribs.src ? "" : pathRewrite(attribs.src, formatOptions.pathRewrite, formatOptions.baseUrl, builder.metadata, elem);
+  const text = !src ? alt : !alt ? withBrackets(src, formatOptions.linkBrackets) : alt + " " + withBrackets(src, formatOptions.linkBrackets);
+  builder.addInline(text, { noWordTransform: true });
+}
+function formatAnchor(elem, walk, builder, formatOptions) {
+  function getHref() {
+    if (formatOptions.ignoreHref) {
+      return "";
+    }
+    if (!elem.attribs || !elem.attribs.href) {
+      return "";
+    }
+    let href2 = elem.attribs.href.replace(/^mailto:/, "");
+    if (formatOptions.noAnchorUrl && href2[0] === "#") {
+      return "";
+    }
+    href2 = pathRewrite(href2, formatOptions.pathRewrite, formatOptions.baseUrl, builder.metadata, elem);
+    return href2;
+  }
+  const href = getHref();
+  if (!href) {
+    walk(elem.children, builder);
+  } else {
+    let text = "";
+    builder.pushWordTransform(
+      (str) => {
+        if (str) {
+          text += str;
+        }
+        return str;
+      }
+    );
+    walk(elem.children, builder);
+    builder.popWordTransform();
+    const hideSameLink = formatOptions.hideLinkHrefIfSameAsText && href === text;
+    if (!hideSameLink) {
+      builder.addInline(
+        !text ? href : " " + withBrackets(href, formatOptions.linkBrackets),
+        { noWordTransform: true }
+      );
+    }
+  }
+}
+function formatList(elem, walk, builder, formatOptions, nextPrefixCallback) {
+  const isNestedList = get(elem, ["parent", "name"]) === "li";
+  let maxPrefixLength = 0;
+  const listItems = (elem.children || []).filter((child) => child.type !== "text" || !/^\s*$/.test(child.data)).map(function(child) {
+    if (child.name !== "li") {
+      return { node: child, prefix: "" };
+    }
+    const prefix = isNestedList ? nextPrefixCallback().trimStart() : nextPrefixCallback();
+    if (prefix.length > maxPrefixLength) {
+      maxPrefixLength = prefix.length;
+    }
+    return { node: child, prefix };
+  });
+  if (!listItems.length) {
+    return;
+  }
+  builder.openList({
+    interRowLineBreaks: 1,
+    leadingLineBreaks: isNestedList ? 1 : formatOptions.leadingLineBreaks || 2,
+    maxPrefixLength,
+    prefixAlign: "left"
+  });
+  for (const { node, prefix } of listItems) {
+    builder.openListItem({ prefix });
+    walk([node], builder);
+    builder.closeListItem();
+  }
+  builder.closeList({ trailingLineBreaks: isNestedList ? 1 : formatOptions.trailingLineBreaks || 2 });
+}
+function formatUnorderedList(elem, walk, builder, formatOptions) {
+  const prefix = formatOptions.itemPrefix || " * ";
+  return formatList(elem, walk, builder, formatOptions, () => prefix);
+}
+function formatOrderedList(elem, walk, builder, formatOptions) {
+  let nextIndex = Number(elem.attribs.start || "1");
+  const indexFunction = getOrderedListIndexFunction(elem.attribs.type);
+  const nextPrefixCallback = () => " " + indexFunction(nextIndex++) + ". ";
+  return formatList(elem, walk, builder, formatOptions, nextPrefixCallback);
+}
+function getOrderedListIndexFunction(olType = "1") {
+  switch (olType) {
+    case "a":
+      return (i) => numberToLetterSequence(i, "a");
+    case "A":
+      return (i) => numberToLetterSequence(i, "A");
+    case "i":
+      return (i) => numberToRoman(i).toLowerCase();
+    case "I":
+      return (i) => numberToRoman(i);
+    case "1":
+    default:
+      return (i) => i.toString();
+  }
+}
+function splitClassesAndIds(selectors) {
+  const classes = [];
+  const ids = [];
+  for (const selector of selectors) {
+    if (selector.startsWith(".")) {
+      classes.push(selector.substring(1));
+    } else if (selector.startsWith("#")) {
+      ids.push(selector.substring(1));
+    }
+  }
+  return { classes, ids };
+}
+function isDataTable(attr, tables) {
+  if (tables === true) {
+    return true;
+  }
+  if (!attr) {
+    return false;
+  }
+  const { classes, ids } = splitClassesAndIds(tables);
+  const attrClasses = (attr["class"] || "").split(" ");
+  const attrIds = (attr["id"] || "").split(" ");
+  return attrClasses.some((x) => classes.includes(x)) || attrIds.some((x) => ids.includes(x));
+}
+function formatTable(elem, walk, builder, formatOptions) {
+  return isDataTable(elem.attribs, builder.options.tables) ? formatDataTable(elem, walk, builder, formatOptions) : formatBlock(elem, walk, builder, formatOptions);
+}
+function formatBlock(elem, walk, builder, formatOptions) {
+  builder.openBlock({ leadingLineBreaks: formatOptions.leadingLineBreaks });
+  walk(elem.children, builder);
+  builder.closeBlock({ trailingLineBreaks: formatOptions.trailingLineBreaks });
+}
+function formatDataTable(elem, walk, builder, formatOptions) {
+  builder.openTable();
+  elem.children.forEach(walkTable);
+  builder.closeTable({
+    tableToString: (rows) => tableToString(rows, formatOptions.rowSpacing ?? 0, formatOptions.colSpacing ?? 3),
+    leadingLineBreaks: formatOptions.leadingLineBreaks,
+    trailingLineBreaks: formatOptions.trailingLineBreaks
+  });
+  function formatCell(cellNode) {
+    const colspan = +get(cellNode, ["attribs", "colspan"]) || 1;
+    const rowspan = +get(cellNode, ["attribs", "rowspan"]) || 1;
+    builder.openTableCell({ maxColumnWidth: formatOptions.maxColumnWidth });
+    walk(cellNode.children, builder);
+    builder.closeTableCell({ colspan, rowspan });
+  }
+  function walkTable(elem2) {
+    if (elem2.type !== "tag") {
+      return;
+    }
+    const formatHeaderCell = formatOptions.uppercaseHeaderCells !== false ? (cellNode) => {
+      builder.pushWordTransform((str) => str.toUpperCase());
+      formatCell(cellNode);
+      builder.popWordTransform();
+    } : formatCell;
+    switch (elem2.name) {
+      case "thead":
+      case "tbody":
+      case "tfoot":
+      case "center":
+        elem2.children.forEach(walkTable);
+        return;
+      case "tr": {
+        builder.openTableRow();
+        for (const childOfTr of elem2.children) {
+          if (childOfTr.type !== "tag") {
+            continue;
+          }
+          switch (childOfTr.name) {
+            case "th": {
+              formatHeaderCell(childOfTr);
+              break;
+            }
+            case "td": {
+              formatCell(childOfTr);
+              break;
+            }
+          }
+        }
+        builder.closeTableRow();
+        break;
+      }
+    }
+  }
+}
+var textFormatters = /* @__PURE__ */ Object.freeze({
+  __proto__: null,
+  anchor: formatAnchor,
+  blockquote: formatBlockquote,
+  dataTable: formatDataTable,
+  heading: formatHeading,
+  horizontalLine: formatHorizontalLine,
+  image: formatImage,
+  lineBreak: formatLineBreak,
+  orderedList: formatOrderedList,
+  paragraph: formatParagraph,
+  pre: formatPre,
+  table: formatTable,
+  unorderedList: formatUnorderedList,
+  wbr: formatWbr
+});
+var DEFAULT_OPTIONS = {
+  baseElements: {
+    selectors: ["body"],
+    orderBy: "selectors",
+    // 'selectors' | 'occurrence'
+    returnDomByDefault: true
+  },
+  decodeEntities: true,
+  encodeCharacters: {},
+  formatters: {},
+  limits: {
+    ellipsis: "...",
+    maxBaseElements: void 0,
+    maxChildNodes: void 0,
+    maxDepth: void 0,
+    maxInputLength: 1 << 24
+    // 16_777_216
+  },
+  longWordSplit: {
+    forceWrapOnLimit: false,
+    wrapCharacters: []
+  },
+  preserveNewlines: false,
+  selectors: [
+    { selector: "*", format: "inline" },
+    {
+      selector: "a",
+      format: "anchor",
+      options: {
+        baseUrl: null,
+        hideLinkHrefIfSameAsText: false,
+        ignoreHref: false,
+        linkBrackets: ["[", "]"],
+        noAnchorUrl: true
+      }
+    },
+    { selector: "article", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    { selector: "aside", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    {
+      selector: "blockquote",
+      format: "blockquote",
+      options: { leadingLineBreaks: 2, trailingLineBreaks: 2, trimEmptyLines: true }
+    },
+    { selector: "br", format: "lineBreak" },
+    { selector: "div", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    { selector: "footer", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    { selector: "form", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    { selector: "h1", format: "heading", options: { leadingLineBreaks: 3, trailingLineBreaks: 2, uppercase: true } },
+    { selector: "h2", format: "heading", options: { leadingLineBreaks: 3, trailingLineBreaks: 2, uppercase: true } },
+    { selector: "h3", format: "heading", options: { leadingLineBreaks: 3, trailingLineBreaks: 2, uppercase: true } },
+    { selector: "h4", format: "heading", options: { leadingLineBreaks: 2, trailingLineBreaks: 2, uppercase: true } },
+    { selector: "h5", format: "heading", options: { leadingLineBreaks: 2, trailingLineBreaks: 2, uppercase: true } },
+    { selector: "h6", format: "heading", options: { leadingLineBreaks: 2, trailingLineBreaks: 2, uppercase: true } },
+    { selector: "header", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    {
+      selector: "hr",
+      format: "horizontalLine",
+      options: { leadingLineBreaks: 2, length: void 0, trailingLineBreaks: 2 }
+    },
+    {
+      selector: "img",
+      format: "image",
+      options: { baseUrl: null, linkBrackets: ["[", "]"] }
+    },
+    { selector: "main", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    { selector: "nav", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    {
+      selector: "ol",
+      format: "orderedList",
+      options: { leadingLineBreaks: 2, trailingLineBreaks: 2 }
+    },
+    { selector: "p", format: "paragraph", options: { leadingLineBreaks: 2, trailingLineBreaks: 2 } },
+    { selector: "pre", format: "pre", options: { leadingLineBreaks: 2, trailingLineBreaks: 2 } },
+    { selector: "section", format: "block", options: { leadingLineBreaks: 1, trailingLineBreaks: 1 } },
+    {
+      selector: "table",
+      format: "table",
+      options: {
+        colSpacing: 3,
+        leadingLineBreaks: 2,
+        maxColumnWidth: 60,
+        rowSpacing: 0,
+        trailingLineBreaks: 2,
+        uppercaseHeaderCells: true
+      }
+    },
+    {
+      selector: "ul",
+      format: "unorderedList",
+      options: { itemPrefix: " * ", leadingLineBreaks: 2, trailingLineBreaks: 2 }
+    },
+    { selector: "wbr", format: "wbr" }
+  ],
+  tables: [],
+  // deprecated
+  whitespaceCharacters: " 	\r\n\f\u200B",
+  wordwrap: 80
+};
+function compile(options = {}) {
+  options = composeOptions({
+    defaultOptions: DEFAULT_OPTIONS,
+    genericFormatters,
+    handleMergedOptions: handleDeprecatedOptions,
+    packageFormatters: textFormatters,
+    userOptions: options
+  });
+  return compile$1(options);
+}
+function convert2(html, options = {}, metadata = void 0) {
+  return compile(options)(html, metadata);
+}
+function handleDeprecatedOptions(options) {
+  if (options.tags) {
+    const tagDefinitions = Object.entries(options.tags).map(
+      ([selector, definition]) => ({ ...definition, selector: selector || "*" })
+    );
+    options.selectors.push(...tagDefinitions);
+    options.selectors = mergeDuplicatesPreferLast(options.selectors, ((s) => s.selector));
+  }
+  function set(obj, path5, value) {
+    const valueKey = path5.pop();
+    for (const key of path5) {
+      let nested = obj[key];
+      if (!nested) {
+        nested = {};
+        obj[key] = nested;
+      }
+      obj = nested;
+    }
+    obj[valueKey] = value;
+  }
+  if (options["baseElement"]) {
+    const baseElement = options["baseElement"];
+    set(
+      options,
+      ["baseElements", "selectors"],
+      Array.isArray(baseElement) ? baseElement : [baseElement]
+    );
+  }
+  if (options["returnDomByDefault"] !== void 0) {
+    set(options, ["baseElements", "returnDomByDefault"], options["returnDomByDefault"]);
+  }
+  for (const definition of options.selectors) {
+    if (definition.format === "anchor" && get(definition, ["options", "noLinkBrackets"])) {
+      set(definition, ["options", "linkBrackets"], false);
+    }
+  }
+}
+
+// node_modules/uc.micro/build/index.mjs
+var Any = /[\0-\uD7FF\uE000-\uFFFF]|[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
+var Cc = /[\0-\x1F\x7F-\x9F]/;
+var P = /[!-#%-\*,-\/:;\?@\[-\]_\{\}\xA1\xA7\xAB\xB6\xB7\xBB\xBF\u037E\u0387\u055A-\u055F\u0589\u058A\u05BE\u05C0\u05C3\u05C6\u05F3\u05F4\u0609\u060A\u060C\u060D\u061B\u061D-\u061F\u066A-\u066D\u06D4\u0700-\u070D\u07F7-\u07F9\u0830-\u083E\u085E\u0964\u0965\u0970\u09FD\u0A76\u0AF0\u0C77\u0C84\u0DF4\u0E4F\u0E5A\u0E5B\u0F04-\u0F12\u0F14\u0F3A-\u0F3D\u0F85\u0FD0-\u0FD4\u0FD9\u0FDA\u104A-\u104F\u10FB\u1360-\u1368\u1400\u166E\u169B\u169C\u16EB-\u16ED\u1735\u1736\u17D4-\u17D6\u17D8-\u17DA\u1800-\u180A\u1944\u1945\u1A1E\u1A1F\u1AA0-\u1AA6\u1AA8-\u1AAD\u1B4E\u1B4F\u1B5A-\u1B60\u1B7D-\u1B7F\u1BFC-\u1BFF\u1C3B-\u1C3F\u1C7E\u1C7F\u1CC0-\u1CC7\u1CD3\u2010-\u2027\u2030-\u2043\u2045-\u2051\u2053-\u205E\u207D\u207E\u208D\u208E\u2308-\u230B\u2329\u232A\u2768-\u2775\u27C5\u27C6\u27E6-\u27EF\u2983-\u2998\u29D8-\u29DB\u29FC\u29FD\u2CF9-\u2CFC\u2CFE\u2CFF\u2D70\u2E00-\u2E2E\u2E30-\u2E4F\u2E52-\u2E5D\u3001-\u3003\u3008-\u3011\u3014-\u301F\u3030\u303D\u30A0\u30FB\uA4FE\uA4FF\uA60D-\uA60F\uA673\uA67E\uA6F2-\uA6F7\uA874-\uA877\uA8CE\uA8CF\uA8F8-\uA8FA\uA8FC\uA92E\uA92F\uA95F\uA9C1-\uA9CD\uA9DE\uA9DF\uAA5C-\uAA5F\uAADE\uAADF\uAAF0\uAAF1\uABEB\uFD3E\uFD3F\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE61\uFE63\uFE68\uFE6A\uFE6B\uFF01-\uFF03\uFF05-\uFF0A\uFF0C-\uFF0F\uFF1A\uFF1B\uFF1F\uFF20\uFF3B-\uFF3D\uFF3F\uFF5B\uFF5D\uFF5F-\uFF65]|\uD800[\uDD00-\uDD02\uDF9F\uDFD0]|\uD801\uDD6F|\uD802[\uDC57\uDD1F\uDD3F\uDE50-\uDE58\uDE7F\uDEF0-\uDEF6\uDF39-\uDF3F\uDF99-\uDF9C]|\uD803[\uDD6E\uDEAD\uDED0\uDF55-\uDF59\uDF86-\uDF89]|\uD804[\uDC47-\uDC4D\uDCBB\uDCBC\uDCBE-\uDCC1\uDD40-\uDD43\uDD74\uDD75\uDDC5-\uDDC8\uDDCD\uDDDB\uDDDD-\uDDDF\uDE38-\uDE3D\uDEA9\uDFD4\uDFD5\uDFD7\uDFD8]|\uD805[\uDC4B-\uDC4F\uDC5A\uDC5B\uDC5D\uDCC6\uDDC1-\uDDD7\uDE41-\uDE43\uDE60-\uDE6C\uDEB9\uDF3C-\uDF3E]|\uD806[\uDC3B\uDD44-\uDD46\uDDE2\uDE3F-\uDE46\uDE9A-\uDE9C\uDE9E-\uDEA2\uDF00-\uDF09\uDFE1]|\uD807[\uDC41-\uDC45\uDC70\uDC71\uDEF7\uDEF8\uDF43-\uDF4F\uDFFF]|\uD809[\uDC70-\uDC74]|\uD80B[\uDFF1\uDFF2]|\uD81A[\uDE6E\uDE6F\uDEF5\uDF37-\uDF3B\uDF44]|\uD81B[\uDD6D-\uDD6F\uDE97-\uDE9A\uDFE2]|\uD82F\uDC9F|\uD836[\uDE87-\uDE8B]|\uD839\uDDFF|\uD83A[\uDD5E\uDD5F]/;
+var Z = /[ \xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/;
+
+// node_modules/linkify-it/build/index.mjs
+var REBuilder = class {
+  src_Any = Any.source;
+  src_Cc = Cc.source;
+  src_Z = Z.source;
+  src_P = P.source;
+  src_ZPCc = [
+    this.src_Z,
+    this.src_P,
+    this.src_Cc
+  ].join("|");
+  src_ZCc = [this.src_Z, this.src_Cc].join("|");
+  cache = {};
+  opts = {
+    maxLength: 1e4,
+    urlAuth: false,
+    schema_names: []
+  };
+  constructor(opts = {}) {
+    this.opts = {
+      ...this.opts,
+      ...opts
+    };
+  }
+  set(opts = {}) {
+    this.opts = {
+      ...this.opts,
+      ...opts
+    };
+    this.cache = {};
+    return this;
+  }
+  escapeRE(str) {
+    return str.replace(/[.?*+^$[\]\\(){}|-]/g, "\\$&");
+  }
+  nestedPairRE(open, close2, depth = 4) {
+    const openRE = this.escapeRE(open);
+    const closeRE = this.escapeRE(close2);
+    const atom = `(?:(?!${this.src_ZCc}|${openRE}|${closeRE}).)`;
+    let pair = `${openRE}${atom}{0,1000}${closeRE}`;
+    for (let level = 2; level <= depth; level++) pair = `${openRE}(?:${atom}|${pair}){0,1000}${closeRE}`;
+    return pair;
+  }
+  get_text_separators() {
+    return this.cache.text_separators ??= /[><\uff5c]/;
+  }
+  get_pseudo_letter() {
+    return this.cache.src_pseudo_letter ??= new RegExp(`(?:(?!${this.get_text_separators().source}|${this.src_ZPCc})${this.src_Any})`);
+  }
+  get_ipv4_addr() {
+    return this.cache.src_ip4 ??= /* @__PURE__ */ new RegExp("(?:(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])[.]){3}(?:25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9][0-9]|[0-9])");
+  }
+  get_ipv6_addr() {
+    const h16 = "[0-9A-Fa-f]{1,4}";
+    const ls32 = `(?:(?:${h16}:${h16})|${this.get_ipv4_addr().source})`;
+    return this.cache.src_ip6_addr ??= new RegExp(`(?:(?:${h16}:){6}${ls32}|::(?:${h16}:){5}${ls32}|(?:${h16})?::(?:${h16}:){4}${ls32}|(?:(?:${h16}:){0,1}${h16})?::(?:${h16}:){3}${ls32}|(?:(?:${h16}:){0,2}${h16})?::(?:${h16}:){2}${ls32}|(?:(?:${h16}:){0,3}${h16})?::${h16}:${ls32}|(?:(?:${h16}:){0,4}${h16})?::${ls32}|(?:(?:${h16}:){0,5}${h16})?::${h16}|(?:(?:${h16}:){0,6}${h16})?::)`);
+  }
+  get_ipv6_url_host() {
+    return this.cache.src_ip6_host ??= new RegExp(`\\[${this.get_ipv6_addr().source}\\]`);
+  }
+  get_ipv6_mail_host() {
+    return this.cache.src_ipv6_mail_host ??= new RegExp(`\\[IPv6:${this.get_ipv6_addr().source}\\]`);
+  }
+  get_auth() {
+    return this.cache.src_auth ??= new RegExp(`(?:(?:(?!${this.src_ZCc}|[@/\\[\\]()]).){1,50}@)?`);
+  }
+  get_port() {
+    return this.cache.src_port ??= /* @__PURE__ */ new RegExp("(?::(?:6(?:[0-4]\\d{3}|5(?:[0-4]\\d{2}|5(?:[0-2]\\d|3[0-5])))|[1-5]?\\d{1,4}))?");
+  }
+  get_host_terminator() {
+    return this.cache.src_host_terminator ??= new RegExp(`(?=$|${this.get_text_separators().source}|${this.src_ZPCc})(?!${this.opts["---"] ? "-(?!--)|" : "-|"}_|:\\d|\\.-|\\.(?!$|${this.src_ZPCc}))`);
+  }
+  get_path_terminator() {
+    return this.cache.src_path_terminator ??= new RegExp(`${this.src_ZPCc}|${this.get_text_separators().source}`);
+  }
+  get_path() {
+    return this.cache.src_path ??= new RegExp(`(?:[/?#](?:${this.nestedPairRE("[", "]")}|${this.nestedPairRE("(", ")")}|${this.nestedPairRE("{", "}")}|\\"(?:(?!${this.src_ZCc}|["]).){1,100}\\"|\\'(?:(?!${this.src_ZCc}|[']).){1,100}\\'|\\'(?=${this.get_pseudo_letter().source}|[-])|\\.{2,20}[:]?[a-zA-Z0-9%/&]|\\.(?!${this.src_ZCc}|[.]|$)|` + (this.opts["---"] ? "\\-(?!--(?:[^-]|$))(?:-{0,19})|" : "\\-{1,20}|") + `,(?!${this.src_ZCc}|$)|;(?!${this.src_ZCc}|$)|\\!{1,20}(?!${this.src_ZCc}|[!]|$)|\\?(?!${this.src_ZCc}|[?]|$)|` + this.get_path_extra().source + `[\\\\/:%@#&=_~*]|(?!${this.get_path_terminator().source}).){1,${this.opts.maxLength}}|\\/)?`);
+  }
+  get_mail_name() {
+    return this.cache.src_mail_name ??= /* @__PURE__ */ new RegExp("[-!#$%&'*+/=?^_`{|}~a-zA-Z0-9](?:[-!#$%&'*+/=?^_`{|}~a-zA-Z0-9]|[.](?=[-!#$%&'*+/=?^_`{|}~a-zA-Z0-9])){0,63}");
+  }
+  get_xn() {
+    return this.cache.src_xn ??= /* @__PURE__ */ new RegExp("xn--[a-z0-9\\-]{1,59}");
+  }
+  get_tld() {
+    if (this.cache.tld) return this.cache.tld;
+    const tlds_src = [...new Set(this.opts.tlds || [])].sort().reverse().join("|");
+    this.cache.tld = new RegExp(`${tlds_src || "$#none#$"}|${this.get_xn().source}`);
+    return this.cache.tld;
+  }
+  get_domain_root() {
+    return this.cache.src_domain_root ??= new RegExp("(?:" + this.get_xn().source + `|${this.get_pseudo_letter().source}{1,63})`);
+  }
+  get_domain() {
+    return this.cache.src_domain ??= new RegExp("(?:" + this.get_xn().source + `|(?:${this.get_pseudo_letter().source})|(?:${this.get_pseudo_letter().source}(?:-|${this.get_pseudo_letter().source}){0,61}${this.get_pseudo_letter().source}))`);
+  }
+  get_url_host_port() {
+    return this.cache.url_host_port ??= new RegExp("(?:" + this.get_ipv6_url_host().source + `|(?:(?:(?:${this.get_domain().source})\\.){0,10}${this.get_domain().source}))` + this.get_port().source + this.get_host_terminator().source);
+  }
+  get_fuzzy_url_host_port() {
+    return this.cache.fuzzy_url_host_port ??= new RegExp("(?:" + (this.opts.fuzzyIP ? this.get_ipv4_addr().source + "|" : "") + `(?:(?:(?:${this.get_domain().source})\\.){1,10}(?:${this.get_tld().source})))` + this.get_host_terminator().source);
+  }
+  get_mail_host() {
+    return this.cache.src_mail_host ??= new RegExp("(?:" + this.get_ipv6_mail_host().source + `|(?:(?:(?:${this.get_domain().source})\\.){0,4}${this.get_domain().source}))` + this.get_host_terminator().source);
+  }
+  get_fuzzy_mail_host() {
+    return this.cache.src_fuzzy_mail_host ??= new RegExp("(?:" + this.get_ipv6_mail_host().source + `|(?:(?:(?:${this.get_domain().source})[.]){1,4}${this.get_domain_root().source}))` + this.get_host_terminator().source);
+  }
+  get_path_extra() {
+    return this.cache.src_path_extra ??= /* @__PURE__ */ new RegExp("");
+  }
+  get_fuzzy_mail_host_search() {
+    return this.cache.mail_fuzzy_host_search ??= new RegExp(`@${this.get_fuzzy_mail_host().source}`, "ig");
+  }
+  get_fuzzy_link_search() {
+    return this.cache.link_fuzzy_search ??= new RegExp(`(^|(?![.:/\\-_@])(?:[$+<=>^\`|\uFF5C]|${this.src_ZPCc}))(?:(?![$+<=>^\`|\uFF5C])${this.get_fuzzy_url_host_port().source}${this.get_path().source})`, "ig");
+  }
+  get_http_validator() {
+    return this.cache.http_validator ??= new RegExp("\\/\\/" + (this.opts.urlAuth ? this.get_auth().source : "") + this.get_url_host_port().source + this.get_path().source, "iy");
+  }
+  get_relative_proto_validator() {
+    return this.cache.relative_proto_validator ??= new RegExp((this.opts.urlAuth ? this.get_auth().source : "") + `(?:localhost|${this.get_ipv6_url_host().source}|(?:(?:${this.get_domain().source})[.]){1,10}${this.get_domain_root().source})` + this.get_port().source + this.get_host_terminator().source + this.get_path().source, "iy");
+  }
+  get_mail_name_validator() {
+    return this.cache.mail_name_validator ??= new RegExp(`(?:^|${this.get_text_separators().source}|"|\\(|${this.src_ZCc})(${this.get_mail_name().source})$`);
+  }
+  get_mailto_validator() {
+    return this.cache.mailto_validator ??= new RegExp(`${this.get_mail_name().source}@${this.get_mail_host().source}`, "iy");
+  }
+  get_schema_names() {
+    return this.cache.schema_names ??= new RegExp((this.opts.schema_names || []).map((name4) => this.escapeRE(name4)).join("|"));
+  }
+  get_schema_search() {
+    return this.cache.schema_search ??= new RegExp(`(^|(?!_)(?:[><\uFF5C]|${this.src_ZPCc}))(${this.get_schema_names().source})`, "ig");
+  }
+  get_schema_at_start() {
+    return this.cache.schema_at_start ??= new RegExp(`^${this.get_schema_search().source}`, "i");
+  }
+};
+var web_schema = {
+  validate: (text, pos, self) => {
+    const re = self.re.get_http_validator();
+    re.lastIndex = pos;
+    const m = re.exec(text);
+    return m ? m[0].length : 0;
+  },
+  normalize: (match2, self) => self.normalize(match2)
+};
+var defaultSchemas = {
+  "http:": web_schema,
+  "https:": web_schema,
+  "ftp:": web_schema,
+  "//": {
+    validate: function(text, pos, self) {
+      const re = self.re.get_relative_proto_validator();
+      re.lastIndex = pos;
+      const m = re.exec(text);
+      if (m) {
+        if (pos >= 3 && text[pos - 3] === ":") return 0;
+        if (pos >= 3 && text[pos - 3] === "/") return 0;
+        return m[0].length;
+      }
+      return 0;
+    },
+    normalize: (match2, self) => self.normalize(match2)
+  },
+  "mailto:": {
+    validate: function(text, pos, self) {
+      const re = self.re.get_mailto_validator();
+      re.lastIndex = pos;
+      const m = re.exec(text);
+      return m ? m[0].length : 0;
+    },
+    normalize: (match2, self) => self.normalize(match2)
+  }
+};
+var tlds_2ch = "a:cdefgilmnoqrstuwxz|b:abdefghijmnorstvwyz|c:acdfghiklmnoruvwxyz|d:ejkmoz|e:cegrstu|f:ijkmor|g:abdefghilmnpqrstuwy|h:kmnrtu|i:delmnoqrst|j:emop|k:eghimnprwyz|l:abcikrstuvy|m:acdeghklmnopqrstuvwxyz|n:acefgilopruz|o:m|p:aefghklmnrstwy|q:a|r:eosuw|s:abcdeghijklmnortuvxyz|t:cdfghjklmnortvwz|u:agksyz|v:aceginu|w:fs|y:et|z:amw";
+var tlds_default = "biz|com|edu|gov|net|org|pro|web|xxx|aero|asia|coop|info|museum|name|shop|\u0440\u0444";
+function unpackTlds() {
+  const result = tlds_default.split("|");
+  tlds_2ch.split("|").forEach((item) => {
+    const sep = item.indexOf(":");
+    const prefix = item.slice(0, sep);
+    for (const suffix of item.slice(sep + 1)) result.push(prefix + suffix);
+  });
+  return result;
+}
+var defaultOptions = {
+  fuzzyLink: false,
+  fuzzyEmail: true,
+  fuzzyIP: false,
+  "---": false,
+  tlds: unpackTlds(),
+  urlAuth: false,
+  maxLength: 1e4
+};
+var Match = class {
+  /** Prefix (protocol) for matched string. Empty for fuzzy links. */
+  schema;
+  /** First position of matched string. */
+  index;
+  /** Next position after matched string. */
+  lastIndex;
+  /** Matched string. */
+  raw;
+  /** Normalized text of matched string. */
+  text;
+  /** Normalized URL of matched string. */
+  url;
+  constructor(text, schema, index, lastIndex) {
+    const raw = text.slice(index, lastIndex);
+    this.schema = schema.toLowerCase();
+    this.index = index;
+    this.lastIndex = lastIndex;
+    this.raw = raw;
+    this.text = raw;
+    this.url = raw;
+  }
+};
+var LinkifyIt = class {
+  __opts__;
+  __schemas__;
+  re;
+  /**
+  * Creates new linkifier instance.
+  *
+  * By default understands:
+  *
+  * - `http(s)://...` , `ftp://...`, `mailto:...` & `//...` links
+  * - "fuzzy" emails (foo@bar.com).
+  *
+  * See {@link LinkifyConstructorOptions} for available options.
+  *
+  * @param options Recognition options.
+  *
+  * @example
+  * ```javascript
+  * import { LinkifyIt } from 'linkify-it'
+  *
+  * const linkify = new LinkifyIt({ fuzzyLink: true })
+  *
+  * linkify
+  *   .tlds(require('tlds'))       // Reload with full TLD list
+  *   .tlds('onion', true)         // Add unofficial `.onion` domain
+  *   .add('ftp:', null)           // Disable `ftp:` protocol
+  *   .set({ fuzzyIP: true })      // Enable IPs in fuzzy links
+  *
+  * console.log(linkify.test('Site github.com!')) // true
+  * console.log(linkify.match('Site github.com!'))
+  * ```
+  */
+  constructor(options = {}) {
+    const { rebuilder, ...linkifyOptions } = options;
+    this.__opts__ = {
+      ...defaultOptions,
+      ...linkifyOptions
+    };
+    this.__schemas__ = { ...defaultSchemas };
+    this.re = rebuilder || new REBuilder();
+    this.re.set({
+      ...this.__opts__,
+      schema_names: Object.keys(this.__schemas__)
+    });
+  }
+  /**
+  * Add new rule definition.
+  *
+  * `schema` is a link prefix (usually, protocol name with `:` at the end,
+  * `skype:` for example). `linkify-it` makes sure that prefix is not
+  * preceded with alphanumeric char and symbols. Only whitespaces and
+  * punctuation allowed.
+  *
+  * `definition` is a rule to check tail after link prefix. To disable an
+  * existing rule, pass `null`.
+  *
+  * @param schema Rule name (fixed pattern prefix).
+  * @param definition Schema definition, or `null` to disable the rule.
+  *
+  * See [twitter mentions example](https://github.com/markdown-it/linkify-it/blob/master/examples/twitter.mjs).
+  */
+  add(schema, definition = null) {
+    if (!definition) delete this.__schemas__[schema];
+    else {
+      const def = {
+        normalize: (match2, self) => self.normalize(match2),
+        ...definition
+      };
+      this.__schemas__[schema] = def;
+    }
+    this.re.set({
+      ...this.__opts__,
+      schema_names: Object.keys(this.__schemas__)
+    });
+    return this;
+  }
+  /**
+  * Set recognition options for links without schema.
+  *
+  * @param options Recognition options.
+  */
+  set(options = {}) {
+    this.__opts__ = {
+      ...this.__opts__,
+      ...options
+    };
+    this.re.set({
+      ...this.__opts__,
+      schema_names: Object.keys(this.__schemas__)
+    });
+    return this;
+  }
+  /**
+  * Searches linkifiable pattern and returns `true` on success or `false` on fail.
+  *
+  * @param text Text to scan.
+  */
+  test(text) {
+    if (!text.length) return false;
+    let m, re;
+    re = this.re.get_schema_search();
+    re.lastIndex = 0;
+    while ((m = re.exec(text)) !== null) if (this.testSchemaAt(text, m[2], re.lastIndex)) return true;
+    if (this.__opts__.fuzzyLink && this.__schemas__["http:"]) {
+      re = this.re.get_fuzzy_link_search();
+      re.lastIndex = 0;
+      if (re.exec(text) !== null) return true;
+    }
+    if (this.__opts__.fuzzyEmail && this.__schemas__["mailto:"]) {
+      if (text.indexOf("@") >= 0) {
+        const mailHostRe = this.re.get_fuzzy_mail_host_search();
+        const mailNameRe = this.re.get_mail_name_validator();
+        mailHostRe.lastIndex = 0;
+        while ((m = mailHostRe.exec(text)) !== null) {
+          const name4 = text.slice(Math.max(0, m.index - 65), m.index);
+          if (mailNameRe.test(name4)) return true;
+        }
+      }
+    }
+    return false;
+  }
+  /**
+  * Similar to {@link LinkifyIt.test} but checks only specific protocol tail exactly
+  * at given position. Returns length of found pattern (0 on fail).
+  *
+  * @param text Text to scan.
+  * @param schema Rule (schema) name.
+  * @param pos Text offset to check from.
+  */
+  testSchemaAt(text, schema, pos) {
+    if (!this.__schemas__[schema.toLowerCase()]) return 0;
+    return this.__schemas__[schema.toLowerCase()].validate(text.slice(0, pos + this.__opts__.maxLength), pos, this);
+  }
+  /**
+  * Returns array of found link descriptions or `null` on fail. We strongly
+  * recommend to use {@link LinkifyIt.test} first, for best speed.
+  *
+  * @param text Text to scan.
+  */
+  match(text) {
+    const result = [];
+    const schemaRe = this.re.get_schema_search();
+    let fuzzyLinkRe;
+    let mailHostRe;
+    let mailNameRe;
+    let fuzzyLinkCandidate;
+    let fuzzyEmailCandidate;
+    let schemaPrefix;
+    let schemaDone = false;
+    let fuzzyLinkDone = false;
+    let fuzzyEmailDone = false;
+    let pos = 0;
+    if (!text.length) return null;
+    schemaRe.lastIndex = 0;
+    if (this.__opts__.fuzzyLink && this.__schemas__["http:"]) {
+      fuzzyLinkRe = this.re.get_fuzzy_link_search();
+      fuzzyLinkRe.lastIndex = 0;
+    }
+    if (this.__opts__.fuzzyEmail && this.__schemas__["mailto:"]) {
+      mailHostRe = this.re.get_fuzzy_mail_host_search();
+      mailHostRe.lastIndex = 0;
+      mailNameRe = this.re.get_mail_name_validator();
+    }
+    for (; ; ) {
+      const scanFrom = Math.max(pos - 1, 0);
+      if (mailHostRe && mailNameRe && !fuzzyEmailDone && (!fuzzyEmailCandidate || fuzzyEmailCandidate.index < pos)) {
+        if (mailHostRe.lastIndex < scanFrom) mailHostRe.lastIndex = scanFrom;
+        for (; ; ) {
+          const m = mailHostRe.exec(text);
+          if (!m) {
+            fuzzyEmailDone = true;
+            fuzzyEmailCandidate = void 0;
+            break;
+          }
+          const name4 = mailNameRe.exec(text.slice(Math.max(0, m.index - 65), m.index));
+          if (!name4) continue;
+          fuzzyEmailCandidate = {
+            schema: "mailto:",
+            index: m.index - name4[1].length,
+            lastIndex: m.index + m[0].length
+          };
+          if (fuzzyEmailCandidate.index >= pos) break;
+          if (mailHostRe.lastIndex < scanFrom) mailHostRe.lastIndex = scanFrom;
+        }
+      }
+      if (fuzzyLinkRe && !fuzzyLinkDone && (!fuzzyLinkCandidate || fuzzyLinkCandidate.index < pos)) {
+        if (fuzzyLinkRe.lastIndex < scanFrom) fuzzyLinkRe.lastIndex = scanFrom;
+        for (; ; ) {
+          const m = fuzzyLinkRe.exec(text);
+          if (!m) {
+            fuzzyLinkDone = true;
+            fuzzyLinkCandidate = void 0;
+            break;
+          }
+          fuzzyLinkCandidate = {
+            schema: "",
+            index: m.index + m[1].length,
+            lastIndex: m.index + m[0].length
+          };
+          if (fuzzyLinkCandidate.index >= pos) break;
+          if (fuzzyLinkRe.lastIndex < scanFrom) fuzzyLinkRe.lastIndex = scanFrom;
+        }
+      }
+      let fuzzyCandidate = fuzzyEmailCandidate;
+      if (!fuzzyCandidate || fuzzyLinkCandidate && (fuzzyLinkCandidate.index < fuzzyCandidate.index || fuzzyLinkCandidate.index === fuzzyCandidate.index && fuzzyLinkCandidate.lastIndex > fuzzyCandidate.lastIndex)) fuzzyCandidate = fuzzyLinkCandidate;
+      let schemaCandidate;
+      if (!schemaDone) for (; ; ) {
+        if (!schemaPrefix) {
+          if (schemaRe.lastIndex < scanFrom) schemaRe.lastIndex = scanFrom;
+          const m = schemaRe.exec(text);
+          if (!m) {
+            schemaDone = true;
+            break;
+          }
+          schemaPrefix = {
+            schema: m[2],
+            index: m.index + m[1].length,
+            lastIndex: m.index + m[0].length
+          };
+        }
+        if (schemaPrefix.index < pos) {
+          schemaPrefix = void 0;
+          continue;
+        }
+        if (fuzzyCandidate && schemaPrefix.index > fuzzyCandidate.index) break;
+        const prefix = schemaPrefix;
+        schemaPrefix = void 0;
+        const len = this.testSchemaAt(text, prefix.schema, prefix.lastIndex);
+        if (len) {
+          schemaCandidate = {
+            schema: prefix.schema,
+            index: prefix.index,
+            lastIndex: prefix.lastIndex + len
+          };
+          break;
+        }
+      }
+      let candidate = schemaCandidate;
+      if (!candidate || fuzzyEmailCandidate && (fuzzyEmailCandidate.index < candidate.index || fuzzyEmailCandidate.index === candidate.index && fuzzyEmailCandidate.lastIndex > candidate.lastIndex)) candidate = fuzzyEmailCandidate;
+      if (!candidate || fuzzyLinkCandidate && (fuzzyLinkCandidate.index < candidate.index || fuzzyLinkCandidate.index === candidate.index && fuzzyLinkCandidate.lastIndex > candidate.lastIndex)) candidate = fuzzyLinkCandidate;
+      if (!candidate) break;
+      if (candidate === fuzzyEmailCandidate) fuzzyEmailCandidate = void 0;
+      else if (candidate === fuzzyLinkCandidate) fuzzyLinkCandidate = void 0;
+      const match2 = new Match(text, candidate.schema, candidate.index, candidate.lastIndex);
+      if (match2.schema) this.__schemas__[match2.schema].normalize(match2, this);
+      else this.normalize(match2);
+      result.push(match2);
+      pos = candidate.lastIndex;
+    }
+    if (result.length) return result;
+    return null;
+  }
+  /**
+  * Returns fully-formed (not fuzzy) link if it starts at the beginning
+  * of the string, and null otherwise.
+  *
+  * @param text Text to scan.
+  */
+  matchAtStart(text) {
+    if (!text.length) return null;
+    const m = this.re.get_schema_at_start().exec(text);
+    if (!m) return null;
+    const len = this.testSchemaAt(text, m[2], m[0].length);
+    if (!len) return null;
+    const match2 = new Match(text, m[2], m.index + m[1].length, m.index + m[0].length + len);
+    this.__schemas__[match2.schema].normalize(match2, this);
+    return match2;
+  }
+  /**
+  * Load (or merge) new TLDs list. Those are used for fuzzy links (without
+  * prefix) to avoid false positives. By default this algorithm is used:
+  *
+  * - hostname with any 2-letter root zones are ok.
+  * - biz|com|edu|gov|net|org|pro|web|xxx|aero|asia|coop|info|museum|name|shop|рф
+  *   are ok.
+  * - encoded (`xn--...`) root zones are ok.
+  *
+  * If list is replaced, then exact match for 2-chars root zones will be checked.
+  *
+  * @param list List of TLDs.
+  * @param keepOld Merge with current list if `true` (`false` by default).
+  */
+  tlds(list3, keepOld = false) {
+    list3 = Array.isArray(list3) ? list3 : [list3];
+    if (!keepOld) this.__opts__.tlds = list3;
+    else this.__opts__.tlds = this.__opts__.tlds.concat(list3);
+    this.re.set({
+      ...this.__opts__,
+      schema_names: Object.keys(this.__schemas__)
+    });
+    return this;
+  }
+  /**
+  * Default normalizer (if schema does not define its own).
+  *
+  * @param match Match to normalize.
+  */
+  normalize(match2) {
+    if (!match2.schema) match2.url = `http://${match2.url}`;
+    if (match2.schema === "mailto:" && !/^mailto:/i.test(match2.url)) match2.url = `mailto:${match2.url}`;
+  }
+};
+
+// node_modules/nodemailer/dist/esm/addressparser/index.js
+var TOKEN_OPERATOR = 1;
+var TOKEN_NO_BREAK = 2;
+var TOKEN_DIRTY = 4;
+var TOKEN_ESCAPES = 8;
+var TOKEN_STARTS_ESCAPED = 16;
+var TokenList = class {
+  constructor(str) {
+    this.str = str;
+    this.slots = new Int32Array(48);
+    this.length = 0;
+    this.cleaned = /* @__PURE__ */ new Map();
+  }
+  /**
+   * Appends a token
+   *
+   * @param kind Kind and flags of the token
+   * @param start Offset of its first character
+   * @param end Offset just past its last character
+   * @return Index of the token
+   */
+  push(kind, start, end) {
+    if ((this.length + 1) * 3 > this.slots.length) {
+      const grown = new Int32Array(this.slots.length * 2);
+      grown.set(this.slots);
+      this.slots = grown;
+    }
+    const at = this.length * 3;
+    this.slots[at] = kind;
+    this.slots[at + 1] = start;
+    this.slots[at + 2] = end;
+    return this.length++;
+  }
+  /**
+   * Offset of the first character of a token that is part of its value. A text run that is
+   * no plain slice of the field still spans the whitespace and control characters its value
+   * is trimmed of.
+   */
+  contentStart(index) {
+    let start = this.slots[index * 3 + 1];
+    const end = this.slots[index * 3 + 2];
+    while (start < end && _isDroppedCode(this.str.charCodeAt(start))) {
+      start++;
+    }
+    return start;
+  }
+  /**
+   * Offset just past the last character of a token that is part of its value
+   */
+  contentEnd(index) {
+    const start = this.slots[index * 3 + 1];
+    let end = this.slots[index * 3 + 2];
+    while (end > start && _isDroppedCode(this.str.charCodeAt(end - 1))) {
+      end--;
+    }
+    return end;
+  }
+  /**
+   * The character of an operator token, an empty string for a text run
+   */
+  operatorAt(index) {
+    const at = index * 3;
+    return this.slots[at] & TOKEN_OPERATOR ? this.str.charAt(this.slots[at + 1]) : "";
+  }
+  /**
+   * Whether a token is an operator
+   */
+  isOperator(index) {
+    return (this.slots[index * 3] & TOKEN_OPERATOR) !== 0;
+  }
+  /**
+   * Whether the next character continues the run of a token without whitespace in between
+   */
+  noBreak(index) {
+    return (this.slots[index * 3] & TOKEN_NO_BREAK) !== 0;
+  }
+  /**
+   * Value of a token
+   */
+  value(index) {
+    const cleaned = this.cleaned.get(index);
+    if (cleaned !== void 0) {
+      return cleaned;
+    }
+    return this.str.slice(this.slots[index * 3 + 1], this.slots[index * 3 + 2]);
+  }
+};
+var DOMAIN_LITERAL_TAIL = /@(\[[^[\]\\]*\])$/;
+function _domainAt(address) {
+  const literal2 = address.charAt(address.length - 1) === "]" ? DOMAIN_LITERAL_TAIL.exec(address) : null;
+  return literal2 ? address.length - literal2[1].length - 1 : address.lastIndexOf("@");
+}
+function _quoteLocalPart(address) {
+  const lastAt = _domainAt(address);
+  if (lastAt < 0) {
+    return address;
+  }
+  const user = address.substr(0, lastAt);
+  if (/^[^\s"(),:;<>@[\\\]]+$/.test(user) || /^"(?:[^"\\]|\\[\s\S])*"$/.test(user)) {
+    return address;
+  }
+  return '"' + user.replace(/["\\]/g, "\\$&") + '"@' + address.substr(lastAt + 1);
+}
+var HAS_WHITESPACE = /\s/;
+var QUOTED_LOCAL_ADDR = /^("(?:[^"\\]|\\[\s\S])*"@\S+)(?:\s+([\s\S]+))?$/;
+var ADDR_SPEC = /^[^@\s]+@[^@\s]+$/;
+var LITERAL_ADDR_SPEC = /^[^@\s]+@\[[^[\]\\\s]*\]$/;
+var QUOTED_LOCAL_DOMAIN = /^@(?:[^@\s"]+|\[[^[\]\\\s]*\])$/;
+function _isAddrSpec(value) {
+  return ADDR_SPEC.test(value) || LITERAL_ADDR_SPEC.test(value);
+}
+var LOOSE_ADDR_SPEC = /^[^@\s]+@\S+$/;
+var LOOSE_TEXT_ADDR = /\s*\b[^@\s]+@[^\s]+\b\s*/y;
+function _isSpaceCode(code) {
+  return code === 32 || code >= 9 && code <= 13 || code === 160 || code === 5760 || code >= 8192 && code <= 8202 || code === 8232 || code === 8233 || code === 8239 || code === 8287 || code === 12288 || code === 65279;
+}
+function _isFoldingSpaceCode(code) {
+  return code === 32 || code === 9 || code === 13 || code === 10;
+}
+function _isFoldingGap(str, from, to) {
+  for (let i = from; i < to; i++) {
+    if (!_isFoldingSpaceCode(str.charCodeAt(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+function _isDroppedCode(code) {
+  return code < 32 || code === 127 || _isSpaceCode(code);
+}
+function _isWordCode(code) {
+  return code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || code === 95;
+}
+function _isBoundary(text, at) {
+  return _isWordCode(text.charCodeAt(at - 1)) !== _isWordCode(text.charCodeAt(at));
+}
+function _indexOfAt(text, from, to) {
+  for (let i = from; i < to; i++) {
+    if (text.charCodeAt(i) === 64) {
+      return i;
+    }
+  }
+  return -1;
+}
+var LEADING_QUOTED_STRING = /^"(?:[^"\\]|\\[\s\S])*"/;
+function _joinAtSpacing(value, at) {
+  if (at < 0) {
+    return value;
+  }
+  let start = at;
+  while (start > 0 && _isSpaceCode(value.charCodeAt(start - 1))) {
+    start--;
+  }
+  let end = at + 1;
+  while (end < value.length && _isSpaceCode(value.charCodeAt(end))) {
+    end++;
+  }
+  const joined = start === at && end === at + 1 ? value : value.slice(0, start) + "@" + value.slice(end);
+  return _joinDomainDotSpacing(joined, start);
+}
+var ASCII_ATEXT = new Uint8Array(128);
+for (let code = 33; code < 127; code++) {
+  ASCII_ATEXT[code] = '()<>[]:;@\\,."'.indexOf(String.fromCharCode(code)) < 0 ? 1 : 0;
+}
+function _isAtextCode(code) {
+  return code < 128 ? ASCII_ATEXT[code] === 1 : !_isSpaceCode(code);
+}
+function _joinDomainDotSpacing(value, at) {
+  const len = value.length;
+  let pos = at + 1;
+  let spaced = false;
+  for (; ; ) {
+    const labelStart = pos;
+    while (pos < len && _isAtextCode(value.charCodeAt(pos))) {
+      pos++;
+    }
+    if (pos === labelStart) {
+      break;
+    }
+    let next = pos;
+    while (next < len && _isFoldingSpaceCode(value.charCodeAt(next))) {
+      next++;
+    }
+    if (value.charCodeAt(next) !== 46) {
+      break;
+    }
+    next++;
+    while (next < len && _isFoldingSpaceCode(value.charCodeAt(next))) {
+      next++;
+    }
+    if (next >= len || !_isAtextCode(value.charCodeAt(next))) {
+      break;
+    }
+    spaced = spaced || next !== pos + 1;
+    pos = next;
+  }
+  if (!spaced) {
+    return value;
+  }
+  let domain = "";
+  for (let k = at + 1; k < pos; k++) {
+    if (!_isFoldingSpaceCode(value.charCodeAt(k))) {
+      domain += value.charAt(k);
+    }
+  }
+  return value.slice(0, at + 1) + domain + value.slice(pos);
+}
+function _collapseAtSpacing(value) {
+  const quoted = LEADING_QUOTED_STRING.exec(value);
+  if (quoted) {
+    let at2 = quoted[0].length;
+    while (at2 < value.length && _isSpaceCode(value.charCodeAt(at2))) {
+      at2++;
+    }
+    if (value.charAt(at2) === "@" && value.indexOf("@", at2 + 1) < 0) {
+      return _joinAtSpacing(value, at2);
+    }
+  }
+  const at = value.indexOf("@");
+  if (at < 0 || value.indexOf("@", at + 1) >= 0 || value.lastIndexOf('"') > at) {
+    return value;
+  }
+  return _joinAtSpacing(value, at);
+}
+function _looseAddressStart(text) {
+  const len = text.length;
+  let pos = 0;
+  while (pos < len) {
+    while (pos < len && _isSpaceCode(text.charCodeAt(pos))) {
+      pos++;
+    }
+    if (pos >= len) {
+      break;
+    }
+    const runStart = pos;
+    let runEnd = pos;
+    while (runEnd < len && !_isSpaceCode(text.charCodeAt(runEnd))) {
+      runEnd++;
+    }
+    let at = _indexOfAt(text, runStart, runEnd);
+    if (at >= 0) {
+      let lastBoundary = -1;
+      for (let k = runEnd; k > runStart; k--) {
+        if (_isBoundary(text, k)) {
+          lastBoundary = k;
+          break;
+        }
+      }
+      let atomStart = runStart;
+      while (lastBoundary >= 0 && at >= 0) {
+        if (at > atomStart && runEnd > at + 1 && lastBoundary > at + 1) {
+          for (let start = atomStart; start < at; start++) {
+            if (_isBoundary(text, start)) {
+              if (start > runStart) {
+                return start;
+              }
+              let padded = runStart;
+              while (padded > 0 && _isSpaceCode(text.charCodeAt(padded - 1))) {
+                padded--;
+              }
+              return padded;
+            }
+          }
+        }
+        atomStart = at + 1;
+        at = _indexOfAt(text, atomStart, runEnd);
+      }
+    }
+    pos = runEnd;
+  }
+  return -1;
+}
+function _recoverAddrSpec(data) {
+  data.address = _collapseAtSpacing(data.address);
+  if (!HAS_WHITESPACE.test(data.address)) {
+    return;
+  }
+  let address;
+  let rest;
+  const quoted = data.address.match(QUOTED_LOCAL_ADDR);
+  if (quoted) {
+    if (!quoted[2]) {
+      return;
+    }
+    address = quoted[1];
+    rest = [quoted[2]];
+  } else {
+    if (data.address.indexOf('"') >= 0) {
+      return;
+    }
+    const parts = data.address.split(/\s+/);
+    let addrIndex = parts.findIndex(_isAddrSpec);
+    if (addrIndex < 0) {
+      addrIndex = parts.findIndex((part) => LOOSE_ADDR_SPEC.test(part));
+    }
+    if (addrIndex < 0) {
+      return;
+    }
+    address = parts.splice(addrIndex, 1)[0];
+    rest = parts;
+  }
+  data.address = address;
+  data.text = [data.text].concat(rest).filter((part) => part).join(" ");
+}
+function _stripAddressComments(address) {
+  const comments = [];
+  let result = "";
+  let comment = "";
+  let depth = 0;
+  let closer = "";
+  let lastChar = "";
+  let pendingSpace = false;
+  let firstChar = "";
+  let quoteSeen = false;
+  let routeEnd = -1;
+  for (let i = 0, len = address.length; i < len; i++) {
+    const chr = address.charAt(i);
+    if (depth) {
+      if (chr === "\\" && i < len - 1) {
+        comment += address.charAt(++i);
+      } else if (chr === "(") {
+        depth++;
+        comment += chr;
+      } else if (chr === ")" && !--depth) {
+        comments.push(comment.trim());
+        comment = "";
+        pendingSpace = lastChar !== "@";
+      } else {
+        comment += chr;
+      }
+      continue;
+    }
+    if (pendingSpace && chr !== "(") {
+      pendingSpace = false;
+      if (chr !== "@" && chr !== "<" && !_isSpaceCode(address.charCodeAt(i))) {
+        result += " ";
+        lastChar = " ";
+      }
+    }
+    if (closer) {
+      if (chr === "\\" && closer === '"' && i < len - 1) {
+        result += chr + address.charAt(++i);
+        lastChar = address.charAt(i);
+        continue;
+      }
+      if (chr === closer) {
+        closer = "";
+      }
+    } else if (chr === '"') {
+      closer = '"';
+      quoteSeen = true;
+    } else if (chr === ":" && routeEnd < 0 && firstChar === "@" && !quoteSeen) {
+      routeEnd = result.length + 1;
+    } else if (chr === "[") {
+      closer = "]";
+    } else if (chr === "(") {
+      depth = 1;
+      continue;
+    } else if (chr === "<") {
+      result = "";
+      lastChar = "";
+      comments.length = 0;
+      firstChar = "";
+      quoteSeen = false;
+      routeEnd = -1;
+      continue;
+    }
+    result += chr;
+    lastChar = chr;
+    if (!firstChar && !_isSpaceCode(address.charCodeAt(i))) {
+      firstChar = chr;
+    }
+  }
+  if (routeEnd >= 0 && result.indexOf("@", routeEnd) >= 0) {
+    result = result.slice(routeEnd);
+  }
+  if (depth) {
+    comments.push(comment.trim());
+  }
+  return { address: result.trim(), comments: comments.filter((text) => text) };
+}
+function _collectAddressParts(tokens, from, to) {
+  let state = "text";
+  const data = {
+    address: [],
+    comment: [],
+    text: [],
+    textWasQuoted: [],
+    quotedLocalAt: []
+  };
+  let insideQuotes = false;
+  let lastTextPureQuoted = false;
+  let lastTextHasAt = false;
+  let lastTextOpen = false;
+  let gapFrom = 0;
+  let gapsFolding = true;
+  const lastChars = { address: "", comment: "", text: "" };
+  for (let i = from; i < to; i++) {
+    const value = tokens.value(i);
+    const prevOperator = i > from ? tokens.operatorAt(i - 1) : "";
+    const prevNoBreak = i > from && tokens.noBreak(i - 1);
+    if (tokens.isOperator(i)) {
+      switch (value) {
+        case "<":
+          state = "address";
+          insideQuotes = false;
+          lastTextOpen = false;
+          break;
+        case "(":
+          state = "comment";
+          insideQuotes = false;
+          gapsFolding = gapsFolding && _isFoldingGap(tokens.str, gapFrom, tokens.contentStart(i));
+          break;
+        case '"':
+          insideQuotes = !insideQuotes;
+          state = "text";
+          lastTextOpen = false;
+          break;
+        default:
+          state = "text";
+          insideQuotes = false;
+          if (value !== ")") {
+            lastTextOpen = false;
+          } else {
+            gapFrom = tokens.contentEnd(i);
+          }
+          break;
+      }
+    } else {
+      const opensAfterEmptyQuotedString = prevOperator === '"' && prevNoBreak && i > from + 1 && tokens.operatorAt(i - 2) === '"';
+      const parts = data[state];
+      const secondAt = lastTextHasAt && prevOperator === ")" && value.indexOf("@") >= 0;
+      const joinsDomain = !secondAt && lastTextOpen && lastTextHasAt && prevOperator === ")" && (lastChars.text === "." || value.charAt(0) === ".") && gapsFolding && _isFoldingGap(tokens.str, gapFrom, tokens.contentStart(i));
+      const joins = joinsDomain || !secondAt && prevNoBreak && parts.length > 0 && (prevOperator !== ")" || lastChars[state] === "@" || value.charAt(0) === "@");
+      if (joins) {
+        const last = data[state].length - 1;
+        if (state === "text" && !insideQuotes) {
+          if (lastTextPureQuoted && value.charAt(0) === "@") {
+            data.quotedLocalAt[last] = data.text[last].length;
+          }
+          lastTextPureQuoted = false;
+        }
+        data[state][last] += value;
+        lastChars[state] = value.charAt(value.length - 1);
+        if (state === "text" && insideQuotes) {
+          data.textWasQuoted[last] = true;
+        }
+      } else {
+        data[state].push(value);
+        lastChars[state] = value.charAt(value.length - 1);
+        if (state === "text") {
+          data.textWasQuoted.push(insideQuotes || opensAfterEmptyQuotedString);
+          data.quotedLocalAt.push(opensAfterEmptyQuotedString && value.charAt(0) === "@" ? 0 : -1);
+          lastTextPureQuoted = insideQuotes;
+        }
+      }
+      if (state === "text") {
+        lastTextHasAt = joins && lastTextHasAt || !insideQuotes && value.indexOf("@") >= 0;
+        lastTextOpen = true;
+        gapFrom = tokens.contentEnd(i);
+        gapsFolding = true;
+      }
+    }
+  }
+  let textFromComment = false;
+  if (!data.text.length && data.comment.length) {
+    data.text = data.comment;
+    data.comment = [];
+    textFromComment = true;
+  }
+  return { data, textFromComment };
+}
+function _groupName(tokens, from, to) {
+  return _collectAddressParts(tokens, from, to).data.text.join(" ");
+}
+function _handleAddress(tokens, from, to) {
+  const collected = _collectAddressParts(tokens, from, to);
+  const data = collected.data;
+  let textFromComment = collected.textFromComment;
+  const addressComments = [];
+  const addressParts = [];
+  for (const part of data.address) {
+    const stripped = _stripAddressComments(part);
+    for (const comment of stripped.comments) {
+      addressComments.push(comment);
+    }
+    if (stripped.address) {
+      addressParts.push(stripped.address);
+    }
+  }
+  data.address = addressParts;
+  if (!data.address.length && data.text.length && !textFromComment) {
+    const candidates = data.text.map((part) => _collapseAtSpacing(part));
+    for (let i = 0; i < data.text.length; i++) {
+      const local = data.quotedLocalAt[i];
+      const quotedLocal = data.textWasQuoted[i] && local >= 0 && QUOTED_LOCAL_DOMAIN.test(data.text[i].slice(local)) ? _quoteLocalPart(data.text[i]) : "";
+      if (quotedLocal || !data.textWasQuoted[i] && _isAddrSpec(candidates[i])) {
+        data.address = [quotedLocal || candidates[i]];
+        data.text.splice(i, 1);
+        data.textWasQuoted.splice(i, 1);
+        data.quotedLocalAt.splice(i, 1);
+        break;
+      }
+    }
+    if (!data.address.length) {
+      let extracted = false;
+      for (let i = 0; i < data.text.length; i++) {
+        if (!data.textWasQuoted[i]) {
+          const part = candidates[i];
+          let remainder = data.text[i];
+          const at = _looseAddressStart(part);
+          if (at >= 0) {
+            LOOSE_TEXT_ADDR.lastIndex = at;
+            const match2 = LOOSE_TEXT_ADDR.exec(part);
+            if (match2) {
+              data.address = [match2[0].trim()];
+              extracted = true;
+              remainder = part.slice(0, at) + " " + part.slice(at + match2[0].length);
+            }
+          }
+          data.text[i] = remainder.trim();
+          if (extracted) {
+            break;
+          }
+        }
+      }
+    }
+  }
+  if (!data.text.length && data.comment.length) {
+    data.text = data.comment;
+    data.comment = [];
+  }
+  if (data.address.length > 1) {
+    data.text = data.text.concat(data.address.splice(1));
+  }
+  const addressFromQuotedText = !data.address.length && data.textWasQuoted.some((wasQuoted) => wasQuoted);
+  data.text = data.text.join(" ");
+  data.address = data.address.join(" ");
+  if (addressFromQuotedText && data.text.indexOf("@") >= 0) {
+    data.address = _quoteLocalPart(_joinAtSpacing(data.text, _domainAt(data.text)));
+    data.text = "";
+  }
+  _recoverAddrSpec(data);
+  if (!data.text && addressComments.length) {
+    data.text = addressComments.join(" ");
+    textFromComment = true;
+  }
+  const address = {
+    address: data.address || (textFromComment ? "" : data.text) || "",
+    name: data.text || data.address || ""
+  };
+  if (address.address === address.name) {
+    if (/@/.test(address.address || "")) {
+      address.name = "";
+    } else {
+      address.address = "";
+    }
+  }
+  return address;
+}
+var Tokenizer2 = class {
+  constructor(str) {
+    this.str = (str || "").toString();
+    this.operatorCurrent = "";
+    this.operatorExpecting = "";
+    this.node = -1;
+    this.escaped = false;
+    this.inDomainLiteral = false;
+    this.afterAt = false;
+    this.inGroup = false;
+    this.innerQuoted = false;
+    this.innerComment = 0;
+    this.innerLiteral = false;
+    this.innerEscaped = false;
+    this.list = new TokenList(this.str);
+    this.operators = {
+      '"': '"',
+      "(": ")",
+      "<": ">",
+      ",": "",
+      // A group is read in the same pass as the rest of the list, so its ':' only marks
+      // where the name ends and its members are tokenized like any other address
+      ":": "",
+      // Semicolons are not a legal delimiter per the RFC2822 grammar other
+      // than for terminating a group, but they are also not valid for any
+      // other use in this context.  Given that some mail clients have
+      // historically allowed the semicolon as a delimiter equivalent to the
+      // comma in their UI, it makes sense to treat them the same as a comma
+      // when used outside of a group.
+      ";": ""
+    };
+  }
+  /**
+   * Tokenizes the original input string
+   *
+   * @return An array of operator|text tokens
+   */
+  tokenize() {
+    const str = this.str;
+    const len = str.length;
+    for (let i = 0; i < len; i++) {
+      this.checkChar(str.charAt(i), i);
+    }
+    this._closeText(len);
+    const list3 = this.list;
+    const slots = list3.slots;
+    let kept = 0;
+    for (let i = 0, count = list3.length; i < count; i++) {
+      const kind = slots[i * 3];
+      let start = slots[i * 3 + 1];
+      let end = slots[i * 3 + 2];
+      if (kind & TOKEN_DIRTY) {
+        const value = this._cleanValue(start, end, kind).trim();
+        if (!value) {
+          continue;
+        }
+        list3.cleaned.set(kept, value);
+      } else if (!(kind & TOKEN_OPERATOR)) {
+        while (start < end && _isSpaceCode(str.charCodeAt(start))) {
+          start++;
+        }
+        while (end > start && _isSpaceCode(str.charCodeAt(end - 1))) {
+          end--;
+        }
+        if (start === end) {
+          continue;
+        }
+      }
+      slots[kept * 3] = kind;
+      slots[kept * 3 + 1] = start;
+      slots[kept * 3 + 2] = end;
+      kept++;
+    }
+    list3.length = kept;
+    return list3;
+  }
+  /**
+   * Ends the text run being collected, if there is one
+   *
+   * @param end Offset just past its last character
+   */
+  _closeText(end) {
+    if (this.node >= 0) {
+      this.list.slots[this.node * 3 + 2] = end;
+      this.node = -1;
+    }
+  }
+  /**
+   * Rebuilds the value of a text run that is no plain slice of the field, applying the
+   * rules checkChar collects characters by: an escaping backslash is dropped, a line break
+   * reads as a space and any other control character is left out
+   *
+   * @param start Offset of the first character of the run
+   * @param end Offset just past its last character
+   * @param kind Kind and flags of the run
+   * @return Value of the run
+   */
+  _cleanValue(start, end, kind) {
+    const str = this.str;
+    const escapes = (kind & TOKEN_ESCAPES) !== 0;
+    let escaped = (kind & TOKEN_STARTS_ESCAPED) !== 0;
+    let value = "";
+    for (let i = start; i < end; i++) {
+      const chr = str.charAt(i);
+      if (escapes && !escaped && chr === "\\") {
+        escaped = true;
+        continue;
+      }
+      escaped = false;
+      if (chr === "\n") {
+        value += " ";
+      } else if (chr.charCodeAt(0) >= 33 || chr === " " || chr === "	") {
+        value += chr;
+      }
+    }
+    return value;
+  }
+  /**
+   * Checks if a character is an operator or text and acts accordingly
+   *
+   * @param chr Character from the address field
+   * @param i Offset of the character in the field
+   */
+  checkChar(chr, i) {
+    if (!this.escaped && !this.operatorExpecting) {
+      if (!this.inDomainLiteral && chr === "[" && this.afterAt) {
+        this.inDomainLiteral = true;
+      } else if (this.inDomainLiteral && (chr === "]" || chr === "," || chr === ";")) {
+        this.inDomainLiteral = false;
+      }
+    }
+    let nested = false;
+    if (this.operatorExpecting === ">") {
+      nested = this._trackInner(chr);
+      if (!nested && chr === ";" && this.inGroup) {
+        this._closeText(i);
+        this.operatorExpecting = "";
+        this._resetInner();
+      }
+    } else if (this.operatorExpecting === ")" && !this.escaped) {
+      if (chr === "(") {
+        this.innerComment++;
+      } else if (chr === ")" && this.innerComment) {
+        this.innerComment--;
+        nested = true;
+      }
+    }
+    if (this.escaped) {
+    } else if (chr === this.operatorExpecting && !nested) {
+      const nextChr = this.str.charAt(i + 1);
+      this._closeText(i);
+      this.list.push(nextChr && ![" ", "	", "\r", "\n", ",", ";"].includes(nextChr) ? TOKEN_OPERATOR | TOKEN_NO_BREAK : TOKEN_OPERATOR, i, i + 1);
+      if (chr !== ")") {
+        this.afterAt = false;
+      }
+      this.operatorExpecting = "";
+      this.escaped = false;
+      this._resetInner();
+      return;
+    } else if (!this.operatorExpecting && !(this.inDomainLiteral && chr === ":") && chr in this.operators) {
+      this._closeText(i);
+      this.list.push(TOKEN_OPERATOR, i, i + 1);
+      if (chr === ":") {
+        this.inGroup = true;
+      } else if (chr === ";") {
+        this.inGroup = false;
+      }
+      if (chr !== "(") {
+        this.afterAt = false;
+      }
+      this.operatorExpecting = this.operators[chr];
+      this.escaped = false;
+      this._resetInner();
+      return;
+    } else if (['"', "'", ")"].includes(this.operatorExpecting) && chr === "\\") {
+      this.escaped = true;
+      if (this.node >= 0) {
+        this.list.slots[this.node * 3] |= TOKEN_DIRTY;
+      }
+      return;
+    }
+    if (this.node < 0) {
+      this.node = this.list.push((this.operatorExpecting === '"' || this.operatorExpecting === ")" ? TOKEN_ESCAPES : 0) | (this.escaped ? TOKEN_STARTS_ESCAPED : 0), i, i);
+    }
+    if (chr === "\n") {
+      chr = " ";
+      this.list.slots[this.node * 3] |= TOKEN_DIRTY;
+    }
+    if (chr.charCodeAt(0) >= 33 || chr === " " || chr === "	") {
+      if (!this.operatorExpecting && chr !== " " && chr !== "	") {
+        this.afterAt = chr === "@";
+      }
+    } else {
+      this.list.slots[this.node * 3] |= TOKEN_DIRTY;
+    }
+    this.escaped = false;
+  }
+  /**
+   * Tracks the quoted strings, comments and domain literals inside an angle-addr, which its
+   * closer must not be read from. A backslash escapes the next character inside a quoted
+   * string and a comment. A domain literal opens right after an "@" and ends at the "]".
+   * dtext holds the list separators as well, and inside the brackets they never split the
+   * list anyway.
+   *
+   * @param chr Character from the address field
+   * @return true while the character sits inside one of them, the one that closes it included
+   */
+  _trackInner(chr) {
+    if (this.innerEscaped) {
+      this.innerEscaped = false;
+      return true;
+    }
+    if (this.innerQuoted) {
+      if (chr === "\\") {
+        this.innerEscaped = true;
+      } else if (chr === '"') {
+        this.innerQuoted = false;
+      }
+      return true;
+    }
+    if (this.innerComment) {
+      if (chr === "\\") {
+        this.innerEscaped = true;
+      } else if (chr === "(") {
+        this.innerComment++;
+      } else if (chr === ")") {
+        this.innerComment--;
+      }
+      return true;
+    }
+    if (this.innerLiteral) {
+      if (chr === "]") {
+        this.innerLiteral = false;
+      }
+      return true;
+    }
+    if (chr === '"') {
+      this.innerQuoted = true;
+      return true;
+    }
+    if (chr === "(") {
+      this.innerComment = 1;
+      return true;
+    }
+    if (chr === "[" && this.afterAt) {
+      this.innerLiteral = true;
+      return true;
+    }
+    if (!_isSpaceCode(chr.charCodeAt(0))) {
+      this.afterAt = chr === "@";
+    }
+    return false;
+  }
+  /**
+   * Forgets the nesting collected for the operator that just opened or ended
+   */
+  _resetInner() {
+    this.innerQuoted = false;
+    this.innerComment = 0;
+    this.innerLiteral = false;
+    this.innerEscaped = false;
+  }
+};
+function _mergeNameFragments(list3) {
+  const merged = [];
+  for (let i = list3.length - 1; i >= 0; i--) {
+    const current = list3[i];
+    const next = merged.length ? merged[merged.length - 1] : null;
+    if (next && current.address === "" && current.name && !current.group && next.address && next.name) {
+      next.name = current.name + ", " + next.name;
+    } else {
+      merged.push(current);
+    }
+  }
+  return merged.reverse();
+}
+function _parseAddressList(str) {
+  const tokens = new Tokenizer2(str).tokenize();
+  const parsedAddresses = [];
+  let group = null;
+  let members = [];
+  let from = 0;
+  for (let i = 0, len = tokens.length; i <= len; i++) {
+    const operator = i < len ? tokens.operatorAt(i) : "";
+    if (i < len && operator !== "," && operator !== ";" && operator !== ":") {
+      continue;
+    }
+    if (operator === ":") {
+      if (!group) {
+        group = { name: _groupName(tokens, from, i), group: [] };
+        members = [];
+      }
+      from = i + 1;
+      continue;
+    }
+    if (i > from) {
+      const address = _handleAddress(tokens, from, i);
+      if (group) {
+        members.push(address);
+      } else {
+        parsedAddresses.push(address);
+      }
+    }
+    from = i + 1;
+    if (group && (operator === ";" || i === len)) {
+      group.group = _mergeNameFragments(members);
+      parsedAddresses.push(group);
+      group = null;
+    }
+  }
+  return _mergeNameFragments(parsedAddresses);
+}
+function addressparser(str, options) {
+  const parsedAddresses = _parseAddressList(str);
+  if (options?.flatten) {
+    const flatAddresses = [];
+    const walkAddressList = (list3) => {
+      list3.forEach((entry) => {
+        if (entry.group) {
+          return walkAddressList(entry.group);
+        }
+        flatAddresses.push(entry);
+      });
+    };
+    walkAddressList(parsedAddresses);
+    return flatAddresses;
+  }
+  return parsedAddresses;
+}
+var addressparser_default = addressparser;
+
+// node_modules/mailparser/dist/esm/mail-parser.js
+var import_node_stream10 = require("node:stream");
+var import_tlds = __toESM(require_tlds2(), 1);
+
+// node_modules/mailparser/dist/esm/stream-hash.js
+var import_node_crypto4 = __toESM(require("node:crypto"), 1);
+var import_node_stream9 = require("node:stream");
+var StreamHash = class extends import_node_stream9.Transform {
+  constructor(attachment, algo) {
+    super();
+    this.attachment = attachment;
+    this.algo = algo === false ? false : (algo || "md5").toLowerCase();
+    this.hash = this.algo === false ? null : import_node_crypto4.default.createHash(this.algo);
+    this.byteCount = 0;
+  }
+  _transform(chunk, encoding, done) {
+    this.hash?.update(chunk);
+    this.byteCount += chunk.length;
+    done(null, chunk);
+  }
+  _flush(done) {
+    if (this.hash) {
+      this.attachment.checksum = this.hash.digest("hex");
+    }
+    this.attachment.size = this.byteCount;
+    done();
+  }
+};
+var stream_hash_default = StreamHash;
+
+// node_modules/mailparser/dist/esm/address-header.js
+var import_he = __toESM(require_he(), 1);
+var import_punycode = __toESM(require_punycode(), 1);
+var ENCODED_WORD = /[=]\?[^?]+\?[BbQq]\?[^?]*\?[=]/;
+function decodeAddresses(addresses, decoder = libmime_default, decodePunycode = true) {
+  for (let address of addresses) {
+    address.name = (address.name || "").toString().trim();
+    if (address.name) {
+      try {
+        address.name = decoder.decodeWords(address.name);
+      } catch {
+      }
+    }
+    if (address.address && ENCODED_WORD.test(address.address)) {
+      try {
+        let decodedAddr = decoder.decodeWords(address.address);
+        if (/^[^\s@]+@[^\s@]+$/.test(decodedAddr) && !/[=]\?/.test(decodedAddr)) {
+          address.address = decodedAddr;
+        } else {
+          address.address = "";
+        }
+      } catch {
+        address.address = "";
+      }
+    }
+    if (decodePunycode && address.address && /@xn--/.test(address.address)) {
+      try {
+        address.address = address.address.slice(0, address.address.lastIndexOf("@") + 1) + import_punycode.default.toUnicode(address.address.slice(address.address.lastIndexOf("@") + 1));
+      } catch {
+      }
+    }
+    if (address.group) {
+      decodeAddresses(address.group, decoder, decodePunycode);
+    }
+  }
+}
+function formatAddressesHTML(value) {
+  let formatSingleLevel = (addresses) => addresses.map((address) => {
+    let str = '<span class="mp_address_group">';
+    if (address.name) {
+      str += '<span class="mp_address_name">' + import_he.default.encode(address.name) + (address.group ? ": " : "") + "</span>";
+    }
+    if (address.address) {
+      let link = '<a href="mailto:' + import_he.default.encode(address.address) + '" class="mp_address_email">' + import_he.default.encode(address.address) + "</a>";
+      if (address.name) {
+        str += " &lt;" + link + "&gt;";
+      } else {
+        str += link;
+      }
+    }
+    if (address.group) {
+      str += formatSingleLevel(address.group) + ";";
+    }
+    return str + "</span>";
+  }).join(", ");
+  return formatSingleLevel([].concat(value || []));
+}
+function formatAddressesText(value) {
+  let formatSingleLevel = (addresses) => addresses.map((address) => {
+    let str = "";
+    if (address.name) {
+      str += `"${address.name.replace(/["\\]/g, "\\$&")}"` + (address.group ? ": " : "");
+    }
+    if (address.address) {
+      let link = address.address;
+      if (address.name) {
+        str += " <" + link + ">";
+      } else {
+        str += link;
+      }
+    }
+    if (address.group) {
+      str += formatSingleLevel(address.group) + ";";
+    }
+    return str;
+  }).join(", ");
+  return formatSingleLevel([].concat(value || []));
+}
+
+// node_modules/mailparser/dist/esm/otp-token.js
+var MAX_FIELD_LENGTH = 8192;
+var NUMBER = /-?(?:\d{1,12}\.\d{1,3}|\d{1,15})/y;
+var STRING = /"((?:[\x20\x21\x23-\x5b\x5d-\x7e]|\\["\\])*)"/y;
+var TOKEN = /[A-Za-z*][!#$%&'*+\-.^_`|~0-9A-Za-z:/]*/y;
+var BYTE_SEQUENCE = /:[A-Za-z0-9+/=]*:/y;
+var BOOLEAN = /\?[01]/y;
+var DATE = /@-?\d{1,15}/y;
+var DISPLAY_STRING = /%"((?:[\x20\x21\x23\x24\x26-\x7e]|%[0-9a-f]{2})*)"/y;
+var KEY = /[a-z*][a-z0-9_\-.*]*/y;
+var SPACES = / */y;
+function match(cursor, re) {
+  re.lastIndex = cursor.pos;
+  const result = re.exec(cursor.input);
+  if (result) {
+    cursor.pos = re.lastIndex;
+  }
+  return result;
+}
+function parseString(cursor) {
+  const result = match(cursor, STRING);
+  return result && result[1].replace(/\\(["\\])/g, "$1");
+}
+function isDisplayString(cursor) {
+  const result = match(cursor, DISPLAY_STRING);
+  if (!result) {
+    return false;
+  }
+  try {
+    decodeURIComponent(result[1]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+function parseBareItem(cursor) {
+  const c = cursor.input.charAt(cursor.pos);
+  switch (c) {
+    case '"':
+      return parseString(cursor) ?? false;
+    case ":":
+      return !!match(cursor, BYTE_SEQUENCE);
+    case "?":
+      return !!match(cursor, BOOLEAN);
+    case "@":
+      return !!match(cursor, DATE);
+    case "%":
+      return isDisplayString(cursor);
+  }
+  return !!match(cursor, c === "-" || c >= "0" && c <= "9" ? NUMBER : TOKEN);
+}
+function parseStringItem(value) {
+  const cursor = { input: value, pos: 0 };
+  match(cursor, SPACES);
+  const item = parseString(cursor);
+  if (item === null) {
+    return null;
+  }
+  const params = /* @__PURE__ */ new Map();
+  while (cursor.input[cursor.pos] === ";") {
+    cursor.pos++;
+    match(cursor, SPACES);
+    const key = match(cursor, KEY);
+    if (!key) {
+      return null;
+    }
+    let paramValue = true;
+    if (cursor.input[cursor.pos] === "=") {
+      cursor.pos++;
+      paramValue = parseBareItem(cursor);
+      if (paramValue === false) {
+        return null;
+      }
+    }
+    params.set(key[0], paramValue);
+  }
+  match(cursor, SPACES);
+  return cursor.pos === cursor.input.length ? { value: item, params } : null;
+}
+function isOtpOrigin(origin) {
+  let url;
+  try {
+    url = new URL(origin);
+  } catch {
+    return false;
+  }
+  if (url.origin !== origin || !/^([a-z0-9_-]+\.)*[a-z0-9_-]+$|^\[[0-9a-f:.]+\]$/.test(url.hostname)) {
+    return false;
+  }
+  const isLoopback = /^(localhost|.+\.localhost|127(\.\d+){3}|\[::1\])$/.test(url.hostname);
+  return url.protocol === "https:" || url.protocol === "http:" && isLoopback;
+}
+var OTP_HEADER = /^otp-token:/i;
+function getFieldValue(value) {
+  value = value.replace(/\r?\n/g, "");
+  let start = 0;
+  let end = value.length;
+  while (start < end && (value[start] === " " || value[start] === "	")) {
+    start++;
+  }
+  while (end > start && (value[end - 1] === " " || value[end - 1] === "	")) {
+    end--;
+  }
+  return end - start > MAX_FIELD_LENGTH ? null : value.slice(start, end);
+}
+function parseOtpToken(values) {
+  const list3 = typeof values === "string" ? [values] : values;
+  if (!Array.isArray(list3) || list3.length !== 1 || typeof list3[0] !== "string") {
+    return void 0;
+  }
+  const value = getFieldValue(list3[0]);
+  const parsed = value === null ? null : parseStringItem(value);
+  const origin = parsed?.params.get("origin");
+  if (!parsed?.value || typeof origin !== "string" || !isOtpOrigin(origin)) {
+    return void 0;
+  }
+  return { code: parsed.value, origin };
+}
+function getOtp(headerLines) {
+  const values = headerLines.filter(({ line }) => OTP_HEADER.test(line)).map(({ line }) => line.slice(line.indexOf(":") + 1));
+  return values.length ? parseOtpToken(values) : void 0;
+}
+
+// node_modules/mailparser/dist/esm/mail-parser.js
+var { Splitter, ChunkedPassthrough } = import_mailsplit2.default;
+var MAX_LINKIFY_SEGMENT_LENGTH = 4096;
+var MAX_LINKIFY_HOST_LABELS = 6;
+var MAX_LINKIFY_WORK = 768 * 1024 * 1024;
+var MAX_INLINED_IMAGES_SIZE = 20 * 1024 * 1024;
+var UNSAFE_LIST_KEYS = /* @__PURE__ */ new Set(["__proto__", "constructor", "prototype"]);
+var MAIL_NAME_CHARS = "-!#$%&*+=?^_`{|}~a-zA-Z0-9";
+var MAIL_NAME = new RegExp(`[${MAIL_NAME_CHARS}](?:[${MAIL_NAME_CHARS}']|[.](?=[${MAIL_NAME_CHARS}'])){0,63}`);
+var MailNameREBuilder = class extends REBuilder {
+  get_mail_name() {
+    return MAIL_NAME;
+  }
+};
+var linkify = new LinkifyIt({
+  // links without a scheme (example.com, www.example.org), which linkify-it 6 no longer finds by default
+  fuzzyLink: true,
+  fuzzyEmail: true,
+  fuzzyIP: true,
+  // user:password@ in a URL stays part of the link, as it always was before linkify-it 6
+  urlAuth: true,
+  rebuilder: new MailNameREBuilder()
+});
+linkify.tlds(import_tlds.default).tlds("onion", true).add("git:", { validate: (text, pos, self) => self.testSchemaAt(text, "http:", pos) }).add("ftp:", null);
+function isHostChar(code) {
+  return code >= 97 && code <= 122 || code >= 65 && code <= 90 || code >= 48 && code <= 57 || code === 45 || code >= 128;
+}
+var twitterHandle;
+linkify.add("@", {
+  validate(text, pos, self) {
+    let tail = text.slice(pos);
+    if (!twitterHandle) {
+      twitterHandle = new RegExp("^([a-zA-Z0-9_]){1,15}(?!_)(?=$|" + self.re.src_ZPCc + ")");
+    }
+    let handle = tail.match(twitterHandle);
+    if (handle) {
+      if (pos >= 2 && text[pos - 2] === "@") {
+        return 0;
+      }
+      return handle[0].length;
+    }
+    return 0;
+  },
+  normalize(match2) {
+    match2.url = "https://twitter.com/" + match2.url.replace(/^@/, "");
+  }
+});
+var MAX_HTML_NESTING_DEPTH = 1e3;
+var HTML_VOID_ELEMENTS = /* @__PURE__ */ new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
+var HTML_IMPLIED_END_ELEMENTS = /* @__PURE__ */ new Set(["p", "li", "dt", "dd", "option", "optgroup", "tr", "td", "th", "thead", "tbody", "tfoot", "rt", "rp"]);
+function isTagNameChar(code) {
+  return code >= 97 && code <= 122 || code >= 65 && code <= 90 || code >= 48 && code <= 57 || code === 45 || code === 58 || code === 95;
+}
+function exceedsHtmlNestingDepth(html, maxDepth) {
+  let stack = [];
+  let open = /* @__PURE__ */ new Map();
+  let len = html.length;
+  let i = html.indexOf("<");
+  while (i >= 0) {
+    let pos = i + 1;
+    if (html.startsWith("!--", pos)) {
+      let end2 = html.indexOf("-->", pos + 3);
+      i = end2 < 0 ? -1 : html.indexOf("<", end2 + 3);
+      continue;
+    }
+    let closing = html.charCodeAt(pos) === 47;
+    if (closing) {
+      pos++;
+    }
+    let nameStart = pos;
+    while (pos < len && isTagNameChar(html.charCodeAt(pos))) {
+      pos++;
+    }
+    if (pos === nameStart) {
+      i = html.indexOf("<", pos);
+      continue;
+    }
+    let name4 = html.slice(nameStart, pos).toLowerCase();
+    let end = html.indexOf(">", pos);
+    if (end < 0) {
+      break;
+    }
+    if (!HTML_VOID_ELEMENTS.has(name4) && !HTML_IMPLIED_END_ELEMENTS.has(name4)) {
+      if (!closing) {
+        stack.push(name4);
+        open.set(name4, (open.get(name4) || 0) + 1);
+        if (stack.length > maxDepth) {
+          return true;
+        }
+      } else if (open.get(name4)) {
+        let popped;
+        do {
+          popped = stack.pop();
+          open.set(popped, open.get(popped) - 1);
+        } while (popped !== name4);
+      }
+    }
+    i = html.indexOf("<", end + 1);
+  }
+  return false;
+}
+var REFUSED_CHARSET = /^(?:(?:cs)?unicode11)?utf7(?:imap)?$|^base64$|^hex$/;
+function isRefusedCharset(charset) {
+  return REFUSED_CHARSET.test((charset || "").toLowerCase().replace(/[^a-z0-9]/g, ""));
+}
+var IconvDecoder = class extends import_node_stream10.Transform {
+  constructor(Iconv, charset) {
+    super();
+    if (charset.toLowerCase() === "ks_c_5601-1987") {
+      charset = "CP949";
+    }
+    this.stream = new Iconv(charset, "UTF-8//TRANSLIT//IGNORE");
+    this.inputEnded = false;
+    this.endCb = false;
+    this.stream.on("error", (err) => this.emit("error", err));
+    this.stream.on("data", (chunk) => this.push(chunk));
+    this.stream.on("end", () => {
+      this.inputEnded = true;
+      if (typeof this.endCb === "function") {
+        this.endCb();
+      }
+    });
+  }
+  _transform(chunk, encoding, done) {
+    this.stream.write(chunk);
+    done();
+  }
+  _flush(done) {
+    this.endCb = done;
+    this.stream.end();
+  }
+};
+var MailParser = class extends import_node_stream10.Transform {
+  constructor(config) {
+    super({
+      readableObjectMode: true,
+      writableObjectMode: false
+    });
+    this.options = config || {};
+    this.chunkedPassthrough = new ChunkedPassthrough();
+    this.splitter = new Splitter(config);
+    this.chunkedPassthrough.pipe(this.splitter);
+    this.finished = false;
+    this.waitingEnd = false;
+    this.headers = false;
+    this.headerLines = false;
+    this.endReceived = false;
+    this.reading = false;
+    this.hasFailed = false;
+    this.tree = false;
+    this.curnode = false;
+    this.waitUntilAttachmentEnd = false;
+    this.attachmentCallback = false;
+    this.hasHtml = false;
+    this.hasText = false;
+    this.text = false;
+    this.html = false;
+    this.textAsHtml = false;
+    this.linkifyWork = 0;
+    this.attachmentList = [];
+    this.textTypes = ["text/plain", "text/html"].concat(!this.options.keepDeliveryStatus ? "message/delivery-status" : []);
+    this.decoder = this.getDecoder();
+    this.chunkedPassthrough.on("error", (err) => {
+      this.splitter.emit("error", err);
+    });
+    this.splitter.on("readable", () => {
+      if (this.reading) {
+        return false;
+      }
+      this.readData();
+    });
+    this.splitter.on("end", () => {
+      this.endReceived = true;
+      if (!this.reading) {
+        this.endStream();
+      }
+    });
+    this.splitter.on("error", (err) => {
+      this.hasFailed = true;
+      if (typeof this.waitingEnd === "function") {
+        return this.waitingEnd(err);
+      }
+      this.emit("error", err);
+    });
+    this.libmime = new libmime_default.Libmime({ Iconv: this.options.Iconv });
+  }
+  /** @internal */
+  getDecoder() {
+    if (this.options.Iconv) {
+      const Iconv = this.options.Iconv;
+      return {
+        decodeStream(charset) {
+          if (isRefusedCharset(charset)) {
+            return libmime_default.createDecodeStream(charset);
+          }
+          return new IconvDecoder(Iconv, charset);
+        }
+      };
+    } else {
+      return {
+        decodeStream(charset) {
+          return libmime_default.createDecodeStream(charset || "ascii");
+        }
+      };
+    }
+  }
+  /** @internal */
+  readData() {
+    if (this.hasFailed) {
+      return false;
+    }
+    this.reading = true;
+    let data = this.splitter.read();
+    if (data === null) {
+      this.reading = false;
+      if (this.endReceived) {
+        this.endStream();
+      }
+      return;
+    }
+    this.processChunk(data, (err) => {
+      if (err) {
+        if (typeof this.waitingEnd === "function") {
+          return this.waitingEnd(err);
+        }
+        return this.emit("error", err);
+      }
+      setImmediate(() => this.readData());
+    });
+  }
+  /** @internal */
+  endStream() {
+    this.finished = true;
+    if (this.curnode && this.curnode.decoder) {
+      this.curnode.decoder.end();
+    }
+    if (typeof this.waitingEnd === "function") {
+      this.waitingEnd();
+    }
+  }
+  _transform(chunk, encoding, done) {
+    if (!chunk || !chunk.length) {
+      return done();
+    }
+    if (this.chunkedPassthrough.write(chunk) === false) {
+      this.chunkedPassthrough.once("drain", () => {
+        done();
+      });
+      return;
+    } else {
+      return done();
+    }
+  }
+  _flush(done) {
+    setImmediate(() => this.chunkedPassthrough.end());
+    if (this.finished) {
+      return this.cleanup(done);
+    }
+    this.waitingEnd = (err) => {
+      this.waitingEnd = false;
+      if (err) {
+        return done(err);
+      }
+      this.cleanup(done);
+    };
+  }
+  /** @internal */
+  cleanup(done) {
+    let finish = () => {
+      try {
+        let t = this.getTextContent();
+        this.push(t);
+      } catch (err) {
+        return done(err);
+      }
+      done();
+    };
+    if (this.curnode && this.curnode.decoder && this.curnode.decoder.readable && !this.decoderEnded) {
+      (this.curnode.contentStream || this.curnode.decoder).once("end", () => {
+        finish();
+      });
+      this.curnode.decoder.end();
+    } else {
+      setImmediate(() => {
+        finish();
+      });
+    }
+  }
+  /** @internal */
+  processHeaders(lines) {
+    let headers = /* @__PURE__ */ new Map();
+    (lines || []).forEach((line) => {
+      let key = line.key;
+      let value = ((this.libmime.decodeHeader(line.line) || {}).value || "").toString().trim();
+      value = Buffer.from(value, "binary").toString();
+      switch (key) {
+        case "content-type":
+        case "content-disposition":
+        case "dkim-signature": {
+          value = this.libmime.parseHeaderValue(value, { stripComments: key !== "dkim-signature" });
+          let rfc2231 = new Set(value.decodedParams);
+          if (value.value) {
+            value.value = this.libmime.decodeWords(value.value);
+          }
+          Object.keys(value && value.params || {}).forEach((key2) => {
+            if (rfc2231.has(key2)) {
+              return;
+            }
+            try {
+              value.params[key2] = this.libmime.decodeWords(value.params[key2]);
+            } catch {
+            }
+          });
+          break;
+        }
+        case "date": {
+          let dateValue = new Date(value);
+          if (isNaN(dateValue.getTime())) {
+            dateValue = /* @__PURE__ */ new Date();
+          }
+          value = dateValue;
+          break;
+        }
+        case "subject":
+          try {
+            value = this.libmime.decodeWords(value);
+          } catch {
+          }
+          break;
+        case "references":
+          try {
+            value = this.libmime.decodeWords(value);
+          } catch {
+          }
+          value = value.split(/\s+/).map(this.ensureMessageIDFormat).filter((val) => val);
+          break;
+        case "message-id":
+        case "in-reply-to":
+          try {
+            value = this.libmime.decodeWords(value);
+          } catch {
+          }
+          value = this.ensureMessageIDFormat(value);
+          break;
+        case "priority":
+        case "x-priority":
+        case "x-msmail-priority":
+        case "importance":
+          key = "priority";
+          value = this.parsePriority(value);
+          break;
+        case "from":
+        case "to":
+        case "cc":
+        case "bcc":
+        case "sender":
+        case "reply-to":
+        case "delivered-to":
+        case "return-path":
+        case "disposition-notification-to":
+          value = addressparser_default(value);
+          this.decodeAddresses(value);
+          value = {
+            value,
+            html: this.getAddressesHTML(value),
+            text: this.getAddressesText(value)
+          };
+          break;
+      }
+      if (key.slice(0, 5) === "list-") {
+        value = this.parseListHeader(key.slice(5), value);
+        key = "list";
+      }
+      if (value) {
+        if (!headers.has(key)) {
+          headers.set(key, [].concat(value || []));
+        } else if (Array.isArray(value)) {
+          let list3 = headers.get(key);
+          for (let entry of value) {
+            list3.push(entry);
+          }
+        } else {
+          headers.get(key).push(value);
+        }
+      }
+    });
+    let singleKeys = [
+      "message-id",
+      "content-id",
+      "from",
+      "sender",
+      "in-reply-to",
+      "reply-to",
+      "subject",
+      "date",
+      "content-disposition",
+      "content-type",
+      "content-transfer-encoding",
+      "priority",
+      "mime-version",
+      "content-description",
+      "precedence",
+      "errors-to",
+      "disposition-notification-to"
+    ];
+    headers.forEach((value, key) => {
+      if (Array.isArray(value)) {
+        if (singleKeys.includes(key) && value.length) {
+          headers.set(key, value[0]);
+        } else if (value.length === 1) {
+          headers.set(key, value[0]);
+        }
+      }
+      if (key === "list") {
+        let listValue = {};
+        [].concat(value || []).forEach((val) => {
+          Object.keys(val || {}).forEach((listKey) => {
+            listValue[listKey] = val[listKey];
+          });
+        });
+        headers.set(key, listValue);
+      }
+    });
+    return headers;
+  }
+  /** @internal */
+  parseListHeader(key, value) {
+    if (UNSAFE_LIST_KEYS.has(key)) {
+      return false;
+    }
+    let addresses = addressparser_default(value);
+    let response = {};
+    let data = addresses.map((address) => {
+      if (/^https?:/i.test(address.name)) {
+        response.url = address.name;
+      } else if (address.name) {
+        response.name = address.name;
+      }
+      if (/^mailto:/.test(address.address || "")) {
+        response.mail = address.address.slice(7);
+      } else if (address.address && address.address.indexOf("@") < 0) {
+        response.id = address.address;
+      } else if (address.address) {
+        response.mail = address.address;
+      }
+      if (Object.keys(response).length) {
+        return response;
+      }
+      return false;
+    }).filter((address) => address);
+    if (data.length) {
+      return {
+        [key]: response
+      };
+    }
+    return false;
+  }
+  /**
+   * Turns a `Priority`, `X-Priority`, `X-MSMail-Priority` or `Importance` header value into
+   * `'high'`, `'normal'` or `'low'`.
+   */
+  parsePriority(value) {
+    value = value.toLowerCase().trim();
+    if (!isNaN(parseInt(value, 10))) {
+      let level = parseInt(value, 10) || 0;
+      if (level === 3) {
+        return "normal";
+      } else if (level > 3) {
+        return "low";
+      } else {
+        return "high";
+      }
+    } else {
+      switch (value) {
+        case "non-urgent":
+        case "low":
+          return "low";
+        case "urgent":
+        case "high":
+          return "high";
+      }
+    }
+    return "normal";
+  }
+  /**
+   * Wraps a Message-ID in angle brackets where they are missing. Returns `false` for an empty value.
+   */
+  ensureMessageIDFormat(value) {
+    if (!value.length) {
+      return false;
+    }
+    if (value.charAt(0) !== "<") {
+      value = "<" + value;
+    }
+    if (value.charAt(value.length - 1) !== ">") {
+      value += ">";
+    }
+    return value;
+  }
+  /** @internal */
+  decodeAddresses(addresses) {
+    decodeAddresses(addresses, this.libmime);
+  }
+  /** @internal */
+  createNode(node) {
+    let contentType = node.contentType;
+    let disposition = node.disposition;
+    let encoding = node.encoding;
+    let charset = node.charset;
+    if (!contentType && node.root) {
+      contentType = "text/plain";
+    }
+    let newNode = {
+      node,
+      headerLines: node.headers.lines,
+      headers: this.processHeaders(node.headers.getList()),
+      contentType,
+      children: []
+    };
+    if (!/^multipart\//i.test(contentType)) {
+      if (disposition && !["attachment", "inline"].includes(disposition)) {
+        disposition = "attachment";
+      }
+      if (!disposition && !this.textTypes.includes(contentType)) {
+        newNode.disposition = "attachment";
+      } else {
+        newNode.disposition = disposition || "inline";
+      }
+      newNode.isAttachment = !this.textTypes.includes(contentType) || newNode.disposition !== "inline";
+      newNode.encoding = ["quoted-printable", "base64"].includes(encoding) ? encoding : "binary";
+      if (charset) {
+        newNode.charset = charset;
+      }
+      let decoder = node.getDecoder();
+      decoder.on("end", () => {
+        this.decoderEnded = true;
+      });
+      newNode.decoder = decoder;
+    }
+    if (node.root) {
+      this.headers = newNode.headers;
+      this.headerLines = newNode.headerLines;
+    }
+    if (!this.tree || !this.curnode) {
+      newNode.root = true;
+      this.curnode = this.tree = newNode;
+      return newNode;
+    }
+    if (!this.curnode.parent) {
+      newNode.parent = this.curnode;
+      this.curnode.children.push(newNode);
+      this.curnode = newNode;
+      return newNode;
+    }
+    if (this.curnode.parent.node === node.parentNode) {
+      newNode.parent = this.curnode.parent;
+      this.curnode.parent.children.push(newNode);
+      this.curnode = newNode;
+      return newNode;
+    }
+    if (this.curnode.node === node.parentNode) {
+      newNode.parent = this.curnode;
+      this.curnode.children.push(newNode);
+      this.curnode = newNode;
+      return newNode;
+    }
+    let parentNode = this.curnode;
+    while (parentNode = parentNode.parent) {
+      if (parentNode.node === node.parentNode) {
+        newNode.parent = parentNode;
+        parentNode.children.push(newNode);
+        this.curnode = newNode;
+        return newNode;
+      }
+    }
+    this.curnode = newNode;
+    return newNode;
+  }
+  /** @internal */
+  getTextContent() {
+    let text = [];
+    let html = [];
+    let textConversionError = null;
+    let processNode = (alternative, level, node) => {
+      if (node.showMeta) {
+        let meta = ["From", "Subject", "Date", "To", "Cc", "Bcc"].map((fkey) => {
+          let key = fkey.toLowerCase();
+          if (!node.headers.has(key)) {
+            return false;
+          }
+          let value = node.headers.get(key);
+          if (!value) {
+            return false;
+          }
+          return {
+            key: fkey,
+            value: Array.isArray(value) ? value[value.length - 1] : value
+          };
+        }).filter((entry) => entry);
+        if (this.hasHtml) {
+          html.push('<table class="mp_head">' + meta.map((entry) => {
+            let value = entry.value;
+            switch (entry.key) {
+              case "From":
+              case "To":
+              case "Cc":
+              case "Bcc":
+                value = value.html;
+                break;
+              case "Date":
+                value = this.options.formatDateString ? this.options.formatDateString(value) : value.toUTCString();
+                break;
+              case "Subject":
+                value = "<strong>" + import_he2.default.encode(value) + "</strong>";
+                break;
+              default:
+                value = import_he2.default.encode(value);
+            }
+            return '<tr><td class="mp_head_key">' + import_he2.default.encode(entry.key) + ':</td><td class="mp_head_value">' + value + "<td></tr>";
+          }).join("\n") + "<table>");
+        }
+        if (this.hasText) {
+          text.push("\n" + meta.map((entry) => {
+            let value = entry.value;
+            switch (entry.key) {
+              case "From":
+              case "To":
+              case "Cc":
+              case "Bcc":
+                value = value.text;
+                break;
+              case "Date":
+                value = this.options.formatDateString ? this.options.formatDateString(value) : value.toUTCString();
+                break;
+            }
+            return entry.key + ": " + value;
+          }).join("\n") + "\n");
+        }
+      }
+      if (node.textContent) {
+        if (node.contentType === "text/plain") {
+          text.push(node.textContent);
+          if (!alternative && this.hasHtml) {
+            html.push(this.textToHtml(node.textContent));
+          }
+        } else if (node.contentType === "message/delivery-status" && !this.options.keepDeliveryStatus) {
+          text.push(node.textContent);
+          if (!alternative && this.hasHtml) {
+            html.push(this.textToHtml(node.textContent));
+          }
+        } else if (node.contentType === "text/html") {
+          if (!alternative && this.hasText || node.root && !this.hasText) {
+            if (this.options.skipHtmlToText) {
+              text.push("");
+            } else {
+              let err = null;
+              if (node.textContent.length > this.options.maxHtmlLengthToParse) {
+                err = new Error(`HTML too long for parsing ${node.textContent.length} bytes`);
+              } else if (exceedsHtmlNestingDepth(node.textContent, MAX_HTML_NESTING_DEPTH)) {
+                err = new Error(`HTML nested deeper than ${MAX_HTML_NESTING_DEPTH} levels`);
+              } else {
+                try {
+                  text.push(convert2(node.textContent, { limits: { maxDepth: MAX_HTML_NESTING_DEPTH } }));
+                } catch (cause) {
+                  err = new Error("Failed to parse HTML", { cause });
+                }
+              }
+              if (err) {
+                text.push("");
+                textConversionError = textConversionError || err;
+              }
+            }
+          }
+          html.push(node.textContent);
+        }
+      }
+      alternative = alternative || node.contentType === "multipart/alternative";
+      if (node.children) {
+        node.children.forEach((subNode) => {
+          processNode(alternative, level + 1, subNode);
+        });
+      }
+    };
+    processNode(false, 0, this.tree);
+    let response = {
+      type: "text"
+    };
+    if (html.length) {
+      this.html = response.html = html.join("<br/>\n");
+    }
+    if (text.length) {
+      this.text = response.text = text.join("\n");
+      this.textAsHtml = response.textAsHtml = text.map((part) => this.textToHtml(part)).join("<br/>\n");
+    }
+    if (textConversionError) {
+      response.textConversionError = textConversionError;
+    }
+    return response;
+  }
+  /** @internal */
+  processChunk(data, done) {
+    let partId = null;
+    if (data._parentBoundary) {
+      partId = (data.partNr || []).filter((nr) => typeof nr === "number").join(".") || null;
+    }
+    switch (data.type) {
+      case "node": {
+        let node = this.createNode(data);
+        if (node === this.tree) {
+          ["subject", "references", "date", "to", "from", "to", "cc", "bcc", "message-id", "in-reply-to", "reply-to"].forEach((key) => {
+            if (node.headers.has(key)) {
+              this[key.replace(/-([a-z])/g, (m, c) => c.toUpperCase())] = node.headers.get(key);
+            }
+          });
+          let otp = getOtp(node.headerLines);
+          if (otp) {
+            this.otp = otp;
+          }
+          this.emit("headers", node.headers);
+          if (node.headerLines) {
+            this.emit("headerLines", node.headerLines);
+          }
+        }
+        if (data.contentType === "message/rfc822" && data.messageNode) {
+          break;
+        }
+        if (data.parentNode && data.parentNode.contentType === "message/rfc822") {
+          node.showMeta = true;
+        }
+        if (node.isAttachment) {
+          let decoder = node.decoder;
+          let contentType = node.contentType;
+          if (node.contentType === "application/octet-stream" && data.filename) {
+            contentType = this.libmime.detectMimeType(data.filename) || "application/octet-stream";
+          }
+          let released = false;
+          let waitingDrain = false;
+          let pump;
+          let attachment = {
+            type: "attachment",
+            content: null,
+            contentType,
+            partId,
+            release: () => {
+              attachment.release = null;
+              released = true;
+              if (waitingDrain) {
+                waitingDrain = false;
+                pump();
+              }
+              if (this.waitUntilAttachmentEnd && typeof this.attachmentCallback === "function") {
+                setImmediate(this.attachmentCallback);
+              }
+              this.attachmentCallback = false;
+              this.waitUntilAttachmentEnd = false;
+            }
+          };
+          let algo = this.options.checksumAlgo === false ? false : this.options.checksumAlgo || "md5";
+          let hasher;
+          try {
+            hasher = new stream_hash_default(attachment, algo);
+          } catch (err) {
+            err.message = `Checksum algorithm "${algo}" is not available: ${err.message}`;
+            return done(err);
+          }
+          decoder.on("error", (err) => {
+            hasher.emit("error", err);
+          });
+          pump = () => {
+            let chunk;
+            while ((chunk = decoder.read()) !== null) {
+              if (hasher.write(chunk) === false && !released) {
+                waitingDrain = true;
+                hasher.once("drain", () => {
+                  waitingDrain = false;
+                  pump();
+                });
+                return;
+              }
+            }
+          };
+          decoder.on("readable", () => {
+            if (!waitingDrain) {
+              pump();
+            }
+          });
+          decoder.once("end", () => {
+            hasher.end();
+          });
+          attachment.content = hasher;
+          this.waitUntilAttachmentEnd = true;
+          if (data.disposition) {
+            attachment.contentDisposition = data.disposition;
+          }
+          if (data.filename) {
+            attachment.filename = data.filename;
+          }
+          if (node.headers.has("content-id")) {
+            attachment.contentId = [].concat(node.headers.get("content-id") || []).shift();
+            attachment.cid = attachment.contentId.trim().replace(/^<|>$/g, "").trim();
+            let parentNode = node;
+            while (parentNode = parentNode.parent) {
+              if (parentNode.contentType === "multipart/related") {
+                attachment.related = true;
+              }
+            }
+          }
+          attachment.headers = node.headers;
+          this.push(attachment);
+          this.attachmentList.push(attachment);
+        } else if (node.disposition === "inline") {
+          let chunks = [];
+          let chunklen = 0;
+          node.contentStream = node.decoder;
+          if (node.contentType === "text/plain") {
+            this.hasText = true;
+          } else if (node.contentType === "text/html") {
+            this.hasHtml = true;
+          } else if (node.contentType === "message/delivery-status" && !this.options.keepDeliveryStatus) {
+            this.hasText = true;
+          }
+          if (node.node.flowed) {
+            let contentStream2 = node.contentStream;
+            let flowDecoder = new import_flowed_decoder2.default({
+              delSp: node.node.delSp
+            });
+            contentStream2.on("error", (err) => {
+              flowDecoder.emit("error", err);
+            });
+            contentStream2.pipe(flowDecoder);
+            node.contentStream = flowDecoder;
+          }
+          let charset = node.charset || "utf-8";
+          if (!["ascii", "usascii", "utf8"].includes(charset.toLowerCase().replace(/[^a-z0-9]+/g, ""))) {
+            try {
+              let contentStream2 = node.contentStream;
+              let decodeStream = this.decoder.decodeStream(charset);
+              contentStream2.on("error", (err) => {
+                decodeStream.emit("error", err);
+              });
+              contentStream2.pipe(decodeStream);
+              node.contentStream = decodeStream;
+            } catch {
+            }
+          }
+          let contentStream = node.contentStream;
+          contentStream.on("readable", () => {
+            let chunk;
+            while ((chunk = contentStream.read()) !== null) {
+              if (typeof chunk === "string") {
+                chunk = Buffer.from(chunk);
+              }
+              chunks.push(chunk);
+              chunklen += chunk.length;
+            }
+          });
+          contentStream.once("end", () => {
+            node.textContent = Buffer.concat(chunks, chunklen).toString().replace(/\r?\n/g, "\n");
+          });
+          contentStream.once("error", (err) => {
+            this.emit("error", err);
+          });
+        }
+        break;
+      }
+      case "data":
+        if (this.curnode && this.curnode.decoder) {
+          this.curnode.decoder.end();
+        }
+        if (this.waitUntilAttachmentEnd) {
+          this.attachmentCallback = done;
+          return;
+        }
+        break;
+      case "body":
+        if (this.curnode && this.curnode.decoder && this.curnode.decoder.writable) {
+          if (this.curnode.decoder.write(data.value) === false) {
+            this.curnode.decoder.once("drain", done);
+            return;
+          }
+        }
+        break;
+    }
+    setImmediate(done);
+  }
+  /**
+   * Formats parsed addresses for an HTML context, every value HTML-escaped.
+   */
+  getAddressesHTML(value) {
+    return formatAddressesHTML(value);
+  }
+  /**
+   * Formats parsed addresses as plain text, display names quoted.
+   */
+  getAddressesText(value) {
+    return formatAddressesText(value);
+  }
+  /**
+   * Replaces `cid:` links to image attachments in the HTML content. Call it once the parser has
+   * ended. `replaceCallback` is called once for every referenced image attachment and answers with
+   * the URL to use instead; `done` gets the updated HTML, or `false` when the message has no HTML.
+   * The total length of the URLs written is bounded by `maxInlinedImagesSize`.
+   */
+  updateImageLinks(replaceCallback, done) {
+    if (!this.html) {
+      setImmediate(() => done(null, false));
+      return;
+    }
+    let cids = /* @__PURE__ */ new Map();
+    let html = (this.html || "").toString();
+    if (this.options.skipImageLinks) {
+      return done(null, html);
+    }
+    html.replace(/\bcid:([^'"\s]{1,256})/g, (match2, cid) => {
+      for (let i = 0, len = this.attachmentList.length; i < len; i++) {
+        if (this.attachmentList[i].cid === cid && /^image\/[\w]+$/i.test(this.attachmentList[i].contentType)) {
+          cids.set(cid, {
+            attachment: this.attachmentList[i]
+          });
+          break;
+        }
+      }
+      return match2;
+    });
+    let cidList = [];
+    cids.forEach((entry) => {
+      cidList.push(entry);
+    });
+    let pos = 0;
+    let processNext = () => {
+      if (pos >= cidList.length) {
+        let maxSize = this.options.maxInlinedImagesSize;
+        if (typeof maxSize !== "number" || !(maxSize >= 0)) {
+          maxSize = MAX_INLINED_IMAGES_SIZE;
+        }
+        let inlinedSize = 0;
+        try {
+          html = html.replace(/\bcid:([^'"\s]{1,256})/g, (match2, cid) => {
+            let url = cids.has(cid) && cids.get(cid).url;
+            if (!url) {
+              return match2;
+            }
+            url = String(url);
+            if (inlinedSize + url.length > maxSize) {
+              return match2;
+            }
+            inlinedSize += url.length;
+            return url;
+          });
+        } catch (err) {
+          return done(err);
+        }
+        return done(null, html);
+      }
+      let entry = cidList[pos++];
+      replaceCallback(entry.attachment, (err, url) => {
+        if (err) {
+          setImmediate(() => done(err));
+          return;
+        }
+        entry.url = url;
+        setImmediate(processNext);
+      });
+    };
+    setImmediate(processNext);
+  }
+  // Tells whether a text segment is worth handing to linkify-it, see
+  // MAX_LINKIFY_* above. It is also the only quick deny: linkify-it 6 has no
+  // pretest(), and its test() is a full scan, as expensive as match().
+  /** @internal */
+  canScanSegment(segment) {
+    if (segment.length > MAX_LINKIFY_SEGMENT_LENGTH || !/[.:@/]/.test(segment)) {
+      return false;
+    }
+    let labels = 0;
+    for (let i = 0, len = segment.length; i < len; i++) {
+      let code = segment.charCodeAt(i);
+      if (code === 46) {
+        if (++labels > MAX_LINKIFY_HOST_LABELS) {
+          return false;
+        }
+      } else if (!isHostChar(code)) {
+        labels = 0;
+      }
+    }
+    return true;
+  }
+  /** @internal */
+  findLinks(str) {
+    let links = [];
+    if (this.linkifyWork >= MAX_LINKIFY_WORK) {
+      return links;
+    }
+    let segmentRegex = /[\S\uFEFF]+/g;
+    let segmentMatch;
+    while ((segmentMatch = segmentRegex.exec(str)) !== null) {
+      let segment = segmentMatch[0];
+      if (!this.canScanSegment(segment)) {
+        continue;
+      }
+      let matches = linkify.match(segment);
+      for (let i = 0; matches && i < matches.length; i++) {
+        matches[i].index += segmentMatch.index;
+        matches[i].lastIndex += segmentMatch.index;
+        links.push(matches[i]);
+      }
+      this.linkifyWork += segment.length * (segment.length + 1024);
+      if (this.linkifyWork >= MAX_LINKIFY_WORK) {
+        break;
+      }
+    }
+    return links;
+  }
+  /**
+   * Converts plain text to HTML the way `textAsHtml` is built: HTML-escaped, paragraphs and line
+   * breaks kept, and links turned into anchors unless `skipTextLinks` is set. Returns an empty
+   * string when `skipTextToHtml` is set.
+   */
+  textToHtml(str) {
+    if (this.options.skipTextToHtml) {
+      return "";
+    }
+    str = (str || "").toString();
+    let encoded;
+    if (!this.options.skipTextLinks) {
+      try {
+        let links = this.findLinks(str);
+        if (links.length) {
+          let result = [];
+          let last = 0;
+          links.forEach((link) => {
+            if (last < link.index) {
+              let textPart2 = import_he2.default.encode(str.slice(last, link.index), {
+                useNamedReferences: true
+              });
+              result.push(textPart2);
+            }
+            let safeUrl = link.url.replace(/"/g, "&quot;");
+            let safeText = import_he2.default.encode(link.text, { useNamedReferences: true });
+            result.push(`<a href="${safeUrl}">${safeText}</a>`);
+            last = link.lastIndex;
+          });
+          let textPart = import_he2.default.encode(str.slice(last), {
+            useNamedReferences: true
+          });
+          result.push(textPart);
+          encoded = result.join("");
+        }
+      } catch {
+      }
+    }
+    if (!encoded) {
+      encoded = import_he2.default.encode(str, {
+        useNamedReferences: true
+      });
+    }
+    let text = "<p>" + encoded.replace(/\r?\n/g, "\n").trim().replace(/(^|[^ \t])[ \t]+(?=[\n\r\u2028\u2029]|$)/g, "$1").trim().replace(/\n\n+/g, "</p><p>").trim().replace(/\n/g, "<br/>") + // insert <br> to single linebreaks
+    "</p>";
+    return text;
+  }
+};
+var mail_parser_default = MailParser;
+
+// node_modules/mailparser/dist/esm/simple-parser.js
+function simpleParser(input, options, callback) {
+  if (input === null || input === void 0) {
+    throw new TypeError("Input cannot be null or undefined.");
+  }
+  if (!callback && typeof options === "function") {
+    callback = options;
+    options = false;
+  }
+  let promise;
+  let done;
+  if (!callback) {
+    promise = new Promise((resolve3, reject) => {
+      done = (err, mail2) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve3(mail2);
+        }
+      };
+    });
+  } else {
+    done = callback;
+  }
+  let settled = false;
+  let settle = (...args) => {
+    if (settled) {
+      return;
+    }
+    settled = true;
+    done(...args);
+  };
+  let parserOptions = options || {};
+  let keepCidLinks = !!parserOptions.keepCidLinks;
+  let mail = {
+    attachments: []
+  };
+  let parser2 = new mail_parser_default(parserOptions);
+  parser2.on("error", (err) => {
+    settle(err);
+  });
+  parser2.on("headers", (headers) => {
+    mail.headers = headers;
+    mail.headerLines = parser2.headerLines;
+    if (parser2.otp) {
+      mail.otp = parser2.otp;
+    }
+  });
+  let reading = false;
+  let reader = () => {
+    reading = true;
+    let data = parser2.read();
+    if (data === null) {
+      reading = false;
+      return;
+    }
+    if (data.type === "text") {
+      Object.keys(data).forEach((key) => {
+        if (["text", "html", "textAsHtml", "textConversionError"].includes(key)) {
+          mail[key] = data[key];
+        }
+      });
+    }
+    if (data.type === "attachment") {
+      let attachment = data;
+      mail.attachments.push(attachment);
+      let chunks = [];
+      let chunklen = 0;
+      attachment.content.on("readable", () => {
+        let chunk;
+        while ((chunk = attachment.content.read()) !== null) {
+          chunks.push(chunk);
+          chunklen += chunk.length;
+        }
+      });
+      attachment.content.on("end", () => {
+        attachment.content = Buffer.concat(chunks, chunklen);
+        attachment.release();
+        reader();
+      });
+    } else {
+      reader();
+    }
+  };
+  parser2.on("readable", () => {
+    if (!reading) {
+      reader();
+    }
+  });
+  parser2.on("end", () => {
+    ["subject", "references", "date", "to", "from", "to", "cc", "bcc", "message-id", "in-reply-to", "reply-to"].forEach((key) => {
+      if (mail.headers && mail.headers.has(key)) {
+        mail[key.replace(/-([a-z])/g, (m, c) => c.toUpperCase())] = mail.headers.get(key);
+      }
+    });
+    if (keepCidLinks) {
+      return settle(null, mail);
+    }
+    parser2.updateImageLinks((attachment, done2) => done2(false, "data:" + attachment.contentType + ";base64," + attachment.content.toString("base64")), (err, html) => {
+      if (err) {
+        return settle(err);
+      }
+      mail.html = html;
+      settle(null, mail);
+    });
+  });
+  if (typeof input === "string") {
+    parser2.end(Buffer.from(input));
+  } else if (Buffer.isBuffer(input)) {
+    parser2.end(input);
+  } else {
+    input.once("error", (err) => {
+      input.destroy();
+      parser2.destroy();
+      settle(err);
+    }).pipe(parser2);
+  }
+  return promise;
+}
+var simple_parser_default = simpleParser;
+
 // node_modules/nodemailer/dist/esm/mailer/index.js
 var import_node_events2 = require("node:events");
 
@@ -38293,10 +49106,10 @@ var errors = {
 var baseMinusTMin = base - tMin;
 var floor = Math.floor;
 var stringFromCharCode = String.fromCharCode;
-function error(type) {
+function error2(type) {
   throw new RangeError(errors[type]);
 }
-function map(array, callback) {
+function map2(array, callback) {
   const result = [];
   let length = array.length;
   while (length--) {
@@ -38313,7 +49126,7 @@ function mapDomain(domain, callback) {
   }
   domain = domain.replace(regexSeparators, ".");
   const labels = domain.split(".");
-  const encoded = map(labels, callback).join(".");
+  const encoded = map2(labels, callback).join(".");
   return result + encoded;
 }
 function ucs2decode(string) {
@@ -38377,7 +49190,7 @@ var decode4 = function(input) {
   }
   for (let j = 0; j < basic; ++j) {
     if (input.charCodeAt(j) >= 128) {
-      error("not-basic");
+      error2("not-basic");
     }
     output.push(input.charCodeAt(j));
   }
@@ -38385,14 +49198,14 @@ var decode4 = function(input) {
     const oldi = i;
     for (let w = 1, k = base; ; k += base) {
       if (index >= inputLength) {
-        error("invalid-input");
+        error2("invalid-input");
       }
       const digit = basicToDigit(input.charCodeAt(index++));
       if (digit >= base) {
-        error("invalid-input");
+        error2("invalid-input");
       }
       if (digit > floor((maxInt - i) / w)) {
-        error("overflow");
+        error2("overflow");
       }
       i += digit * w;
       const t = k <= bias ? tMin : k >= bias + tMax ? tMax : k - bias;
@@ -38401,14 +49214,14 @@ var decode4 = function(input) {
       }
       const baseMinusT = base - t;
       if (w > floor(maxInt / baseMinusT)) {
-        error("overflow");
+        error2("overflow");
       }
       w *= baseMinusT;
     }
     const out = output.length + 1;
     bias = adapt(i - oldi, out, oldi == 0);
     if (floor(i / out) > maxInt - n) {
-      error("overflow");
+      error2("overflow");
     }
     n += floor(i / out);
     i %= out;
@@ -38442,13 +49255,13 @@ var encode4 = function(input) {
     }
     const handledCPCountPlusOne = handledCPCount + 1;
     if (m - n > floor((maxInt - delta) / handledCPCountPlusOne)) {
-      error("overflow");
+      error2("overflow");
     }
     delta += (m - n) * handledCPCountPlusOne;
     n = m;
     for (const currentValue of codePoints) {
       if (currentValue < n && ++delta > maxInt) {
-        error("overflow");
+        error2("overflow");
       }
       if (currentValue === n) {
         let q = delta;
@@ -38623,7 +49436,7 @@ var import_node_fs2 = __toESM(require("node:fs"), 1);
 var import_node_http = __toESM(require("node:http"), 1);
 var import_node_https = __toESM(require("node:https"), 1);
 var import_node_zlib2 = __toESM(require("node:zlib"), 1);
-var import_node_stream9 = require("node:stream");
+var import_node_stream11 = require("node:stream");
 
 // node_modules/nodemailer/dist/esm/fetch/cookies.js
 var import_node_net4 = __toESM(require("node:net"), 1);
@@ -38710,18 +49523,18 @@ var Cookies = class {
         return;
       }
       const valueParts = cookiePart.split("=");
-      const name3 = valueParts.shift().trim();
+      const name4 = valueParts.shift().trim();
       let value = valueParts.join("=").trim();
       let domain;
       if (!hasNameValue) {
         hasNameValue = true;
-        if (name3) {
-          cookie.name = name3;
+        if (name4) {
+          cookie.name = name4;
           cookie.value = value;
         }
         return;
       }
-      switch (name3.toLowerCase()) {
+      switch (name4.toLowerCase()) {
         case "expires": {
           const expires = new Date(value);
           if (expires.toString() !== "Invalid Date" && !hasMaxAge) {
@@ -38840,7 +49653,7 @@ var Cookies = class {
 var cookies_default = Cookies;
 
 // node_modules/nodemailer/dist/esm/package-info.js
-var name2 = "nodemailer";
+var name3 = "nodemailer";
 var version2 = "10.6.0";
 var homepage = "https://nodemailer.com/";
 
@@ -38939,7 +49752,7 @@ function fetchPort(parsed) {
 }
 function nmfetch(url, options) {
   options = options || {};
-  options.fetchRes = options.fetchRes || new import_node_stream9.PassThrough();
+  options.fetchRes = options.fetchRes || new import_node_stream11.PassThrough();
   options.cookies = options.cookies || new cookies_default();
   options.redirects = options.redirects || 0;
   options.maxRedirects = isNaN(options.maxRedirects) ? MAX_REDIRECTS : options.maxRedirects;
@@ -39199,7 +50012,7 @@ var import_node_dns2 = __toESM(require("node:dns"), 1);
 var import_node_net6 = __toESM(require("node:net"), 1);
 var import_node_os = __toESM(require("node:os"), 1);
 var import_node_url2 = __toESM(require("node:url"), 1);
-var import_node_stream10 = require("node:stream");
+var import_node_stream12 = require("node:stream");
 var DNS_TTL = 5 * 60 * 1e3;
 var CACHE_CLEANUP_INTERVAL = 30 * 1e3;
 var MAX_CACHE_SIZE = 1e3;
@@ -39311,7 +50124,7 @@ var resolveHostname = (options, callback) => {
     clearTimeout(deadline);
     callback(err, result);
   };
-  const respondCached = (error2) => {
+  const respondCached = (error3) => {
     if (!cached) {
       return false;
     }
@@ -39322,7 +50135,7 @@ var resolveHostname = (options, callback) => {
     respond(null, formatDNSValue(cached.value, {
       servername,
       cached: true,
-      error: error2
+      error: error3
     }));
     return true;
   };
@@ -39483,7 +50296,7 @@ var _logFunc = (logger2, level, defaults, data, message, ...args) => {
   delete entry.level;
   let logLevel = level;
   if (typeof logger2[logLevel] !== "function") {
-    logLevel = ["info", "debug", "log", "trace", "warn", "error"].find((name3) => typeof logger2[name3] === "function");
+    logLevel = ["info", "debug", "log", "trace", "warn", "error"].find((name4) => typeof logger2[name4] === "function");
   }
   if (logLevel) {
     logger2[logLevel](entry, message, ...args);
@@ -39719,7 +50532,7 @@ function resolveStream(stream, callback) {
     chunks.push(chunk);
     chunklen += chunk.length;
   });
-  (0, import_node_stream10.finished)(stream, { writable: false }, (err) => {
+  (0, import_node_stream12.finished)(stream, { writable: false }, (err) => {
     if (err) {
       return respond(err);
     }
@@ -41888,12 +52701,12 @@ function detectExtension(mimeType) {
 }
 
 // node_modules/nodemailer/dist/esm/mime-node/index.js
-var import_node_crypto4 = __toESM(require("node:crypto"), 1);
+var import_node_crypto5 = __toESM(require("node:crypto"), 1);
 var import_node_fs3 = __toESM(require("node:fs"), 1);
-var import_node_stream16 = require("node:stream");
+var import_node_stream18 = require("node:stream");
 
 // node_modules/nodemailer/dist/esm/base64/index.js
-var import_node_stream11 = require("node:stream");
+var import_node_stream13 = require("node:stream");
 function encode5(buffer) {
   if (typeof buffer === "string") {
     buffer = Buffer.from(buffer, "utf-8");
@@ -41925,7 +52738,7 @@ function wrapBuffer2(src, lineLength, final) {
   }
   return { output, rest };
 }
-var Encoder3 = class extends import_node_stream11.Transform {
+var Encoder3 = class extends import_node_stream13.Transform {
   constructor(options) {
     super();
     this.options = options || {};
@@ -41989,7 +52802,7 @@ var Encoder3 = class extends import_node_stream11.Transform {
 };
 
 // node_modules/nodemailer/dist/esm/qp/index.js
-var import_node_stream12 = require("node:stream");
+var import_node_stream14 = require("node:stream");
 var MIN_LINE_LENGTH2 = 4;
 var QP_RANGES = [
   [9],
@@ -42008,7 +52821,7 @@ for (let i = 0; i < 256; i++) {
   QP_LITERAL2[i] = checkRanges(i, QP_RANGES) ? 1 : 0;
 }
 var HEX_DIGITS2 = Buffer.from("0123456789ABCDEF", "latin1");
-var isWhitespace2 = (c) => c === 32 || c === 9;
+var isWhitespace3 = (c) => c === 32 || c === 9;
 function encode6(buffer) {
   return encodeBytes2(typeof buffer === "string" ? Buffer.from(buffer, "utf-8") : buffer);
 }
@@ -42020,7 +52833,7 @@ function encodeBytes2(buffer, next, binary, previous) {
     const ord = buffer[i];
     const following = i + 1 < len ? buffer[i + 1] : next;
     const lineBreakByte = binary && (ord === 13 || ord === 10) ? ord === 13 ? following === 10 : (i > 0 ? buffer[i - 1] : previous) === 13 : true;
-    if (QP_LITERAL2[ord] && lineBreakByte && !(isWhitespace2(ord) && (following === void 0 || following === 10 || following === 13))) {
+    if (QP_LITERAL2[ord] && lineBreakByte && !(isWhitespace3(ord) && (following === void 0 || following === 10 || following === 13))) {
       output[pos++] = ord;
       continue;
     }
@@ -42038,13 +52851,13 @@ function wrap3(str, lineLength) {
   }
   let pos = 0;
   const len = str.length;
-  let match, code, line;
+  let match2, code, line;
   const lineMargin = Math.floor(lineLength / 3);
   let result = "";
   while (pos < len) {
     line = str.substr(pos, lineLength);
-    if (match = line.match(/\r\n/)) {
-      line = line.substr(0, match.index + match[0].length);
+    if (match2 = line.match(/\r\n/)) {
+      line = line.substr(0, match2.index + match2[0].length);
       result += line;
       pos += line.length;
       continue;
@@ -42054,20 +52867,20 @@ function wrap3(str, lineLength) {
       pos += line.length;
       continue;
     }
-    if (match = line.substr(-lineMargin).match(/\n.*?$/)) {
-      line = line.substr(0, line.length - (match[0].length - 1));
+    if (match2 = line.substr(-lineMargin).match(/\n.*?$/)) {
+      line = line.substr(0, line.length - (match2[0].length - 1));
       result += line;
       pos += line.length;
       continue;
     }
-    if (line.length > lineLength - lineMargin && (match = line.substr(-lineMargin).match(/[ \t.,!?][^ \t.,!?]*$/))) {
-      line = line.substr(0, line.length - (match[0].length - 1));
+    if (line.length > lineLength - lineMargin && (match2 = line.substr(-lineMargin).match(/[ \t.,!?][^ \t.,!?]*$/))) {
+      line = line.substr(0, line.length - (match2[0].length - 1));
     } else if (line.match(/[=][\da-f]{0,2}$/i)) {
-      if (match = line.match(/[=][\da-f]{0,1}$/i)) {
-        line = line.substr(0, line.length - match[0].length);
+      if (match2 = line.match(/[=][\da-f]{0,1}$/i)) {
+        line = line.substr(0, line.length - match2[0].length);
       }
-      while (line.length > 3 && line.length < len - pos && !line.match(/^(?:=[\da-f]{2}){1,4}$/i) && (match = line.match(/[=][\da-f]{2}$/gi))) {
-        code = parseInt(match[0].substr(1, 2), 16);
+      while (line.length > 3 && line.length < len - pos && !line.match(/^(?:=[\da-f]{2}){1,4}$/i) && (match2 = line.match(/[=][\da-f]{2}$/gi))) {
+        code = parseInt(match2[0].substr(1, 2), 16);
         if (code < 128) {
           break;
         }
@@ -42111,7 +52924,7 @@ function checkRanges(nr, ranges) {
   return false;
 }
 var ENCODE_SLICE_SIZE2 = 64 * 1024;
-var Encoder4 = class extends import_node_stream12.Transform {
+var Encoder4 = class extends import_node_stream14.Transform {
   constructor(options) {
     super();
     this.options = options || {};
@@ -42136,7 +52949,7 @@ var Encoder4 = class extends import_node_stream12.Transform {
       this._remainingBytes = false;
     }
     let end = buf.length;
-    while (end > 0 && (isWhitespace2(buf[end - 1]) || this.options.binary && buf[end - 1] === 13)) {
+    while (end > 0 && (isWhitespace3(buf[end - 1]) || this.options.binary && buf[end - 1] === 13)) {
       end--;
     }
     if (buf.length - end <= ENCODE_SLICE_SIZE2) {
@@ -42286,19 +53099,19 @@ function _markInvalidEncodedWords(value, range) {
     wordAt(pos);
     const start = wordStart;
     LENIENT_ENCODED_WORD.lastIndex = pos;
-    const match = LENIENT_ENCODED_WORD.exec(value);
-    const end = match ? pos + match[0].length : wordEnd;
-    if (match && end > wordEnd) {
+    const match2 = LENIENT_ENCODED_WORD.exec(value);
+    const end = match2 ? pos + match2[0].length : wordEnd;
+    if (match2 && end > wordEnd) {
       wordAt(end - 1);
     }
     const word = value.substring(start, wordEnd);
-    const looksLike = match ? true : start === pos && word.length >= 4 && word.endsWith("?=");
+    const looksLike = match2 ? true : start === pos && word.length >= 4 && word.endsWith("?=");
     const valid = start === pos && wordEnd === end && word.length <= 75 && VALID_ENCODED_WORD.test(word);
     if (looksLike && !valid) {
       range[0] = range[0] < 0 ? start : Math.min(range[0], start);
       range[1] = Math.max(range[1], wordEnd - 1);
     }
-    pos = value.indexOf("=?", match ? end : pos + 2);
+    pos = value.indexOf("=?", match2 ? end : pos + 2);
   }
   return range;
 }
@@ -42455,7 +53268,7 @@ function buildHeaderParam(key, data, maxLength) {
     value: item.line
   }));
 }
-var TOKEN = /^[^\x00-\x20\x7f()<>@,;:\\"/[\]?=]+$/;
+var TOKEN2 = /^[^\x00-\x20\x7f()<>@,;:\\"/[\]?=]+$/;
 function _findCommentEnd(str, start) {
   let depth = 0;
   for (let i = start, len = str.length; i < len; i++) {
@@ -42470,8 +53283,8 @@ function _findCommentEnd(str, start) {
   }
   return -1;
 }
-function _isParamName(name3) {
-  return !!name3 && !isProtoKey(name3);
+function _isParamName(name4) {
+  return !!name4 && !isProtoKey(name4);
 }
 function parseHeaderValue(str, options) {
   const response = {
@@ -42479,10 +53292,10 @@ function parseHeaderValue(str, options) {
     params: {}
   };
   let stripComments = !!options?.stripComments;
-  const setParam = (name3, value2) => {
-    name3 = name3.toLowerCase();
-    if (_isParamName(name3) && !Object.prototype.hasOwnProperty.call(response.params, name3)) {
-      response.params[name3] = value2;
+  const setParam = (name4, value2) => {
+    name4 = name4.toLowerCase();
+    if (_isParamName(name4) && !Object.prototype.hasOwnProperty.call(response.params, name4)) {
+      response.params[name4] = value2;
     }
   };
   let key = false;
@@ -42579,13 +53392,13 @@ function parseHeaderValue(str, options) {
   }
   const continuations = /* @__PURE__ */ new Map();
   Object.keys(response.params).forEach((key2) => {
-    const match = key2.match(/(\*(\d+)|\*(\d+)\*|\*)$/);
-    if (!match) {
+    const match2 = key2.match(/(\*(\d+)|\*(\d+)\*|\*)$/);
+    if (!match2) {
       return;
     }
-    const actualKey = key2.substr(0, match.index);
-    const nr = Number(match[2] || match[3]) || 0;
-    const encoded = match[0].substr(-1) === "*";
+    const actualKey = key2.substr(0, match2.index);
+    const nr = Number(match2[2] || match2[3]) || 0;
+    const encoded = match2[0].substr(-1) === "*";
     let value2 = response.params[key2];
     delete response.params[key2];
     if (!_isParamName(actualKey)) {
@@ -42598,7 +53411,7 @@ function parseHeaderValue(str, options) {
     }
     const charsetMatch = nr === 0 && encoded ? value2.match(/^([^']*)'[^']*'(.*)$/) : null;
     if (charsetMatch) {
-      continuation.charset = TOKEN.test(charsetMatch[1]) ? charsetMatch[1] : "iso-8859-1";
+      continuation.charset = TOKEN2.test(charsetMatch[1]) ? charsetMatch[1] : "iso-8859-1";
       value2 = charsetMatch[2];
     }
     continuation.sections.push({ nr, value: value2, encoded });
@@ -42638,22 +53451,22 @@ function foldLines(str, lineLength, afterSpace) {
   let pos = 0;
   const len = str.length;
   let result = "";
-  let line, match;
+  let line, match2;
   while (pos < len) {
     line = str.substr(pos, lineLength);
     if (line.length < lineLength) {
       result += line;
       break;
     }
-    if (match = line.match(/^[^\n\r]*(\r?\n|\r)/)) {
-      line = match[0];
+    if (match2 = line.match(/^[^\n\r]*(\r?\n|\r)/)) {
+      line = match2[0];
       result += line;
       pos += line.length;
       continue;
-    } else if ((match = line.match(/(\s+)[^\s]*$/)) && match[0].length - (afterSpace ? (match[1] || "").length : 0) < line.length) {
-      line = line.substr(0, line.length - (match[0].length - (afterSpace ? (match[1] || "").length : 0)));
-    } else if (match = str.substr(pos + line.length).match(/^[^\s]+(\s*)/)) {
-      line = line + match[0].substr(0, match[0].length - (!afterSpace ? (match[1] || "").length : 0));
+    } else if ((match2 = line.match(/(\s+)[^\s]*$/)) && match2[0].length - (afterSpace ? (match2[1] || "").length : 0) < line.length) {
+      line = line.substr(0, line.length - (match2[0].length - (afterSpace ? (match2[1] || "").length : 0)));
+    } else if (match2 = str.substr(pos + line.length).match(/^[^\s]+(\s*)/)) {
+      line = line + match2[0].substr(0, match2[0].length - (!afterSpace ? (match2[1] || "").length : 0));
     }
     result += line;
     pos += line.length;
@@ -42665,19 +53478,19 @@ function foldLines(str, lineLength, afterSpace) {
 }
 function splitMimeEncodedString(str, maxlen) {
   const lines = [];
-  let curLine, fallbackLine, match, chr, done;
+  let curLine, fallbackLine, match2, chr, done;
   maxlen = Math.max(maxlen || 0, 12);
   while (str.length) {
     curLine = str.substr(0, maxlen);
-    if (match = curLine.match(/[=][0-9A-F]?$/i)) {
-      curLine = curLine.substr(0, match.index);
+    if (match2 = curLine.match(/[=][0-9A-F]?$/i)) {
+      curLine = curLine.substr(0, match2.index);
     }
     fallbackLine = curLine.length ? curLine : str.substr(0, maxlen);
     done = false;
     while (!done && curLine.length) {
       done = true;
-      if (match = str.substr(curLine.length).match(/^[=]([0-9A-F]{2})/i)) {
-        chr = parseInt(match[1], 16);
+      if (match2 = str.substr(curLine.length).match(/^[=]([0-9A-F]{2})/i)) {
+        chr = parseInt(match2[1], 16);
         if (chr < 194 && chr > 127) {
           curLine = curLine.substr(0, curLine.length - 3);
           done = false;
@@ -42717,900 +53530,9 @@ function safeEncodeURIComponent(str) {
   return str.replace(/[\x00-\x1F *'()<>@,;:\\"[\]?=\u007F-\uFFFF]/g, (chr) => encodeURICharComponent(chr));
 }
 
-// node_modules/nodemailer/dist/esm/addressparser/index.js
-var TOKEN_OPERATOR = 1;
-var TOKEN_NO_BREAK = 2;
-var TOKEN_DIRTY = 4;
-var TOKEN_ESCAPES = 8;
-var TOKEN_STARTS_ESCAPED = 16;
-var TokenList = class {
-  constructor(str) {
-    this.str = str;
-    this.slots = new Int32Array(48);
-    this.length = 0;
-    this.cleaned = /* @__PURE__ */ new Map();
-  }
-  /**
-   * Appends a token
-   *
-   * @param kind Kind and flags of the token
-   * @param start Offset of its first character
-   * @param end Offset just past its last character
-   * @return Index of the token
-   */
-  push(kind, start, end) {
-    if ((this.length + 1) * 3 > this.slots.length) {
-      const grown = new Int32Array(this.slots.length * 2);
-      grown.set(this.slots);
-      this.slots = grown;
-    }
-    const at = this.length * 3;
-    this.slots[at] = kind;
-    this.slots[at + 1] = start;
-    this.slots[at + 2] = end;
-    return this.length++;
-  }
-  /**
-   * Offset of the first character of a token that is part of its value. A text run that is
-   * no plain slice of the field still spans the whitespace and control characters its value
-   * is trimmed of.
-   */
-  contentStart(index) {
-    let start = this.slots[index * 3 + 1];
-    const end = this.slots[index * 3 + 2];
-    while (start < end && _isDroppedCode(this.str.charCodeAt(start))) {
-      start++;
-    }
-    return start;
-  }
-  /**
-   * Offset just past the last character of a token that is part of its value
-   */
-  contentEnd(index) {
-    const start = this.slots[index * 3 + 1];
-    let end = this.slots[index * 3 + 2];
-    while (end > start && _isDroppedCode(this.str.charCodeAt(end - 1))) {
-      end--;
-    }
-    return end;
-  }
-  /**
-   * The character of an operator token, an empty string for a text run
-   */
-  operatorAt(index) {
-    const at = index * 3;
-    return this.slots[at] & TOKEN_OPERATOR ? this.str.charAt(this.slots[at + 1]) : "";
-  }
-  /**
-   * Whether a token is an operator
-   */
-  isOperator(index) {
-    return (this.slots[index * 3] & TOKEN_OPERATOR) !== 0;
-  }
-  /**
-   * Whether the next character continues the run of a token without whitespace in between
-   */
-  noBreak(index) {
-    return (this.slots[index * 3] & TOKEN_NO_BREAK) !== 0;
-  }
-  /**
-   * Value of a token
-   */
-  value(index) {
-    const cleaned = this.cleaned.get(index);
-    if (cleaned !== void 0) {
-      return cleaned;
-    }
-    return this.str.slice(this.slots[index * 3 + 1], this.slots[index * 3 + 2]);
-  }
-};
-var DOMAIN_LITERAL_TAIL = /@(\[[^[\]\\]*\])$/;
-function _domainAt(address) {
-  const literal = address.charAt(address.length - 1) === "]" ? DOMAIN_LITERAL_TAIL.exec(address) : null;
-  return literal ? address.length - literal[1].length - 1 : address.lastIndexOf("@");
-}
-function _quoteLocalPart(address) {
-  const lastAt = _domainAt(address);
-  if (lastAt < 0) {
-    return address;
-  }
-  const user = address.substr(0, lastAt);
-  if (/^[^\s"(),:;<>@[\\\]]+$/.test(user) || /^"(?:[^"\\]|\\[\s\S])*"$/.test(user)) {
-    return address;
-  }
-  return '"' + user.replace(/["\\]/g, "\\$&") + '"@' + address.substr(lastAt + 1);
-}
-var HAS_WHITESPACE = /\s/;
-var QUOTED_LOCAL_ADDR = /^("(?:[^"\\]|\\[\s\S])*"@\S+)(?:\s+([\s\S]+))?$/;
-var ADDR_SPEC = /^[^@\s]+@[^@\s]+$/;
-var LITERAL_ADDR_SPEC = /^[^@\s]+@\[[^[\]\\\s]*\]$/;
-var QUOTED_LOCAL_DOMAIN = /^@(?:[^@\s"]+|\[[^[\]\\\s]*\])$/;
-function _isAddrSpec(value) {
-  return ADDR_SPEC.test(value) || LITERAL_ADDR_SPEC.test(value);
-}
-var LOOSE_ADDR_SPEC = /^[^@\s]+@\S+$/;
-var LOOSE_TEXT_ADDR = /\s*\b[^@\s]+@[^\s]+\b\s*/y;
-function _isSpaceCode(code) {
-  return code === 32 || code >= 9 && code <= 13 || code === 160 || code === 5760 || code >= 8192 && code <= 8202 || code === 8232 || code === 8233 || code === 8239 || code === 8287 || code === 12288 || code === 65279;
-}
-function _isFoldingSpaceCode(code) {
-  return code === 32 || code === 9 || code === 13 || code === 10;
-}
-function _isFoldingGap(str, from, to) {
-  for (let i = from; i < to; i++) {
-    if (!_isFoldingSpaceCode(str.charCodeAt(i))) {
-      return false;
-    }
-  }
-  return true;
-}
-function _isDroppedCode(code) {
-  return code < 32 || code === 127 || _isSpaceCode(code);
-}
-function _isWordCode(code) {
-  return code >= 48 && code <= 57 || code >= 65 && code <= 90 || code >= 97 && code <= 122 || code === 95;
-}
-function _isBoundary(text, at) {
-  return _isWordCode(text.charCodeAt(at - 1)) !== _isWordCode(text.charCodeAt(at));
-}
-function _indexOfAt(text, from, to) {
-  for (let i = from; i < to; i++) {
-    if (text.charCodeAt(i) === 64) {
-      return i;
-    }
-  }
-  return -1;
-}
-var LEADING_QUOTED_STRING = /^"(?:[^"\\]|\\[\s\S])*"/;
-function _joinAtSpacing(value, at) {
-  if (at < 0) {
-    return value;
-  }
-  let start = at;
-  while (start > 0 && _isSpaceCode(value.charCodeAt(start - 1))) {
-    start--;
-  }
-  let end = at + 1;
-  while (end < value.length && _isSpaceCode(value.charCodeAt(end))) {
-    end++;
-  }
-  const joined = start === at && end === at + 1 ? value : value.slice(0, start) + "@" + value.slice(end);
-  return _joinDomainDotSpacing(joined, start);
-}
-var ASCII_ATEXT = new Uint8Array(128);
-for (let code = 33; code < 127; code++) {
-  ASCII_ATEXT[code] = '()<>[]:;@\\,."'.indexOf(String.fromCharCode(code)) < 0 ? 1 : 0;
-}
-function _isAtextCode(code) {
-  return code < 128 ? ASCII_ATEXT[code] === 1 : !_isSpaceCode(code);
-}
-function _joinDomainDotSpacing(value, at) {
-  const len = value.length;
-  let pos = at + 1;
-  let spaced = false;
-  for (; ; ) {
-    const labelStart = pos;
-    while (pos < len && _isAtextCode(value.charCodeAt(pos))) {
-      pos++;
-    }
-    if (pos === labelStart) {
-      break;
-    }
-    let next = pos;
-    while (next < len && _isFoldingSpaceCode(value.charCodeAt(next))) {
-      next++;
-    }
-    if (value.charCodeAt(next) !== 46) {
-      break;
-    }
-    next++;
-    while (next < len && _isFoldingSpaceCode(value.charCodeAt(next))) {
-      next++;
-    }
-    if (next >= len || !_isAtextCode(value.charCodeAt(next))) {
-      break;
-    }
-    spaced = spaced || next !== pos + 1;
-    pos = next;
-  }
-  if (!spaced) {
-    return value;
-  }
-  let domain = "";
-  for (let k = at + 1; k < pos; k++) {
-    if (!_isFoldingSpaceCode(value.charCodeAt(k))) {
-      domain += value.charAt(k);
-    }
-  }
-  return value.slice(0, at + 1) + domain + value.slice(pos);
-}
-function _collapseAtSpacing(value) {
-  const quoted = LEADING_QUOTED_STRING.exec(value);
-  if (quoted) {
-    let at2 = quoted[0].length;
-    while (at2 < value.length && _isSpaceCode(value.charCodeAt(at2))) {
-      at2++;
-    }
-    if (value.charAt(at2) === "@" && value.indexOf("@", at2 + 1) < 0) {
-      return _joinAtSpacing(value, at2);
-    }
-  }
-  const at = value.indexOf("@");
-  if (at < 0 || value.indexOf("@", at + 1) >= 0 || value.lastIndexOf('"') > at) {
-    return value;
-  }
-  return _joinAtSpacing(value, at);
-}
-function _looseAddressStart(text) {
-  const len = text.length;
-  let pos = 0;
-  while (pos < len) {
-    while (pos < len && _isSpaceCode(text.charCodeAt(pos))) {
-      pos++;
-    }
-    if (pos >= len) {
-      break;
-    }
-    const runStart = pos;
-    let runEnd = pos;
-    while (runEnd < len && !_isSpaceCode(text.charCodeAt(runEnd))) {
-      runEnd++;
-    }
-    let at = _indexOfAt(text, runStart, runEnd);
-    if (at >= 0) {
-      let lastBoundary = -1;
-      for (let k = runEnd; k > runStart; k--) {
-        if (_isBoundary(text, k)) {
-          lastBoundary = k;
-          break;
-        }
-      }
-      let atomStart = runStart;
-      while (lastBoundary >= 0 && at >= 0) {
-        if (at > atomStart && runEnd > at + 1 && lastBoundary > at + 1) {
-          for (let start = atomStart; start < at; start++) {
-            if (_isBoundary(text, start)) {
-              if (start > runStart) {
-                return start;
-              }
-              let padded = runStart;
-              while (padded > 0 && _isSpaceCode(text.charCodeAt(padded - 1))) {
-                padded--;
-              }
-              return padded;
-            }
-          }
-        }
-        atomStart = at + 1;
-        at = _indexOfAt(text, atomStart, runEnd);
-      }
-    }
-    pos = runEnd;
-  }
-  return -1;
-}
-function _recoverAddrSpec(data) {
-  data.address = _collapseAtSpacing(data.address);
-  if (!HAS_WHITESPACE.test(data.address)) {
-    return;
-  }
-  let address;
-  let rest;
-  const quoted = data.address.match(QUOTED_LOCAL_ADDR);
-  if (quoted) {
-    if (!quoted[2]) {
-      return;
-    }
-    address = quoted[1];
-    rest = [quoted[2]];
-  } else {
-    if (data.address.indexOf('"') >= 0) {
-      return;
-    }
-    const parts = data.address.split(/\s+/);
-    let addrIndex = parts.findIndex(_isAddrSpec);
-    if (addrIndex < 0) {
-      addrIndex = parts.findIndex((part) => LOOSE_ADDR_SPEC.test(part));
-    }
-    if (addrIndex < 0) {
-      return;
-    }
-    address = parts.splice(addrIndex, 1)[0];
-    rest = parts;
-  }
-  data.address = address;
-  data.text = [data.text].concat(rest).filter((part) => part).join(" ");
-}
-function _stripAddressComments(address) {
-  const comments = [];
-  let result = "";
-  let comment = "";
-  let depth = 0;
-  let closer = "";
-  let lastChar = "";
-  let pendingSpace = false;
-  let firstChar = "";
-  let quoteSeen = false;
-  let routeEnd = -1;
-  for (let i = 0, len = address.length; i < len; i++) {
-    const chr = address.charAt(i);
-    if (depth) {
-      if (chr === "\\" && i < len - 1) {
-        comment += address.charAt(++i);
-      } else if (chr === "(") {
-        depth++;
-        comment += chr;
-      } else if (chr === ")" && !--depth) {
-        comments.push(comment.trim());
-        comment = "";
-        pendingSpace = lastChar !== "@";
-      } else {
-        comment += chr;
-      }
-      continue;
-    }
-    if (pendingSpace && chr !== "(") {
-      pendingSpace = false;
-      if (chr !== "@" && chr !== "<" && !_isSpaceCode(address.charCodeAt(i))) {
-        result += " ";
-        lastChar = " ";
-      }
-    }
-    if (closer) {
-      if (chr === "\\" && closer === '"' && i < len - 1) {
-        result += chr + address.charAt(++i);
-        lastChar = address.charAt(i);
-        continue;
-      }
-      if (chr === closer) {
-        closer = "";
-      }
-    } else if (chr === '"') {
-      closer = '"';
-      quoteSeen = true;
-    } else if (chr === ":" && routeEnd < 0 && firstChar === "@" && !quoteSeen) {
-      routeEnd = result.length + 1;
-    } else if (chr === "[") {
-      closer = "]";
-    } else if (chr === "(") {
-      depth = 1;
-      continue;
-    } else if (chr === "<") {
-      result = "";
-      lastChar = "";
-      comments.length = 0;
-      firstChar = "";
-      quoteSeen = false;
-      routeEnd = -1;
-      continue;
-    }
-    result += chr;
-    lastChar = chr;
-    if (!firstChar && !_isSpaceCode(address.charCodeAt(i))) {
-      firstChar = chr;
-    }
-  }
-  if (routeEnd >= 0 && result.indexOf("@", routeEnd) >= 0) {
-    result = result.slice(routeEnd);
-  }
-  if (depth) {
-    comments.push(comment.trim());
-  }
-  return { address: result.trim(), comments: comments.filter((text) => text) };
-}
-function _collectAddressParts(tokens, from, to) {
-  let state = "text";
-  const data = {
-    address: [],
-    comment: [],
-    text: [],
-    textWasQuoted: [],
-    quotedLocalAt: []
-  };
-  let insideQuotes = false;
-  let lastTextPureQuoted = false;
-  let lastTextHasAt = false;
-  let lastTextOpen = false;
-  let gapFrom = 0;
-  let gapsFolding = true;
-  const lastChars = { address: "", comment: "", text: "" };
-  for (let i = from; i < to; i++) {
-    const value = tokens.value(i);
-    const prevOperator = i > from ? tokens.operatorAt(i - 1) : "";
-    const prevNoBreak = i > from && tokens.noBreak(i - 1);
-    if (tokens.isOperator(i)) {
-      switch (value) {
-        case "<":
-          state = "address";
-          insideQuotes = false;
-          lastTextOpen = false;
-          break;
-        case "(":
-          state = "comment";
-          insideQuotes = false;
-          gapsFolding = gapsFolding && _isFoldingGap(tokens.str, gapFrom, tokens.contentStart(i));
-          break;
-        case '"':
-          insideQuotes = !insideQuotes;
-          state = "text";
-          lastTextOpen = false;
-          break;
-        default:
-          state = "text";
-          insideQuotes = false;
-          if (value !== ")") {
-            lastTextOpen = false;
-          } else {
-            gapFrom = tokens.contentEnd(i);
-          }
-          break;
-      }
-    } else {
-      const opensAfterEmptyQuotedString = prevOperator === '"' && prevNoBreak && i > from + 1 && tokens.operatorAt(i - 2) === '"';
-      const parts = data[state];
-      const secondAt = lastTextHasAt && prevOperator === ")" && value.indexOf("@") >= 0;
-      const joinsDomain = !secondAt && lastTextOpen && lastTextHasAt && prevOperator === ")" && (lastChars.text === "." || value.charAt(0) === ".") && gapsFolding && _isFoldingGap(tokens.str, gapFrom, tokens.contentStart(i));
-      const joins = joinsDomain || !secondAt && prevNoBreak && parts.length > 0 && (prevOperator !== ")" || lastChars[state] === "@" || value.charAt(0) === "@");
-      if (joins) {
-        const last = data[state].length - 1;
-        if (state === "text" && !insideQuotes) {
-          if (lastTextPureQuoted && value.charAt(0) === "@") {
-            data.quotedLocalAt[last] = data.text[last].length;
-          }
-          lastTextPureQuoted = false;
-        }
-        data[state][last] += value;
-        lastChars[state] = value.charAt(value.length - 1);
-        if (state === "text" && insideQuotes) {
-          data.textWasQuoted[last] = true;
-        }
-      } else {
-        data[state].push(value);
-        lastChars[state] = value.charAt(value.length - 1);
-        if (state === "text") {
-          data.textWasQuoted.push(insideQuotes || opensAfterEmptyQuotedString);
-          data.quotedLocalAt.push(opensAfterEmptyQuotedString && value.charAt(0) === "@" ? 0 : -1);
-          lastTextPureQuoted = insideQuotes;
-        }
-      }
-      if (state === "text") {
-        lastTextHasAt = joins && lastTextHasAt || !insideQuotes && value.indexOf("@") >= 0;
-        lastTextOpen = true;
-        gapFrom = tokens.contentEnd(i);
-        gapsFolding = true;
-      }
-    }
-  }
-  let textFromComment = false;
-  if (!data.text.length && data.comment.length) {
-    data.text = data.comment;
-    data.comment = [];
-    textFromComment = true;
-  }
-  return { data, textFromComment };
-}
-function _groupName(tokens, from, to) {
-  return _collectAddressParts(tokens, from, to).data.text.join(" ");
-}
-function _handleAddress(tokens, from, to) {
-  const collected = _collectAddressParts(tokens, from, to);
-  const data = collected.data;
-  let textFromComment = collected.textFromComment;
-  const addressComments = [];
-  const addressParts = [];
-  for (const part of data.address) {
-    const stripped = _stripAddressComments(part);
-    for (const comment of stripped.comments) {
-      addressComments.push(comment);
-    }
-    if (stripped.address) {
-      addressParts.push(stripped.address);
-    }
-  }
-  data.address = addressParts;
-  if (!data.address.length && data.text.length && !textFromComment) {
-    const candidates = data.text.map((part) => _collapseAtSpacing(part));
-    for (let i = 0; i < data.text.length; i++) {
-      const local = data.quotedLocalAt[i];
-      const quotedLocal = data.textWasQuoted[i] && local >= 0 && QUOTED_LOCAL_DOMAIN.test(data.text[i].slice(local)) ? _quoteLocalPart(data.text[i]) : "";
-      if (quotedLocal || !data.textWasQuoted[i] && _isAddrSpec(candidates[i])) {
-        data.address = [quotedLocal || candidates[i]];
-        data.text.splice(i, 1);
-        data.textWasQuoted.splice(i, 1);
-        data.quotedLocalAt.splice(i, 1);
-        break;
-      }
-    }
-    if (!data.address.length) {
-      let extracted = false;
-      for (let i = 0; i < data.text.length; i++) {
-        if (!data.textWasQuoted[i]) {
-          const part = candidates[i];
-          let remainder = data.text[i];
-          const at = _looseAddressStart(part);
-          if (at >= 0) {
-            LOOSE_TEXT_ADDR.lastIndex = at;
-            const match = LOOSE_TEXT_ADDR.exec(part);
-            if (match) {
-              data.address = [match[0].trim()];
-              extracted = true;
-              remainder = part.slice(0, at) + " " + part.slice(at + match[0].length);
-            }
-          }
-          data.text[i] = remainder.trim();
-          if (extracted) {
-            break;
-          }
-        }
-      }
-    }
-  }
-  if (!data.text.length && data.comment.length) {
-    data.text = data.comment;
-    data.comment = [];
-  }
-  if (data.address.length > 1) {
-    data.text = data.text.concat(data.address.splice(1));
-  }
-  const addressFromQuotedText = !data.address.length && data.textWasQuoted.some((wasQuoted) => wasQuoted);
-  data.text = data.text.join(" ");
-  data.address = data.address.join(" ");
-  if (addressFromQuotedText && data.text.indexOf("@") >= 0) {
-    data.address = _quoteLocalPart(_joinAtSpacing(data.text, _domainAt(data.text)));
-    data.text = "";
-  }
-  _recoverAddrSpec(data);
-  if (!data.text && addressComments.length) {
-    data.text = addressComments.join(" ");
-    textFromComment = true;
-  }
-  const address = {
-    address: data.address || (textFromComment ? "" : data.text) || "",
-    name: data.text || data.address || ""
-  };
-  if (address.address === address.name) {
-    if (/@/.test(address.address || "")) {
-      address.name = "";
-    } else {
-      address.address = "";
-    }
-  }
-  return address;
-}
-var Tokenizer = class {
-  constructor(str) {
-    this.str = (str || "").toString();
-    this.operatorCurrent = "";
-    this.operatorExpecting = "";
-    this.node = -1;
-    this.escaped = false;
-    this.inDomainLiteral = false;
-    this.afterAt = false;
-    this.inGroup = false;
-    this.innerQuoted = false;
-    this.innerComment = 0;
-    this.innerLiteral = false;
-    this.innerEscaped = false;
-    this.list = new TokenList(this.str);
-    this.operators = {
-      '"': '"',
-      "(": ")",
-      "<": ">",
-      ",": "",
-      // A group is read in the same pass as the rest of the list, so its ':' only marks
-      // where the name ends and its members are tokenized like any other address
-      ":": "",
-      // Semicolons are not a legal delimiter per the RFC2822 grammar other
-      // than for terminating a group, but they are also not valid for any
-      // other use in this context.  Given that some mail clients have
-      // historically allowed the semicolon as a delimiter equivalent to the
-      // comma in their UI, it makes sense to treat them the same as a comma
-      // when used outside of a group.
-      ";": ""
-    };
-  }
-  /**
-   * Tokenizes the original input string
-   *
-   * @return An array of operator|text tokens
-   */
-  tokenize() {
-    const str = this.str;
-    const len = str.length;
-    for (let i = 0; i < len; i++) {
-      this.checkChar(str.charAt(i), i);
-    }
-    this._closeText(len);
-    const list3 = this.list;
-    const slots = list3.slots;
-    let kept = 0;
-    for (let i = 0, count = list3.length; i < count; i++) {
-      const kind = slots[i * 3];
-      let start = slots[i * 3 + 1];
-      let end = slots[i * 3 + 2];
-      if (kind & TOKEN_DIRTY) {
-        const value = this._cleanValue(start, end, kind).trim();
-        if (!value) {
-          continue;
-        }
-        list3.cleaned.set(kept, value);
-      } else if (!(kind & TOKEN_OPERATOR)) {
-        while (start < end && _isSpaceCode(str.charCodeAt(start))) {
-          start++;
-        }
-        while (end > start && _isSpaceCode(str.charCodeAt(end - 1))) {
-          end--;
-        }
-        if (start === end) {
-          continue;
-        }
-      }
-      slots[kept * 3] = kind;
-      slots[kept * 3 + 1] = start;
-      slots[kept * 3 + 2] = end;
-      kept++;
-    }
-    list3.length = kept;
-    return list3;
-  }
-  /**
-   * Ends the text run being collected, if there is one
-   *
-   * @param end Offset just past its last character
-   */
-  _closeText(end) {
-    if (this.node >= 0) {
-      this.list.slots[this.node * 3 + 2] = end;
-      this.node = -1;
-    }
-  }
-  /**
-   * Rebuilds the value of a text run that is no plain slice of the field, applying the
-   * rules checkChar collects characters by: an escaping backslash is dropped, a line break
-   * reads as a space and any other control character is left out
-   *
-   * @param start Offset of the first character of the run
-   * @param end Offset just past its last character
-   * @param kind Kind and flags of the run
-   * @return Value of the run
-   */
-  _cleanValue(start, end, kind) {
-    const str = this.str;
-    const escapes = (kind & TOKEN_ESCAPES) !== 0;
-    let escaped = (kind & TOKEN_STARTS_ESCAPED) !== 0;
-    let value = "";
-    for (let i = start; i < end; i++) {
-      const chr = str.charAt(i);
-      if (escapes && !escaped && chr === "\\") {
-        escaped = true;
-        continue;
-      }
-      escaped = false;
-      if (chr === "\n") {
-        value += " ";
-      } else if (chr.charCodeAt(0) >= 33 || chr === " " || chr === "	") {
-        value += chr;
-      }
-    }
-    return value;
-  }
-  /**
-   * Checks if a character is an operator or text and acts accordingly
-   *
-   * @param chr Character from the address field
-   * @param i Offset of the character in the field
-   */
-  checkChar(chr, i) {
-    if (!this.escaped && !this.operatorExpecting) {
-      if (!this.inDomainLiteral && chr === "[" && this.afterAt) {
-        this.inDomainLiteral = true;
-      } else if (this.inDomainLiteral && (chr === "]" || chr === "," || chr === ";")) {
-        this.inDomainLiteral = false;
-      }
-    }
-    let nested = false;
-    if (this.operatorExpecting === ">") {
-      nested = this._trackInner(chr);
-      if (!nested && chr === ";" && this.inGroup) {
-        this._closeText(i);
-        this.operatorExpecting = "";
-        this._resetInner();
-      }
-    } else if (this.operatorExpecting === ")" && !this.escaped) {
-      if (chr === "(") {
-        this.innerComment++;
-      } else if (chr === ")" && this.innerComment) {
-        this.innerComment--;
-        nested = true;
-      }
-    }
-    if (this.escaped) {
-    } else if (chr === this.operatorExpecting && !nested) {
-      const nextChr = this.str.charAt(i + 1);
-      this._closeText(i);
-      this.list.push(nextChr && ![" ", "	", "\r", "\n", ",", ";"].includes(nextChr) ? TOKEN_OPERATOR | TOKEN_NO_BREAK : TOKEN_OPERATOR, i, i + 1);
-      if (chr !== ")") {
-        this.afterAt = false;
-      }
-      this.operatorExpecting = "";
-      this.escaped = false;
-      this._resetInner();
-      return;
-    } else if (!this.operatorExpecting && !(this.inDomainLiteral && chr === ":") && chr in this.operators) {
-      this._closeText(i);
-      this.list.push(TOKEN_OPERATOR, i, i + 1);
-      if (chr === ":") {
-        this.inGroup = true;
-      } else if (chr === ";") {
-        this.inGroup = false;
-      }
-      if (chr !== "(") {
-        this.afterAt = false;
-      }
-      this.operatorExpecting = this.operators[chr];
-      this.escaped = false;
-      this._resetInner();
-      return;
-    } else if (['"', "'", ")"].includes(this.operatorExpecting) && chr === "\\") {
-      this.escaped = true;
-      if (this.node >= 0) {
-        this.list.slots[this.node * 3] |= TOKEN_DIRTY;
-      }
-      return;
-    }
-    if (this.node < 0) {
-      this.node = this.list.push((this.operatorExpecting === '"' || this.operatorExpecting === ")" ? TOKEN_ESCAPES : 0) | (this.escaped ? TOKEN_STARTS_ESCAPED : 0), i, i);
-    }
-    if (chr === "\n") {
-      chr = " ";
-      this.list.slots[this.node * 3] |= TOKEN_DIRTY;
-    }
-    if (chr.charCodeAt(0) >= 33 || chr === " " || chr === "	") {
-      if (!this.operatorExpecting && chr !== " " && chr !== "	") {
-        this.afterAt = chr === "@";
-      }
-    } else {
-      this.list.slots[this.node * 3] |= TOKEN_DIRTY;
-    }
-    this.escaped = false;
-  }
-  /**
-   * Tracks the quoted strings, comments and domain literals inside an angle-addr, which its
-   * closer must not be read from. A backslash escapes the next character inside a quoted
-   * string and a comment. A domain literal opens right after an "@" and ends at the "]".
-   * dtext holds the list separators as well, and inside the brackets they never split the
-   * list anyway.
-   *
-   * @param chr Character from the address field
-   * @return true while the character sits inside one of them, the one that closes it included
-   */
-  _trackInner(chr) {
-    if (this.innerEscaped) {
-      this.innerEscaped = false;
-      return true;
-    }
-    if (this.innerQuoted) {
-      if (chr === "\\") {
-        this.innerEscaped = true;
-      } else if (chr === '"') {
-        this.innerQuoted = false;
-      }
-      return true;
-    }
-    if (this.innerComment) {
-      if (chr === "\\") {
-        this.innerEscaped = true;
-      } else if (chr === "(") {
-        this.innerComment++;
-      } else if (chr === ")") {
-        this.innerComment--;
-      }
-      return true;
-    }
-    if (this.innerLiteral) {
-      if (chr === "]") {
-        this.innerLiteral = false;
-      }
-      return true;
-    }
-    if (chr === '"') {
-      this.innerQuoted = true;
-      return true;
-    }
-    if (chr === "(") {
-      this.innerComment = 1;
-      return true;
-    }
-    if (chr === "[" && this.afterAt) {
-      this.innerLiteral = true;
-      return true;
-    }
-    if (!_isSpaceCode(chr.charCodeAt(0))) {
-      this.afterAt = chr === "@";
-    }
-    return false;
-  }
-  /**
-   * Forgets the nesting collected for the operator that just opened or ended
-   */
-  _resetInner() {
-    this.innerQuoted = false;
-    this.innerComment = 0;
-    this.innerLiteral = false;
-    this.innerEscaped = false;
-  }
-};
-function _mergeNameFragments(list3) {
-  const merged = [];
-  for (let i = list3.length - 1; i >= 0; i--) {
-    const current = list3[i];
-    const next = merged.length ? merged[merged.length - 1] : null;
-    if (next && current.address === "" && current.name && !current.group && next.address && next.name) {
-      next.name = current.name + ", " + next.name;
-    } else {
-      merged.push(current);
-    }
-  }
-  return merged.reverse();
-}
-function _parseAddressList(str) {
-  const tokens = new Tokenizer(str).tokenize();
-  const parsedAddresses = [];
-  let group = null;
-  let members = [];
-  let from = 0;
-  for (let i = 0, len = tokens.length; i <= len; i++) {
-    const operator = i < len ? tokens.operatorAt(i) : "";
-    if (i < len && operator !== "," && operator !== ";" && operator !== ":") {
-      continue;
-    }
-    if (operator === ":") {
-      if (!group) {
-        group = { name: _groupName(tokens, from, i), group: [] };
-        members = [];
-      }
-      from = i + 1;
-      continue;
-    }
-    if (i > from) {
-      const address = _handleAddress(tokens, from, i);
-      if (group) {
-        members.push(address);
-      } else {
-        parsedAddresses.push(address);
-      }
-    }
-    from = i + 1;
-    if (group && (operator === ";" || i === len)) {
-      group.group = _mergeNameFragments(members);
-      parsedAddresses.push(group);
-      group = null;
-    }
-  }
-  return _mergeNameFragments(parsedAddresses);
-}
-function addressparser(str, options) {
-  const parsedAddresses = _parseAddressList(str);
-  if (options?.flatten) {
-    const flatAddresses = [];
-    const walkAddressList = (list3) => {
-      list3.forEach((entry) => {
-        if (entry.group) {
-          return walkAddressList(entry.group);
-        }
-        flatAddresses.push(entry);
-      });
-    };
-    walkAddressList(parsedAddresses);
-    return flatAddresses;
-  }
-  return parsedAddresses;
-}
-var addressparser_default = addressparser;
-
 // node_modules/nodemailer/dist/esm/mime-node/last-newline.js
-var import_node_stream13 = require("node:stream");
-var LastNewline = class extends import_node_stream13.Transform {
+var import_node_stream15 = require("node:stream");
+var LastNewline = class extends import_node_stream15.Transform {
   constructor() {
     super();
     this.lastByte = false;
@@ -43638,8 +53560,8 @@ var LastNewline = class extends import_node_stream13.Transform {
 };
 
 // node_modules/nodemailer/dist/esm/mime-node/le-windows.js
-var import_node_stream14 = require("node:stream");
-var LeWindows = class extends import_node_stream14.Transform {
+var import_node_stream16 = require("node:stream");
+var LeWindows = class extends import_node_stream16.Transform {
   constructor(options) {
     super(options);
     this.lastByte = false;
@@ -43675,8 +53597,8 @@ var LeWindows = class extends import_node_stream14.Transform {
 };
 
 // node_modules/nodemailer/dist/esm/mime-node/le-unix.js
-var import_node_stream15 = require("node:stream");
-var LeUnix = class extends import_node_stream15.Transform {
+var import_node_stream17 = require("node:stream");
+var LeUnix = class extends import_node_stream17.Transform {
   constructor(options) {
     super(options);
   }
@@ -43741,7 +53663,7 @@ var MimeNode = class _MimeNode {
   constructor(contentType, options) {
     this.nodeCounter = 0;
     options = options || {};
-    this.baseBoundary = _stripBoundaryControls(options.baseBoundary || import_node_crypto4.default.randomBytes(8).toString("hex"));
+    this.baseBoundary = _stripBoundaryControls(options.baseBoundary || import_node_crypto5.default.randomBytes(8).toString("hex"));
     this.boundaryPrefix = _stripBoundaryControls(options.boundaryPrefix || "--_NmP");
     this.disableFileAccess = !!options.disableFileAccess;
     this.disableUrlAccess = !!options.disableUrlAccess;
@@ -44140,7 +54062,7 @@ var MimeNode = class _MimeNode {
    */
   createReadStream(options) {
     options = options || {};
-    const stream = new import_node_stream16.PassThrough(options);
+    const stream = new import_node_stream18.PassThrough(options);
     this.stream(stream, options, (err) => {
       if (err) {
         stream.destroy(err);
@@ -44158,12 +54080,12 @@ var MimeNode = class _MimeNode {
       stages.push(typeof transform === "function" ? transform() : transform);
     }
     stages.push(new LastNewline());
-    let outputStream = (0, import_node_stream16.pipeline)(stages, PIPELINE_NOOP);
+    let outputStream = (0, import_node_stream18.pipeline)(stages, PIPELINE_NOOP);
     for (const processFunc of this._processFuncs) {
       const input = outputStream;
       outputStream = processFunc(input);
       if (outputStream !== input) {
-        (0, import_node_stream16.finished)(outputStream, (err) => {
+        (0, import_node_stream18.finished)(outputStream, (err) => {
           if (err) {
             input.destroy();
           }
@@ -44172,7 +54094,7 @@ var MimeNode = class _MimeNode {
     }
     if (this.newline) {
       const winbreak = ["win", "windows", "dos", "\r\n"].includes(this.newline.toString().toLowerCase());
-      outputStream = (0, import_node_stream16.pipeline)(outputStream, winbreak ? new LeWindows() : new LeUnix(), PIPELINE_NOOP);
+      outputStream = (0, import_node_stream18.pipeline)(outputStream, winbreak ? new LeWindows() : new LeUnix(), PIPELINE_NOOP);
     }
     return outputStream;
   }
@@ -44278,14 +54200,14 @@ var MimeNode = class _MimeNode {
           contentStream.pipe(outputStream, {
             end: false
           });
-          (0, import_node_stream16.pipeline)(localStream, contentStream, (err) => err && callback(err));
-          (0, import_node_stream16.finished)(contentStream, { writable: false }, (err) => err ? callback(err) : finalize());
+          (0, import_node_stream18.pipeline)(localStream, contentStream, (err) => err && callback(err));
+          (0, import_node_stream18.finished)(contentStream, { writable: false }, (err) => err ? callback(err) : finalize());
         } else {
           readInto(localStream);
           localStream.pipe(outputStream, {
             end: false
           });
-          (0, import_node_stream16.finished)(localStream, { writable: false }, (err) => err ? callback(err) : finalize());
+          (0, import_node_stream18.finished)(localStream, { writable: false }, (err) => err ? callback(err) : finalize());
         }
       };
       if (this.content._resolve) {
@@ -44320,7 +54242,7 @@ var MimeNode = class _MimeNode {
         raw.pipe(outputStream, {
           end: false
         });
-        (0, import_node_stream16.finished)(raw, { writable: false }, (err) => err ? callback(err) : finalize());
+        (0, import_node_stream18.finished)(raw, { writable: false }, (err) => err ? callback(err) : finalize());
       });
     } else {
       outputStream.write(this.buildHeaders() + "\r\n\r\n");
@@ -44493,7 +54415,7 @@ var MimeNode = class _MimeNode {
   _getStream(content) {
     let contentStream;
     if (content._resolvedValue) {
-      contentStream = new import_node_stream16.PassThrough();
+      contentStream = new import_node_stream18.PassThrough();
       setImmediate(() => {
         try {
           contentStream.end(content._resolvedValue);
@@ -44508,7 +54430,7 @@ var MimeNode = class _MimeNode {
     }
     if (content && typeof content.path === "string" && !content.href) {
       if (this._accessDisabled("disableFileAccess")) {
-        contentStream = new import_node_stream16.PassThrough();
+        contentStream = new import_node_stream18.PassThrough();
         setImmediate(() => {
           const err = new Error("File access rejected for " + content.path);
           err.code = EFILEACCESS;
@@ -44520,7 +54442,7 @@ var MimeNode = class _MimeNode {
     }
     if (content && typeof content.href === "string") {
       if (this._accessDisabled("disableUrlAccess")) {
-        contentStream = new import_node_stream16.PassThrough();
+        contentStream = new import_node_stream18.PassThrough();
         setImmediate(() => {
           const err = new Error("Url access rejected for " + content.href);
           err.code = EURLACCESS;
@@ -44530,7 +54452,7 @@ var MimeNode = class _MimeNode {
       }
       return fetch_default(content.href, { headers: content.httpHeaders, tls: content.tls });
     }
-    contentStream = new import_node_stream16.PassThrough();
+    contentStream = new import_node_stream18.PassThrough();
     setImmediate(() => {
       try {
         contentStream.end(content || "");
@@ -44809,8 +54731,8 @@ var MimeNode = class _MimeNode {
     if (!address) {
       return address;
     }
-    const literal = address.charAt(address.length - 1) === "]" ? DOMAIN_LITERAL_TAIL2.exec(address) : null;
-    const lastAt = literal ? address.length - literal[1].length - 1 : address.lastIndexOf("@");
+    const literal2 = address.charAt(address.length - 1) === "]" ? DOMAIN_LITERAL_TAIL2.exec(address) : null;
+    const lastAt = literal2 ? address.length - literal2[1].length - 1 : address.lastIndexOf("@");
     if (lastAt < 0) {
       return this._normalizeLocalPart(address);
     }
@@ -44850,15 +54772,15 @@ var MimeNode = class _MimeNode {
    * @returns Mime word encoded string if needed
    * @internal
    */
-  _encodeAddressName(name3) {
-    if (!/^[\w ]*$/.test(name3)) {
-      if (/^[\x20-\x7e]*$/.test(name3)) {
-        return quoteString2(name3);
+  _encodeAddressName(name4) {
+    if (!/^[\w ]*$/.test(name4)) {
+      if (/^[\x20-\x7e]*$/.test(name4)) {
+        return quoteString2(name4);
       } else {
-        return encodeWord(name3, this._getTextEncoding(name3), 52);
+        return encodeWord(name4, this._getTextEncoding(name4), 52);
       }
     }
-    return name3;
+    return name4;
   }
   /**
    * Encodes an unstructured header value. Such a value can only carry VCHAR and WSP, so a
@@ -44918,8 +54840,8 @@ var MimeNode = class _MimeNode {
   _generateMessageId() {
     return "<" + [2, 2, 2, 6].reduce(
       // crux to generate UUID-like random strings
-      (prev, len) => prev + "-" + import_node_crypto4.default.randomBytes(len).toString("hex"),
-      import_node_crypto4.default.randomBytes(4).toString("hex")
+      (prev, len) => prev + "-" + import_node_crypto5.default.randomBytes(len).toString("hex"),
+      import_node_crypto5.default.randomBytes(4).toString("hex")
     ) + "@" + // try to use the domain of the FROM address or fallback to server hostname
     (this.getEnvelope().from || this.hostname || "localhost").split("@").pop() + ">";
   }
@@ -45468,7 +55390,7 @@ function otpError(message) {
 var mail_composer_default = MailComposer;
 
 // node_modules/nodemailer/dist/esm/dkim/message-parser.js
-var import_node_stream17 = require("node:stream");
+var import_node_stream19 = require("node:stream");
 function _trimFieldName(str) {
   let start = 0;
   let end = str.length;
@@ -45480,7 +55402,7 @@ function _trimFieldName(str) {
   }
   return str.slice(start, end);
 }
-var MessageParser = class extends import_node_stream17.Transform {
+var MessageParser = class extends import_node_stream19.Transform {
   constructor(options) {
     super(options);
     this.lastBytes = Buffer.alloc(4);
@@ -45606,19 +55528,19 @@ var MessageParser = class extends import_node_stream17.Transform {
 var message_parser_default = MessageParser;
 
 // node_modules/nodemailer/dist/esm/dkim/relaxed-body.js
-var import_node_stream18 = require("node:stream");
-var import_node_crypto5 = __toESM(require("node:crypto"), 1);
+var import_node_stream20 = require("node:stream");
+var import_node_crypto6 = __toESM(require("node:crypto"), 1);
 var CHAR_CR = 13;
 var CHAR_LF = 10;
 var CHAR_SPACE = 32;
 var CHAR_TAB = 9;
 var CRLF3 = Buffer.from("\r\n");
 var EMPTY_LINES = Buffer.alloc(4096, CRLF3);
-var RelaxedBody = class extends import_node_stream18.Transform {
+var RelaxedBody = class extends import_node_stream20.Transform {
   constructor(options) {
     super();
     options = options || {};
-    this.bodyHash = import_node_crypto5.default.createHash(options.hashAlgo || "sha256");
+    this.bodyHash = import_node_crypto6.default.createHash(options.hashAlgo || "sha256");
     this.byteLength = 0;
     this.debug = options.debug;
     this._debugBody = options.debug ? [] : false;
@@ -45728,7 +55650,7 @@ var RelaxedBody = class extends import_node_stream18.Transform {
 var relaxed_body_default = RelaxedBody;
 
 // node_modules/nodemailer/dist/esm/dkim/sign.js
-var import_node_crypto6 = __toESM(require("node:crypto"), 1);
+var import_node_crypto7 = __toESM(require("node:crypto"), 1);
 function unsupportedHashAlgoError(hashAlgo) {
   const err = new Error('Unsupported DKIM hash algorithm "' + hashAlgo + '"');
   err.code = ECONFIG;
@@ -45743,7 +55665,7 @@ function sign(headers, hashAlgo, bodyHash, options) {
   canonicalizedHeaderData.headers += "dkim-signature:" + relaxedHeaderLine(dkimHeader);
   let signer;
   try {
-    signer = import_node_crypto6.default.createSign(("rsa-" + hashAlgo).toUpperCase());
+    signer = import_node_crypto7.default.createSign(("rsa-" + hashAlgo).toUpperCase());
   } catch (_E) {
     throw unsupportedHashAlgoError(hashAlgo);
   }
@@ -45807,10 +55729,10 @@ function relaxedHeaderLine(line) {
 }
 
 // node_modules/nodemailer/dist/esm/dkim/index.js
-var import_node_stream19 = require("node:stream");
+var import_node_stream21 = require("node:stream");
 var import_node_fs4 = __toESM(require("node:fs"), 1);
 var import_node_path3 = __toESM(require("node:path"), 1);
-var import_node_crypto7 = __toESM(require("node:crypto"), 1);
+var import_node_crypto8 = __toESM(require("node:crypto"), 1);
 var DKIM_ALGO = "sha256";
 var MAX_MESSAGE_SIZE = 10 * 1024 * 1024;
 var DKIMSigner = class {
@@ -45823,7 +55745,7 @@ var DKIMSigner = class {
     this.chunks = [];
     this.chunklen = 0;
     this.readPos = 0;
-    this.cachePath = this.cacheDir ? import_node_path3.default.join(this.cacheDir, "message." + Date.now() + "-" + import_node_crypto7.default.randomBytes(14).toString("hex")) : false;
+    this.cachePath = this.cacheDir ? import_node_path3.default.join(this.cacheDir, "message." + Date.now() + "-" + import_node_crypto8.default.randomBytes(14).toString("hex")) : false;
     this.cache = false;
     this.headers = false;
     this.bodyHash = false;
@@ -45987,15 +55909,15 @@ var DKIM = class {
     });
   }
   sign(input, extraOptions) {
-    const output = new import_node_stream19.PassThrough();
+    const output = new import_node_stream21.PassThrough();
     let inputStream = input;
     let writeValue = false;
     if (Buffer.isBuffer(input)) {
       writeValue = input;
-      inputStream = new import_node_stream19.PassThrough();
+      inputStream = new import_node_stream21.PassThrough();
     } else if (typeof input === "string") {
       writeValue = Buffer.from(input);
-      inputStream = new import_node_stream19.PassThrough();
+      inputStream = new import_node_stream21.PassThrough();
     }
     let options = this.options;
     if (extraOptions && Object.keys(extraOptions).length) {
@@ -46107,9 +56029,9 @@ function httpProxyClient(proxyUrl, destinationPort, destinationHost, tlsOptions,
     if (response.length > headerEnd + 4) {
       socket.unshift(response.subarray(headerEnd + 4));
     }
-    const match = response.toString("binary", 0, headerEnd).match(/^HTTP\/\d+\.\d+ (\d+)/i);
-    if (!match || (match[1] || "").charAt(0) !== "2") {
-      const err = new Error("Invalid response from proxy" + (match && ": " + match[1] || ""));
+    const match2 = response.toString("binary", 0, headerEnd).match(/^HTTP\/\d+\.\d+ (\d+)/i);
+    if (!match2 || (match2[1] || "").charAt(0) !== "2") {
+      const err = new Error("Invalid response from proxy" + (match2 && ": " + match2[1] || ""));
       err.code = EPROXY;
       return fail2(err);
     }
@@ -46433,7 +56355,7 @@ var MailMessage = class {
 // node_modules/nodemailer/dist/esm/mailer/index.js
 var import_node_net8 = __toESM(require("node:net"), 1);
 var import_node_dns3 = __toESM(require("node:dns"), 1);
-var import_node_crypto8 = __toESM(require("node:crypto"), 1);
+var import_node_crypto9 = __toESM(require("node:crypto"), 1);
 var DEFAULT_MAX_RECIPIENTS = 1e5;
 function isAbortSignal(value) {
   return typeof value === "object" && value !== null && "aborted" in value && typeof value.addEventListener === "function" && typeof value.removeEventListener === "function";
@@ -46640,7 +56562,7 @@ var Mail = class extends import_node_events2.EventEmitter {
     return promise;
   }
   getVersionString() {
-    return import_node_util2.default.format("%s (%s; +%s; %s/%s)", name2, version2, homepage, this.transporter.name, this.transporter.version);
+    return import_node_util2.default.format("%s (%s; +%s; %s/%s)", name3, version2, homepage, this.transporter.name, this.transporter.version);
   }
   /** @internal */
   _processPlugins(step, mail, callback) {
@@ -46792,8 +56714,8 @@ var Mail = class extends import_node_events2.EventEmitter {
         return callback(err);
       }
       let cidCounter = 0;
-      html = (html || "").toString().replace(/(<img\b[^<>]{0,1024} src\s{0,20}=[\s"']{0,20})(data:([^;"'<>\s]{1,255});[^"'>\s]+)/gi, (match, prefix, dataUri, mimeType) => {
-        const cid = import_node_crypto8.default.randomBytes(10).toString("hex") + "@localhost";
+      html = (html || "").toString().replace(/(<img\b[^<>]{0,1024} src\s{0,20}=[\s"']{0,20})(data:([^;"'<>\s]{1,255});[^"'>\s]+)/gi, (match2, prefix, dataUri, mimeType) => {
+        const cid = import_node_crypto9.default.randomBytes(10).toString("hex") + "@localhost";
         if (!mail.data.attachments) {
           mail.data.attachments = [];
         }
@@ -46828,15 +56750,15 @@ var import_node_events3 = require("node:events");
 var import_node_net9 = __toESM(require("node:net"), 1);
 var import_node_tls4 = __toESM(require("node:tls"), 1);
 var import_node_os2 = __toESM(require("node:os"), 1);
-var import_node_crypto9 = __toESM(require("node:crypto"), 1);
+var import_node_crypto10 = __toESM(require("node:crypto"), 1);
 
 // node_modules/nodemailer/dist/esm/smtp-connection/data-stream.js
-var import_node_stream20 = require("node:stream");
+var import_node_stream22 = require("node:stream");
 var INSERT_LF = Buffer.from("\n");
 var INSERT_LF_DOT = Buffer.from("\n.");
 var INSERT_CR = Buffer.from("\r");
 var INSERT_DOT = Buffer.from(".");
-var DataStream = class extends import_node_stream20.Transform {
+var DataStream = class extends import_node_stream22.Transform {
   constructor(options) {
     super(options);
     this.options = options || {};
@@ -46917,7 +56839,7 @@ var DataStream = class extends import_node_stream20.Transform {
 };
 
 // node_modules/nodemailer/dist/esm/smtp-connection/index.js
-var import_node_stream21 = require("node:stream");
+var import_node_stream23 = require("node:stream");
 
 // node_modules/nodemailer/dist/esm/smtp-connection/server-message-id.js
 var OUTLOOK_REPLY = /^250 2\.0\.0 OK (<[^<>\s]+\.prod\.outlook\.com>)/i;
@@ -46984,16 +56906,16 @@ function isPartialLine(line) {
   return /^\d+-/.test(line);
 }
 function maskAuthCommand(cmd) {
-  const match = (cmd || "").toString().match(/^AUTH\s+[^\s]+/i);
-  if (!match) {
+  const match2 = (cmd || "").toString().match(/^AUTH\s+[^\s]+/i);
+  if (!match2) {
     return "/* secret */";
   }
-  return match[0].length === cmd.length ? cmd : match[0] + " /* secret */";
+  return match2[0].length === cmd.length ? cmd : match2[0] + " /* secret */";
 }
 var SMTPConnection = class extends import_node_events3.EventEmitter {
   constructor(options) {
     super(options);
-    this.id = import_node_crypto9.default.randomBytes(8).toString("base64").replace(/\W/g, "");
+    this.id = import_node_crypto10.default.randomBytes(8).toString("base64").replace(/\W/g, "");
     this.stage = "init";
     this.options = options || {};
     if (this.options.requireTLS && (this.options.ignoreTLS || this.options.opportunisticTLS)) {
@@ -47044,7 +56966,7 @@ var SMTPConnection = class extends import_node_events3.EventEmitter {
     this._pendingSend = false;
     this._connectCallback = false;
     this._onSocketData = (chunk) => this._onData(chunk);
-    this._onSocketError = (error2) => this._onError(error2, "ESOCKET", false, "CONN");
+    this._onSocketError = (error3) => this._onError(error3, "ESOCKET", false, "CONN");
     this._onSocketClose = () => this._onClose();
     this._onSocketEnd = () => this._onEnd();
     this._onSocketTimeout = () => this._onTimeout();
@@ -47156,8 +57078,8 @@ var SMTPConnection = class extends import_node_events3.EventEmitter {
           }
           opts.lookup = ((hostname, lookupOptions, callback) => {
             if (lookupOptions && lookupOptions.all) {
-              const all = ordered.map((address) => ({ address, family: import_node_net9.default.isIPv6(address) ? 6 : 4 }));
-              return setImmediate(() => callback(null, all));
+              const all2 = ordered.map((address) => ({ address, family: import_node_net9.default.isIPv6(address) ? 6 : 4 }));
+              return setImmediate(() => callback(null, all2));
             }
             setImmediate(() => callback(null, ordered[0], import_node_net9.default.isIPv6(ordered[0]) ? 6 : 4));
           });
@@ -48111,7 +58033,7 @@ var SMTPConnection = class extends import_node_events3.EventEmitter {
       end: false
     });
     if (this.options.debug) {
-      const logStream = new import_node_stream21.PassThrough();
+      const logStream = new import_node_stream23.PassThrough();
       logStream.on("readable", () => {
         let chunk;
         while (chunk = logStream.read()) {
@@ -48210,7 +58132,7 @@ var SMTPConnection = class extends import_node_events3.EventEmitter {
    * @internal
    */
   _parseEhloExtensions(str) {
-    let match;
+    let match2;
     this._ehloLines = str.split(/\r?\n/).map((line) => line.replace(/^\d+[ -]/, "").trim()).filter((line) => line).slice(1);
     if (/[ -]SMTPUTF8\b/im.test(str)) {
       this._supportedExtensions.push("SMTPUTF8");
@@ -48244,9 +58166,9 @@ var SMTPConnection = class extends import_node_events3.EventEmitter {
         this._supportedAuth.push(mechanism);
       }
     }
-    if (match = str.match(/[ -]SIZE(?:[ \t]+(\d+))?/im)) {
+    if (match2 = str.match(/[ -]SIZE(?:[ \t]+(\d+))?/im)) {
       this._supportedExtensions.push("SIZE");
-      this._maxAllowedSize = Number(match[1]) || 0;
+      this._maxAllowedSize = Number(match2[1]) || 0;
     }
   }
   /**
@@ -48349,7 +58271,7 @@ var SMTPConnection = class extends import_node_events3.EventEmitter {
       return callback(this._formatError("Invalid login sequence while waiting for server challenge string", "EAUTH", str, "AUTH CRAM-MD5"));
     }
     const base64decoded = Buffer.from(challengeMatch[1], "base64").toString("ascii");
-    const hmacMD5 = import_node_crypto9.default.createHmac("md5", this._auth.credentials.pass);
+    const hmacMD5 = import_node_crypto10.default.createHmac("md5", this._auth.credentials.pass);
     hmacMD5.update(base64decoded);
     const prepended = this._auth.credentials.user + " " + hmacMD5.digest("hex");
     this._responseActions.push((str2) => {
@@ -48682,9 +58604,9 @@ var SMTPConnection = class extends import_node_events3.EventEmitter {
 var smtp_connection_default = SMTPConnection;
 
 // node_modules/nodemailer/dist/esm/xoauth2/index.js
-var import_node_stream22 = require("node:stream");
-var import_node_crypto10 = __toESM(require("node:crypto"), 1);
-var XOAuth2 = class extends import_node_stream22.Stream {
+var import_node_stream24 = require("node:stream");
+var import_node_crypto11 = __toESM(require("node:crypto"), 1);
+var XOAuth2 = class extends import_node_stream24.Stream {
   constructor(options, logger2) {
     super();
     this.options = options || {};
@@ -48828,9 +58750,9 @@ var XOAuth2 = class extends import_node_stream22.Stream {
         iat,
         exp: iat + this.options.serviceRequestTimeout
       };
-      let token;
+      let token2;
       try {
-        token = this.jwtSignRS256(tokenData);
+        token2 = this.jwtSignRS256(tokenData);
       } catch (_err) {
         const err = new Error("Can't generate token. Check your auth options");
         err.code = EOAUTH2;
@@ -48838,7 +58760,7 @@ var XOAuth2 = class extends import_node_stream22.Stream {
       }
       urlOptions = {
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: token
+        assertion: token2
       };
       loggedUrlOptions = {
         grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
@@ -48874,10 +58796,10 @@ var XOAuth2 = class extends import_node_stream22.Stream {
       user: this.options.user,
       action: "generate"
     }, "Requesting token using: %s", JSON.stringify(loggedUrlOptions));
-    this.postRequest(this.options.accessUrl, urlOptions, this.options, (error2, body) => {
+    this.postRequest(this.options.accessUrl, urlOptions, this.options, (error3, body) => {
       let data;
-      if (error2) {
-        return done(error2);
+      if (error3) {
+        return done(error3);
       }
       try {
         data = JSON.parse(body.toString());
@@ -49006,7 +58928,7 @@ var XOAuth2 = class extends import_node_stream22.Stream {
    */
   jwtSignRS256(payload) {
     const signedPayload = ['{"alg":"RS256","typ":"JWT"}', JSON.stringify(payload)].map((val) => this.toBase64URL(val)).join(".");
-    const signature = import_node_crypto10.default.createSign("RSA-SHA256").update(signedPayload).sign(this.options.privateKey);
+    const signature = import_node_crypto11.default.createSign("RSA-SHA256").update(signedPayload).sign(this.options.privateKey);
     return signedPayload + "." + this.toBase64URL(signature);
   }
 };
@@ -49031,7 +58953,7 @@ var PoolResource = class extends import_node_events4.EventEmitter {
             oauth2,
             method: "XOAUTH2"
           };
-          oauth2.on("token", (token) => this.pool.mailer.emit("token", token));
+          oauth2.on("token", (token2) => this.pool.mailer.emit("token", token2));
           oauth2.on("error", (err) => this._fail(err));
           break;
         }
@@ -50662,7 +60584,7 @@ var SMTPTransport = class extends import_node_events6.EventEmitter {
         }
         const oauth2 = new xoauth2_default(authData, this.logger);
         oauth2.provisionCallback = this.mailer && this.mailer.get("oauth2_provision_cb") || oauth2.provisionCallback;
-        oauth2.on("token", (token) => this.mailer.emit("token", token));
+        oauth2.on("token", (token2) => this.mailer.emit("token", token2));
         oauth2.on("error", (err) => this.emit("error", err));
         return {
           type: "OAUTH2",
@@ -50925,7 +60847,7 @@ var smtp_transport_default = SMTPTransport;
 
 // node_modules/nodemailer/dist/esm/sendmail-transport/index.js
 var import_node_child_process = require("node:child_process");
-var import_node_stream23 = require("node:stream");
+var import_node_stream25 = require("node:stream");
 var STDIN_ERROR_EXIT_WAIT = 1e3;
 var SendmailTransport = class {
   constructor(options) {
@@ -51066,7 +60988,7 @@ var SendmailTransport = class {
       const sourceStream = mail.message.createReadStream();
       stream = sourceStream;
       if (this.options.newline) {
-        stream = (0, import_node_stream23.pipeline)(sourceStream, this.winbreak ? new LeWindows() : new LeUnix(), () => false);
+        stream = (0, import_node_stream25.pipeline)(sourceStream, this.winbreak ? new LeWindows() : new LeUnix(), () => false);
       }
       stream.once("error", (err) => {
         this.logger.error({
@@ -51240,9 +61162,9 @@ var SESTransport = class extends import_node_events7.default {
   constructor(options) {
     super();
     if (!options || !options.SES || !options.SES.sesClient) {
-      const error2 = new Error("Missing SES configuration, expecting { sesClient, SendEmailCommand } from @aws-sdk/client-sesv2, see https://nodemailer.com/transports/ses/");
-      error2.code = ECONFIG;
-      throw error2;
+      const error3 = new Error("Missing SES configuration, expecting { sesClient, SendEmailCommand } from @aws-sdk/client-sesv2, see https://nodemailer.com/transports/ses/");
+      error3.code = ECONFIG;
+      throw error3;
     }
     this.options = options;
     this.ses = this.options.SES;
@@ -51441,9 +61363,9 @@ function createTransport(transporter, defaults) {
     } else if (options.SES) {
       const ses = options.SES;
       if (ses.ses && ses.aws) {
-        const error2 = new Error("Using legacy SES configuration, expecting @aws-sdk/client-sesv2, see https://nodemailer.com/transports/ses/");
-        error2.code = ECONFIG;
-        throw error2;
+        const error3 = new Error("Using legacy SES configuration, expecting @aws-sdk/client-sesv2, see https://nodemailer.com/transports/ses/");
+        error3.code = ECONFIG;
+        throw error3;
       }
       transporter = new ses_transport_default(options);
     } else {
@@ -51473,7 +61395,7 @@ function createTestAccount(apiUrl, callback) {
   let chunklen = 0;
   const requestHeaders = {};
   const requestBody = {
-    requestor: name2,
+    requestor: name3,
     version: version2
   };
   const apiKey = etherealApiKey();
@@ -51550,31 +61472,21 @@ function nowIso2() {
 function stripHtml(html) {
   return html.replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
-function extractTextFromSource(raw) {
-  const str = raw.toString("utf8");
-  const headerEnd = str.indexOf("\r\n\r\n");
-  const body = headerEnd !== -1 ? str.slice(headerEnd + 4) : str;
-  const cleaned = body.replace(/=\r?\n/g, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  return {
-    text: cleaned.slice(0, 5e4),
-    snippet: cleaned.slice(0, 160)
-  };
-}
 var EmailService = class {
   constructor(db2, accounts, credentials) {
     this.db = db2;
     this.accounts = accounts;
     this.credentials = credentials;
   }
-  ensureFolder(accountId, name3, kind) {
+  ensureFolder(accountId, name4, kind) {
     const existing = this.db.db.prepare("SELECT id FROM folders WHERE account_id = ? AND kind = ? LIMIT 1").get(accountId, kind);
     if (existing) return existing.id;
-    const byName = this.db.db.prepare("SELECT id FROM folders WHERE account_id = ? AND name = ? LIMIT 1").get(accountId, name3);
+    const byName = this.db.db.prepare("SELECT id FROM folders WHERE account_id = ? AND name = ? LIMIT 1").get(accountId, name4);
     if (byName) return byName.id;
-    const id2 = import_node_crypto11.default.randomUUID();
+    const id2 = import_node_crypto12.default.randomUUID();
     this.db.db.prepare(
       "INSERT INTO folders(id, account_id, name, kind, sync_enabled) VALUES(?, ?, ?, ?, 1)"
-    ).run(id2, accountId, name3, kind);
+    ).run(id2, accountId, name4, kind);
     return id2;
   }
   async sendEmail(input) {
@@ -51628,7 +61540,7 @@ var EmailService = class {
     }
     const sentAt = nowIso2();
     const sentFolderId = this.ensureFolder(account.id, "Sent", "sent");
-    const conversationId = input.conversationId || import_node_crypto11.default.randomUUID();
+    const conversationId = input.conversationId || import_node_crypto12.default.randomUUID();
     const existingConv = this.db.db.prepare("SELECT id, participants FROM conversations WHERE id = ?").get(conversationId);
     if (!existingConv) {
       const participants = Array.from(/* @__PURE__ */ new Set([...input.to, ...input.cc ?? []]));
@@ -51649,7 +61561,7 @@ var EmailService = class {
     } else {
       this.db.db.prepare("UPDATE conversations SET last_message_at = ?, updated_at = ? WHERE id = ?").run(sentAt, sentAt, conversationId);
     }
-    const messageId = import_node_crypto11.default.randomUUID();
+    const messageId = import_node_crypto12.default.randomUUID();
     const snippet = input.bodyText.replace(/\s+/g, " ").trim().slice(0, 160);
     this.db.db.prepare(
       `INSERT INTO messages(
@@ -51744,13 +61656,6 @@ var EmailService = class {
                  WHERE account_id = ? AND (provider_message_id = ? OR (message_id_header IS NOT NULL AND message_id_header = ?))
                  LIMIT 1`
             ).get(account.id, providerId, messageIdHeader);
-            if (existing) {
-              if (existing.folder_id === inboxFolderId) {
-                this.db.db.prepare("UPDATE messages SET folder_id = NULL WHERE id = ?").run(existing.id);
-                syncedCount += 1;
-              }
-              continue;
-            }
             const subject = msg.envelope?.subject || "(no subject)";
             const fromEntry = msg.envelope?.from?.[0];
             const fromAddress = fromEntry?.address || "unknown@example.com";
@@ -51761,9 +61666,20 @@ var EmailService = class {
             const isRead = msg.flags?.has("\\Seen") ? 1 : 0;
             const isStarred = msg.flags?.has("\\Flagged") ? 1 : 0;
             const inReplyTo = msg.envelope?.inReplyTo ?? null;
-            const parsed = msg.source ? extractTextFromSource(msg.source) : { text: "", snippet: "" };
-            const bodyText = parsed.text || stripHtml(subject);
-            const snippet = parsed.snippet;
+            const parsedMail = msg.source ? await simple_parser_default(msg.source) : null;
+            const bodyHtml = parsedMail && typeof parsedMail.html === "string" ? parsedMail.html : null;
+            const rawText = parsedMail?.text || (bodyHtml ? stripHtml(bodyHtml) : "") || stripHtml(subject);
+            const bodyText = rawText.slice(0, 5e4);
+            const snippet = rawText.replace(/\s+/g, " ").trim().slice(0, 160);
+            if (existing) {
+              if (existing.folder_id === inboxFolderId) {
+                this.db.db.prepare(
+                  "UPDATE messages SET folder_id = NULL, body_text = ?, body_html = ?, snippet = ? WHERE id = ?"
+                ).run(bodyText, bodyHtml, snippet, existing.id);
+                syncedCount += 1;
+              }
+              continue;
+            }
             let conversationId = null;
             if (inReplyTo) {
               const parent = this.db.db.prepare(
@@ -51779,7 +61695,7 @@ var EmailService = class {
               conversationId = bySubject?.id ?? null;
             }
             if (!conversationId) {
-              conversationId = import_node_crypto11.default.randomUUID();
+              conversationId = import_node_crypto12.default.randomUUID();
               const now = nowIso2();
               this.db.db.prepare(
                 `INSERT INTO conversations(
@@ -51806,14 +61722,14 @@ var EmailService = class {
                    WHERE id = ?`
               ).run(sentAt, isRead ? 0 : 1, nowIso2(), conversationId);
             }
-            const messageId = import_node_crypto11.default.randomUUID();
+            const messageId = import_node_crypto12.default.randomUUID();
             this.db.db.prepare(
               `INSERT INTO messages(
                   id, account_id, conversation_id, folder_id, provider_message_id,
-                  message_id_header, in_reply_to, subject, snippet, body_text,
+                  message_id_header, in_reply_to, subject, snippet, body_text, body_html,
                   from_name, from_address, to_addresses, cc_addresses, bcc_addresses,
                   sent_at, received_at, is_read, is_starred, direction, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound', ?)`
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound', ?)`
             ).run(
               messageId,
               account.id,
@@ -51825,6 +61741,7 @@ var EmailService = class {
               subject,
               snippet,
               bodyText,
+              bodyHtml,
               fromName,
               fromAddress,
               JSON.stringify(toAddresses),
@@ -51859,10 +61776,10 @@ var EmailService = class {
     }
   }
   async syncAllAccounts() {
-    const all = this.accounts.list().filter((a) => a.syncEnabled && a.imapHost);
+    const all2 = this.accounts.list().filter((a) => a.syncEnabled && a.imapHost);
     const results = [];
     let syncedCount = 0;
-    for (const account of all) {
+    for (const account of all2) {
       const res = await this.syncAccount(account);
       results.push(res);
       syncedCount += res.syncedCount;
@@ -52045,9 +61962,9 @@ var util3;
 })(util3 || (util3 = {}));
 var objectUtil;
 (function(objectUtil2) {
-  objectUtil2.mergeShapes = (first, second) => {
+  objectUtil2.mergeShapes = (first2, second) => {
     return {
-      ...first,
+      ...first2,
       ...second
       // second overwrites first
     };
@@ -52167,8 +62084,8 @@ var ZodError = class _ZodError extends Error {
       return issue.message;
     };
     const fieldErrors = { _errors: [] };
-    const processError = (error2) => {
-      for (const issue of error2.issues) {
+    const processError = (error3) => {
+      for (const issue of error3.issues) {
         if (issue.code === "invalid_union") {
           issue.unionErrors.map(processError);
         } else if (issue.code === "invalid_return_type") {
@@ -52231,8 +62148,8 @@ var ZodError = class _ZodError extends Error {
   }
 };
 ZodError.create = (issues) => {
-  const error2 = new ZodError(issues);
-  return error2;
+  const error3 = new ZodError(issues);
+  return error3;
 };
 
 // node_modules/zod/v3/locales/en.js
@@ -52340,8 +62257,8 @@ var en_default = errorMap;
 
 // node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default;
-function setErrorMap(map2) {
-  overrideErrorMap = map2;
+function setErrorMap(map3) {
+  overrideErrorMap = map3;
 }
 function getErrorMap() {
   return overrideErrorMap;
@@ -52364,8 +62281,8 @@ var makeIssue = (params) => {
   }
   let errorMessage = "";
   const maps = errorMaps.filter((m) => !!m).slice().reverse();
-  for (const map2 of maps) {
-    errorMessage = map2(fullIssue, { data, defaultError: errorMessage }).message;
+  for (const map3 of maps) {
+    errorMessage = map3(fullIssue, { data, defaultError: errorMessage }).message;
   }
   return {
     ...issueData,
@@ -52496,8 +62413,8 @@ var handleResult = (ctx, result) => {
       get error() {
         if (this._error)
           return this._error;
-        const error2 = new ZodError(ctx.common.issues);
-        this._error = error2;
+        const error3 = new ZodError(ctx.common.issues);
+        this._error = error3;
         return this._error;
       }
     };
@@ -52750,8 +62667,8 @@ var ZodType = class {
   promise() {
     return ZodPromise.create(this, this._def);
   }
-  or(option) {
-    return ZodUnion.create([this, option], this._def);
+  or(option2) {
+    return ZodUnion.create([this, option2], this._def);
   }
   and(incoming) {
     return ZodIntersection.create(this, incoming, this._def);
@@ -54601,7 +64518,7 @@ var ZodUnion = class extends ZodType {
       return INVALID;
     }
     if (ctx.common.async) {
-      return Promise.all(options.map(async (option) => {
+      return Promise.all(options.map(async (option2) => {
         const childCtx = {
           ...ctx,
           common: {
@@ -54611,7 +64528,7 @@ var ZodUnion = class extends ZodType {
           parent: null
         };
         return {
-          result: await option._parseAsync({
+          result: await option2._parseAsync({
             data: ctx.data,
             path: ctx.path,
             parent: childCtx
@@ -54622,7 +64539,7 @@ var ZodUnion = class extends ZodType {
     } else {
       let dirty = void 0;
       const issues = [];
-      for (const option of options) {
+      for (const option2 of options) {
         const childCtx = {
           ...ctx,
           common: {
@@ -54631,7 +64548,7 @@ var ZodUnion = class extends ZodType {
           },
           parent: null
         };
-        const result = option._parseSync({
+        const result = option2._parseSync({
           data: ctx.data,
           path: ctx.path,
           parent: childCtx
@@ -54712,8 +64629,8 @@ var ZodDiscriminatedUnion = class _ZodDiscriminatedUnion extends ZodType {
     }
     const discriminator = this.discriminator;
     const discriminatorValue = ctx.data[discriminator];
-    const option = this.optionsMap.get(discriminatorValue);
-    if (!option) {
+    const option2 = this.optionsMap.get(discriminatorValue);
+    if (!option2) {
       addIssueToContext(ctx, {
         code: ZodIssueCode.invalid_union_discriminator,
         options: Array.from(this.optionsMap.keys()),
@@ -54722,13 +64639,13 @@ var ZodDiscriminatedUnion = class _ZodDiscriminatedUnion extends ZodType {
       return INVALID;
     }
     if (ctx.common.async) {
-      return option._parseAsync({
+      return option2._parseAsync({
         data: ctx.data,
         path: ctx.path,
         parent: ctx
       });
     } else {
-      return option._parseSync({
+      return option2._parseSync({
         data: ctx.data,
         path: ctx.path,
         parent: ctx
@@ -54844,7 +64761,7 @@ var ZodIntersection = class extends ZodType {
           path: ctx.path,
           parent: ctx
         })
-      ]).then(([left, right]) => handleParsed(left, right));
+      ]).then(([left2, right2]) => handleParsed(left2, right2));
     } else {
       return handleParsed(this._def.left._parseSync({
         data: ctx.data,
@@ -54858,10 +64775,10 @@ var ZodIntersection = class extends ZodType {
     }
   }
 };
-ZodIntersection.create = (left, right, params) => {
+ZodIntersection.create = (left2, right2, params) => {
   return new ZodIntersection({
-    left,
-    right,
+    left: left2,
+    right: right2,
     typeName: ZodFirstPartyTypeKind.ZodIntersection,
     ...processCreateParams(params)
   });
@@ -54969,10 +64886,10 @@ var ZodRecord = class _ZodRecord extends ZodType {
   get element() {
     return this._def.valueType;
   }
-  static create(first, second, third) {
+  static create(first2, second, third) {
     if (second instanceof ZodType) {
       return new _ZodRecord({
-        keyType: first,
+        keyType: first2,
         valueType: second,
         typeName: ZodFirstPartyTypeKind.ZodRecord,
         ...processCreateParams(third)
@@ -54980,7 +64897,7 @@ var ZodRecord = class _ZodRecord extends ZodType {
     }
     return new _ZodRecord({
       keyType: ZodString.create(),
-      valueType: first,
+      valueType: first2,
       typeName: ZodFirstPartyTypeKind.ZodRecord,
       ...processCreateParams(second)
     });
@@ -55152,25 +65069,25 @@ var ZodFunction = class _ZodFunction extends ZodType {
       });
       return INVALID;
     }
-    function makeArgsIssue(args, error2) {
+    function makeArgsIssue(args, error3) {
       return makeIssue({
         data: args,
         path: ctx.path,
         errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode.invalid_arguments,
-          argumentsError: error2
+          argumentsError: error3
         }
       });
     }
-    function makeReturnsIssue(returns, error2) {
+    function makeReturnsIssue(returns, error3) {
       return makeIssue({
         data: returns,
         path: ctx.path,
         errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x) => !!x),
         issueData: {
           code: ZodIssueCode.invalid_return_type,
-          returnTypeError: error2
+          returnTypeError: error3
         }
       });
     }
@@ -55179,15 +65096,15 @@ var ZodFunction = class _ZodFunction extends ZodType {
     if (this._def.returns instanceof ZodPromise) {
       const me = this;
       return OK(async function(...args) {
-        const error2 = new ZodError([]);
+        const error3 = new ZodError([]);
         const parsedArgs = await me._def.args.parseAsync(args, params).catch((e) => {
-          error2.addIssue(makeArgsIssue(args, e));
-          throw error2;
+          error3.addIssue(makeArgsIssue(args, e));
+          throw error3;
         });
         const result = await Reflect.apply(fn, this, parsedArgs);
         const parsedReturns = await me._def.returns._def.type.parseAsync(result, params).catch((e) => {
-          error2.addIssue(makeReturnsIssue(result, e));
-          throw error2;
+          error3.addIssue(makeReturnsIssue(result, e));
+          throw error3;
         });
         return parsedReturns;
       });
@@ -56398,4 +66315,9 @@ Reason: ${opened.error ?? "unknown"}`,
     db?.close();
   });
 }
+/*! Bundled license information:
+
+he/he.js:
+  (*! https://mths.be/he v1.2.0 by @mathias | MIT license *)
+*/
 //# sourceMappingURL=index.cjs.map

@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { ImapFlow } from 'imapflow';
+import { simpleParser } from 'mailparser';
 import nodemailer from 'nodemailer';
 import type { DatabaseService } from '../database/db';
 import type { AccountRepository } from '../database/repositories';
@@ -299,16 +300,6 @@ export class EmailService {
               | { id: string; folder_id: string | null }
               | undefined;
 
-            if (existing) {
-              if (existing.folder_id === inboxFolderId) {
-                this.db.db
-                  .prepare('UPDATE messages SET folder_id = NULL WHERE id = ?')
-                  .run(existing.id);
-                syncedCount += 1;
-              }
-              continue;
-            }
-
             const subject = msg.envelope?.subject || '(no subject)';
             const fromEntry = msg.envelope?.from?.[0];
             const fromAddress = fromEntry?.address || 'unknown@example.com';
@@ -324,11 +315,27 @@ export class EmailService {
             const isStarred = msg.flags?.has('\\Flagged') ? 1 : 0;
             const inReplyTo = msg.envelope?.inReplyTo ?? null;
 
-            const parsed = msg.source
-              ? extractTextFromSource(msg.source)
-              : { text: '', snippet: '' };
-            const bodyText = parsed.text || stripHtml(subject);
-            const snippet = parsed.snippet;
+            const parsedMail = msg.source ? await simpleParser(msg.source) : null;
+            const bodyHtml =
+              parsedMail && typeof parsedMail.html === 'string' ? parsedMail.html : null;
+            const rawText =
+              parsedMail?.text ||
+              (bodyHtml ? stripHtml(bodyHtml) : '') ||
+              stripHtml(subject);
+            const bodyText = rawText.slice(0, 50_000);
+            const snippet = rawText.replace(/\s+/g, ' ').trim().slice(0, 160);
+
+            if (existing) {
+              if (existing.folder_id === inboxFolderId) {
+                this.db.db
+                  .prepare(
+                    'UPDATE messages SET folder_id = NULL, body_text = ?, body_html = ?, snippet = ? WHERE id = ?',
+                  )
+                  .run(bodyText, bodyHtml, snippet, existing.id);
+                syncedCount += 1;
+              }
+              continue;
+            }
 
             // Find or create conversation
             let conversationId: string | null = null;
@@ -387,10 +394,10 @@ export class EmailService {
               .prepare(
                 `INSERT INTO messages(
                   id, account_id, conversation_id, folder_id, provider_message_id,
-                  message_id_header, in_reply_to, subject, snippet, body_text,
+                  message_id_header, in_reply_to, subject, snippet, body_text, body_html,
                   from_name, from_address, to_addresses, cc_addresses, bcc_addresses,
                   sent_at, received_at, is_read, is_starred, direction, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound', ?)`,
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound', ?)`,
               )
               .run(
                 messageId,
@@ -403,6 +410,7 @@ export class EmailService {
                 subject,
                 snippet,
                 bodyText,
+                bodyHtml,
                 fromName,
                 fromAddress,
                 JSON.stringify(toAddresses),

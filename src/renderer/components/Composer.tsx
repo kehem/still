@@ -32,9 +32,7 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
   const [to, setTo] = useState((initial.toAddresses ?? []).join(', '));
   const [cc, setCc] = useState((initial.ccAddresses ?? []).join(', '));
   const [bcc, setBcc] = useState((initial.bccAddresses ?? []).join(', '));
-  const [showCcBcc, setShowCcBcc] = useState(
-    (initial.ccAddresses?.length ?? 0) > 0 || (initial.bccAddresses?.length ?? 0) > 0,
-  );
+  const [showCcBcc, setShowCcBcc] = useState(true);
   const [subject, setSubject] = useState(initial.subject ?? '');
   const [body, setBody] = useState(initial.body ?? '');
   const [followUpEnabled, setFollowUpEnabled] = useState(

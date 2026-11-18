@@ -51656,8 +51656,8 @@ var EmailService = class {
           id, account_id, conversation_id, folder_id, provider_message_id,
           message_id_header, in_reply_to, subject, snippet, body_text,
           from_name, from_address, to_addresses, cc_addresses, bcc_addresses,
-          sent_at, received_at, is_read, is_starred, direction
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 'outbound')`
+          sent_at, received_at, is_read, is_starred, direction, created_at
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 'outbound', ?)`
     ).run(
       messageId,
       account.id,
@@ -51674,6 +51674,7 @@ var EmailService = class {
       JSON.stringify(input.to),
       JSON.stringify(input.cc ?? []),
       JSON.stringify(input.bcc ?? []),
+      sentAt,
       sentAt,
       sentAt
     );
@@ -51805,8 +51806,8 @@ var EmailService = class {
                   id, account_id, conversation_id, folder_id, provider_message_id,
                   message_id_header, in_reply_to, subject, snippet, body_text,
                   from_name, from_address, to_addresses, cc_addresses, bcc_addresses,
-                  sent_at, received_at, is_read, is_starred, direction
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound')`
+                  sent_at, received_at, is_read, is_starred, direction, created_at
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound', ?)`
             ).run(
               messageId,
               account.id,
@@ -51825,7 +51826,8 @@ var EmailService = class {
               sentAt,
               nowIso2(),
               isRead,
-              isStarred
+              isStarred,
+              nowIso2()
             );
             syncedCount += 1;
           }

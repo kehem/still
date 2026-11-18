@@ -291,13 +291,23 @@ export class EmailService {
 
             const existing = this.db.db
               .prepare(
-                `SELECT id FROM messages
+                `SELECT id, folder_id FROM messages
                  WHERE account_id = ? AND (provider_message_id = ? OR (message_id_header IS NOT NULL AND message_id_header = ?))
                  LIMIT 1`,
               )
-              .get(account.id, providerId, messageIdHeader) as { id: string } | undefined;
+              .get(account.id, providerId, messageIdHeader) as
+              | { id: string; folder_id: string | null }
+              | undefined;
 
-            if (existing) continue;
+            if (existing) {
+              if (existing.folder_id === inboxFolderId) {
+                this.db.db
+                  .prepare('UPDATE messages SET folder_id = NULL WHERE id = ?')
+                  .run(existing.id);
+                syncedCount += 1;
+              }
+              continue;
+            }
 
             const subject = msg.envelope?.subject || '(no subject)';
             const fromEntry = msg.envelope?.from?.[0];

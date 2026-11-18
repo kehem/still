@@ -51812,7 +51812,7 @@ var EmailService = class {
               messageId,
               account.id,
               conversationId,
-              inboxFolderId,
+              null,
               providerId,
               messageIdHeader,
               inReplyTo,

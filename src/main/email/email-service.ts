@@ -231,10 +231,13 @@ export class EmailService {
       )
       .run(account.id);
 
+    const imapPort = account.imapPort ?? (account.imapSecure ? 993 : 143);
+    const imapSecure =
+      imapPort === 993 ? true : imapPort === 143 ? false : account.imapSecure;
     const client = new ImapFlow({
       host: account.imapHost,
-      port: account.imapPort ?? (account.imapSecure ? 993 : 143),
-      secure: account.imapSecure,
+      port: imapPort,
+      secure: imapSecure,
       auth: {
         user: account.username ?? account.email,
         pass: password,

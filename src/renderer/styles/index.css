@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+/* ── Design tokens (spec §9) ────────────────────────────────────────────────
+   Scandinavian minimalism: flat surfaces, thin separators, restrained
+   accent, small radii. No cards, no decorative shadows. */
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-danger: var(--danger);
+  --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+:root,
+[data-theme="light"] {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --surface-hover: #f3f0eb;
+  --text: #232323;
+  --text-secondary: #6e6e6e;
+  --text-tertiary: #9a9a9a;
+  --accent: #3e6fa3;
+  --accent-hover: #355e8a;
+  --border: #e7e3dc;
+  --border-strong: #d8d3ca;
+  --danger: #b4453c;
+  --row-py: 0.75rem;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #171717;
+  --surface: #1f1f1f;
+  --surface-hover: #282828;
+  --text: #ededed;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #6e6e6e;
+  --accent: #7fa8d0;
+  --accent-hover: #93bbdf;
+  --border: #2a2a2a;
+  --border-strong: #3a3a3a;
+  --danger: #d97b72;
+  color-scheme: dark;
+}
+
+[data-density="compact"] {
+  --row-py: 0.45rem;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+/* Electron hidden title bar drag regions */
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Thin, unobtrusive scrollbars */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}

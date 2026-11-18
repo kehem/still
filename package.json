@@ -1,0 +1,56 @@
+{
+  "name": "still",
+  "version": "0.1.0",
+  "description": "Still \u2014 a premium, privacy-focused desktop email client with intelligent follow-up management.",
+  "private": true,
+  "author": "Still",
+  "license": "UNLICENSED",
+  "main": "dist/main/index.cjs",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n renderer,electron -c cyan,magenta \"vite\" \"wait-on http://localhost:5173 && cross-env ELECTRON_RENDERER_URL=http://localhost:5173 electron .\"",
+    "dev:renderer": "vite",
+    "build": "npm run build:renderer && npm run build:main",
+    "build:renderer": "vite build",
+    "build:main": "node scripts/build-main.mjs",
+    "start": "npm run build && electron .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "rebuild": "node scripts/rebuild-native.mjs --runtime=electron",
+    "rebuild:node": "node scripts/rebuild-native.mjs --runtime=node",
+    "dist": "npm run build && npm run rebuild && electron-builder",
+    "dist:win": "npm run build && npm run rebuild && electron-builder --win --x64",
+    "dist:linux": "npm run build && npm run rebuild && electron-builder --linux"
+  },
+  "dependencies": {
+    "@fontsource/manrope": "^5.2.5",
+    "better-sqlite3": "^12.2.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.2.1",
+    "@tailwindcss/vite": "^4.1.11",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "42.11.18",
+    "electron-builder": "26.18.0",
+    "esbuild": "^0.25.10",
+    "jsdom": "^25.0.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4",
+    "wait-on": "^8.0.3"
+  }
+}

@@ -1,0 +1,56 @@
+appId: app.still.mail
+productName: Still
+copyright: Copyright © 2026 Still
+
+# The app icon. electron-builder derives .ico (Windows) and .icns (macOS) from
+# this single 1024px PNG, so no platform-specific assets are needed.
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - package.json
+
+# Native modules cannot be loaded from inside the asar archive.
+asarUnpack:
+  - "**/*.node"
+
+# electron-builder must NOT rebuild native modules itself: that path uses
+# node-gyp and would demand a C++ toolchain on Windows. scripts/rebuild-native.mjs
+# already placed the correct prebuilt binary, and `npm run dist` runs it first.
+npmRebuild: false
+
+# Never phone home. Still has no telemetry and no update server (spec §3).
+publish: null
+
+win:
+  target:
+    - nsis
+    - portable
+    - zip
+  # Default name for targets that do not set their own (i.e. the plain zip).
+  artifactName: "${productName}-${version}-win-${arch}.${ext}"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  artifactName: "${productName}-Setup-${version}-${arch}.${ext}"
+
+portable:
+  artifactName: "${productName}-Portable-${version}-${arch}.${ext}"
+
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.productivity
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Productivity
+  synopsis: Privacy-focused email client with follow-up reminders

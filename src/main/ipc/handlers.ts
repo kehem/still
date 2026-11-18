@@ -10,6 +10,7 @@ import {
   SettingsRepository,
 } from '../database/repositories';
 import { CredentialStore } from '../security/credentials';
+import { EmailService } from '../email/email-service';
 import type { ReminderOptions } from '../../shared/notifications/reminder-engine';
 import {
   createFollowUpSchema,
@@ -22,6 +23,7 @@ import {
   saveDraftSchema,
   scheduleInputSchema,
   schedulePatchSchema,
+  sendEmailSchema,
   settingsPatchSchema,
   updateAccountSchema,
 } from '../security/ipc-validation';
@@ -224,6 +226,14 @@ export function registerIpcHandlers(s: AppServices): void {
   ipcMain.handle('drafts:remove', (_event, id: unknown) => {
     s.drafts.remove(parseOrThrow(idSchema, id));
   });
+
+  const emailService = new EmailService(s.db, s.accounts, s.credentials);
+
+  ipcMain.handle('email:send', (_event, input: unknown) =>
+    emailService.sendEmail(parseOrThrow(sendEmailSchema, input)),
+  );
+
+  ipcMain.handle('email:sync', () => emailService.syncAllAccounts());
 
   ipcMain.handle('app:info', () => ({
     version: app.getVersion(),

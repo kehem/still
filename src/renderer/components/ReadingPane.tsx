@@ -41,7 +41,8 @@ function cleanPlainBody(text: string): string {
     .replace(/=E2=80=9D/g, '”')
     .replace(/=E2=80=AF/g, ' ')
     .replace(/=20/g, ' ')
-    .replace(/\s{2,}/g, ' ')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 

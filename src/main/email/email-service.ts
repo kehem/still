@@ -297,7 +297,7 @@ export class EmailService {
                  LIMIT 1`,
               )
               .get(account.id, providerId, messageIdHeader) as
-              | { id: string; folder_id: string | null }
+              | { id: string; folder_id: string | null; body_text: string | null }
               | undefined;
 
             const subject = msg.envelope?.subject || '(no subject)';

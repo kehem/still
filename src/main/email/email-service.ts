@@ -326,7 +326,12 @@ export class EmailService {
             const snippet = rawText.replace(/\s+/g, ' ').trim().slice(0, 160);
 
             if (existing) {
-              if (existing.folder_id === inboxFolderId) {
+              const needsReparse =
+                existing.folder_id === inboxFolderId ||
+                Boolean(existing.body_text?.includes('Content-Type:')) ||
+                Boolean(existing.body_text?.includes('Content-Transfer-Encoding:')) ||
+                Boolean(existing.body_text?.includes('=E2=80='));
+              if (needsReparse) {
                 this.db.db
                   .prepare(
                     'UPDATE messages SET folder_id = NULL, body_text = ?, body_html = ?, snippet = ? WHERE id = ?',

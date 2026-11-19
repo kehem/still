@@ -24288,6 +24288,7 @@ var DEFAULT_SETTINGS = {
   aiProvider: null,
   dataRetentionDays: 0,
   syncOnStartup: true,
+  syncIntervalSeconds: 30,
   attachmentStoragePath: null
 };
 
@@ -65885,6 +65886,13 @@ var settingsPatchSchema = external_exports.object({
   aiProvider: external_exports.string().max(64).nullable(),
   dataRetentionDays: external_exports.number().int().min(0).max(3650),
   syncOnStartup: external_exports.boolean(),
+  syncIntervalSeconds: external_exports.union([
+    external_exports.literal(5),
+    external_exports.literal(30),
+    external_exports.literal(60),
+    external_exports.literal(300),
+    external_exports.literal(600)
+  ]),
   attachmentStoragePath: external_exports.string().max(1024).nullable()
 }).partial();
 var newAccountSchema = external_exports.object({

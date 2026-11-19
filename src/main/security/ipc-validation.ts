@@ -64,6 +64,13 @@ export const settingsPatchSchema = z
     aiProvider: z.string().max(64).nullable(),
     dataRetentionDays: z.number().int().min(0).max(3650),
     syncOnStartup: z.boolean(),
+    syncIntervalSeconds: z.union([
+      z.literal(5),
+      z.literal(30),
+      z.literal(60),
+      z.literal(300),
+      z.literal(600),
+    ]),
     attachmentStoragePath: z.string().max(1024).nullable(),
   })
   .partial();

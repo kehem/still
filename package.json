@@ -1,7 +1,7 @@
 {
   "name": "still",
   "version": "0.1.0",
-  "description": "Still — a premium, privacy-focused desktop email client with intelligent follow-up management.",
+  "description": "Still — a quieter place for email. A local-first desktop client with thoughtful follow-up reminders and no telemetry.",
   "private": true,
   "author": "Still",
   "license": "UNLICENSED",

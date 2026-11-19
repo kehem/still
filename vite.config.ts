@@ -21,6 +21,8 @@ const PRODUCTION_CSP = [
   "font-src 'self' data:",
   "img-src 'self' data: blob:",
   "connect-src 'self'",
+  // XLSX decompression uses local blob workers; no remote scripts are allowed.
+  "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'none'",
   "form-action 'none'",

@@ -81,7 +81,7 @@ function installDevContentSecurityPolicy(): void {
         'Content-Security-Policy': [
           "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
             "style-src 'self' 'unsafe-inline'; font-src 'self' data:; " +
-            "img-src 'self' data: blob:; " +
+            "img-src 'self' data: blob:; worker-src 'self' blob:; " +
             "connect-src 'self' ws://localhost:5173 http://localhost:5173;",
         ],
       },

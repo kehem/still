@@ -25,14 +25,14 @@ it('stops at daily limit without sending', async () => {
   await screen.findByText('sent');
   fireEvent.click(screen.getByText('Send next'));
   expect(sendEmail).toHaveBeenCalledTimes(1);
-  expect(screen.getByRole('status').textContent).toContain('Daily limit');
+  expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('Daily limit');
 });
 it('does not retry failed sends and pauses', async () => {
   sendEmail.mockRejectedValue(new Error('SMTP failure'));
   render(<AutomationPage accounts={accounts} onSent={() => {}} />);
   fireEvent.click(screen.getByText('Start automatic sending'));
   await screen.findByText('failed');
-  expect(screen.getByRole('status').textContent).toContain('Paused');
+  expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('Paused');
   expect(sendEmail).toHaveBeenCalledTimes(1);
 });
 it('recovers interrupted sends as failed and never starts on mount', () => {

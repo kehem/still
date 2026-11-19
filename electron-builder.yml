@@ -53,4 +53,4 @@ linux:
     - AppImage
     - deb
   category: Productivity
-  synopsis: Privacy-focused email client with follow-up reminders
+  synopsis: A quieter place for email, with local-first privacy and thoughtful follow-up reminders

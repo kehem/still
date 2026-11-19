@@ -1057,7 +1057,7 @@ function AboutSection() {
   return (
     <Section
       title="About"
-      description={`${APP_NAME} — a premium, privacy-focused email client.`}
+      description={`${APP_NAME} — a quieter place for email. Private by design, thoughtful by nature.`}
     >
       <Row label="Version">
         <span className="text-[13px] text-text-secondary">{info?.version ?? '—'}</span>

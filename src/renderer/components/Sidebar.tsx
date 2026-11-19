@@ -19,6 +19,8 @@ interface SidebarProps {
   accounts: Account[];
   activeFolder: string;
   onSelectFolder: (folder: string) => void;
+  onOpenAutomation: () => void;
+  automationActive: boolean;
   onOpenFollowUps: () => void;
   onOpenSettings: () => void;
   followUpsActive: boolean;
@@ -88,6 +90,8 @@ export function Sidebar({
   activeFolder,
   onSelectFolder,
   onOpenFollowUps,
+  onOpenAutomation,
+  automationActive,
   onOpenSettings,
   followUpsActive,
   settingsActive,
@@ -163,6 +167,7 @@ export function Sidebar({
         />
 
         <SectionLabel collapsed={collapsed}>Productivity</SectionLabel>
+        <NavItem icon={<SendIcon size={17} />} label="Automation" active={automationActive} collapsed={collapsed} onClick={onOpenAutomation} />
         <NavItem
           icon={<BellIcon size={17} />}
           label="Follow-ups"

@@ -48,6 +48,8 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
     initial.followUpIntervalDays ?? DEFAULT_FOLLOWUP_STAGES[0],
   );
   const [draftId, setDraftId] = useState<string | undefined>(initial.id);
+  const sending = useRef(false);
+  const [sentConversation, setSentConversation] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   // Autosave follows a real edit. Programmatic prefills (the default signature,
   // a loaded schedule) must not silently create a draft the user never wrote.
@@ -112,8 +114,9 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
       firstRender.current = false;
       return;
     }
-    if (!touched) return;
+    if (!touched || sending.current || sentConversation) return;
     const timer = window.setTimeout(() => {
+      if (sending.current || sentConversation) return;
       void getAPI()
         .saveDraft(latest.current)
         .then((saved) => setDraftId(saved.id))
@@ -129,11 +132,12 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
   }, [accountId, to, cc, bcc, subject, body, followUpEnabled, followUpDays, touched]);
 
   const handleSend = async () => {
+    if (sending.current || sentConversation) return;
     if (!accountId) {
       setNotice('Select an account to send from.');
       return;
     }
-    const toList = to.split(',').map((s) => s.trim()).filter(Boolean);
+    const toList = parseAddresses(to);
     if (toList.length === 0) {
       setNotice('Enter at least one recipient.');
       return;
@@ -142,10 +146,12 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
       const ok = window.confirm('Send this message?');
       if (!ok) return;
     }
+    sending.current = true;
     setNotice('Sending…');
+    let delivered = false;
     try {
-      const ccList = cc.split(',').map((s) => s.trim()).filter(Boolean);
-      const bccList = bcc.split(',').map((s) => s.trim()).filter(Boolean);
+      const ccList = parseAddresses(cc);
+      const bccList = parseAddresses(bcc);
       const result = await getAPI().sendEmail({
         accountId,
         to: toList,
@@ -156,15 +162,22 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
         conversationId: initial.inReplyToConversationId ?? null,
         draftId: draftId ?? null,
       });
+      delivered = true;
+      setSentConversation(result.conversationId);
       if (followUpEnabled && result.conversationId) {
-        await getAPI().createFollowUp({
+        const tracked = await getAPI().createFollowUp({
           conversationId: result.conversationId,
+          intervalDays: followUpDays,
         });
+        if (!tracked) throw new Error("Message sent, but follow-up was not enabled. Enable it from Sent; do not resend the message.");
       }
       onSent?.();
       onClose();
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : 'Failed to send email.');
+      onSent?.();
+      setNotice(delivered ? 'Message sent. Follow-up setup failed; enable it from Sent. Do not resend.' : (err instanceof Error ? err.message : 'Failed to send email.'));
+    } finally {
+      sending.current = false;
     }
   };
 
@@ -377,6 +390,7 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
           </button>
           <button
             type="button"
+            disabled={Boolean(sentConversation)}
             onClick={handleSend}
             className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-accent-hover"
           >

@@ -17,6 +17,7 @@ import { Sidebar } from './components/Sidebar';
 import { MessageList } from './components/MessageList';
 import { ReadingPane } from './components/ReadingPane';
 import { Composer } from './components/Composer';
+import { AutomationPage } from './features/automation/AutomationPage';
 import { FollowUpsPage } from './components/FollowUpsPage';
 import { SettingsPage, type SettingsSection } from './components/SettingsPage';
 import { SetupScreen } from './features/setup/SetupScreen';
@@ -24,6 +25,7 @@ import { SetupScreen } from './features/setup/SetupScreen';
 type View =
   | { kind: 'mail'; folder: string }
   | { kind: 'followups' }
+  | { kind: 'automation' }
   | { kind: 'settings'; section: SettingsSection };
 
 type ComposerState = { open: boolean; initial: Partial<Draft> & { id?: string } };
@@ -334,6 +336,22 @@ function Shell() {
     setSelection({ messageId: row.message.id, conversationId: row.conversationId });
   }, []);
 
+  const trashConversation = async (conversation: ConversationDetail, restore: boolean) => {
+    if (!restore && settings.confirmBeforeDelete && !window.confirm(
+      `Move "${conversation.conversation.subject || '(no subject)'}" to Trash? This affects the entire local conversation only. You can restore it from Trash. Mail at your provider is unchanged.`,
+    )) return;
+    try {
+      const api = getAPI();
+      if (restore) await api.restoreConversation(conversation.conversation.id);
+      else await api.trashConversation(conversation.conversation.id);
+      setSelection({ messageId: null, conversationId: null });
+      setDetail(null);
+      setReloadToken((t) => t + 1);
+    } catch {
+      window.alert('Could not update this conversation. Please try again.');
+    }
+  };
+
   /** Deletes a local draft, honouring the delete confirmation preference. */
   const deleteDraft = useCallback(
     async (draft: Draft) => {
@@ -486,6 +504,8 @@ function Shell() {
             setSelection({ messageId: null, conversationId: null });
             setQuery('');
           }}
+          onOpenAutomation={() => setView({ kind: 'automation' })}
+          automationActive={view.kind === 'automation'}
           onOpenFollowUps={() => setView({ kind: 'followups' })}
           onOpenSettings={() => setView({ kind: 'settings', section: 'general' })}
           followUpsActive={view.kind === 'followups'}
@@ -496,7 +516,10 @@ function Shell() {
           showAllInbox={settings.unifiedInboxEnabled}
         />
 
-        {view.kind === 'settings' ? (
+        <div hidden={view.kind !== 'automation'} className={view.kind === 'automation' ? 'flex min-w-0 flex-1' : 'hidden'}>
+          <AutomationPage accounts={accounts} onSent={() => setReloadToken(t => t + 1)} />
+        </div>
+        {view.kind === 'automation' ? null : view.kind === 'settings' ? (
           <SettingsPage
             section={view.section}
             onSectionChange={(s) => setView({ kind: 'settings', section: s })}
@@ -525,6 +548,9 @@ function Shell() {
                 selectedConversationId={selection.conversationId}
                 onSelect={selectRow}
                 onOpenDraft={(draft) => openComposer({ ...draft, id: draft.id })}
+                onTrashConversation={(id, restore) => {
+                  void getAPI().getConversation(id).then(d => { if (d) void trashConversation(d, restore); }).catch(() => window.alert('Could not load this conversation. Please try again.'));
+                }}
                 onDeleteDraft={(draft) => void deleteDraft(draft)}
                 query={query}
                 onQueryChange={setQuery}
@@ -546,6 +572,7 @@ function Shell() {
               detail={detail}
               account={accounts.find((a) => a.id === detail?.conversation.accountId) ?? null}
               followUp={detail ? followUpByConversation.get(detail.conversation.id) ?? null : null}
+              onTrash={(d, restore) => void trashConversation(d, restore)}
               onReply={openReply}
               onEnableFollowUp={(d) => void enableFollowUp(d)}
               onDisableFollowUp={(d) => void disableFollowUp(d)}
@@ -569,6 +596,9 @@ function Shell() {
           initial={composer.initial}
           onClose={() => setComposer({ open: false, initial: {} })}
           onSent={() => {
+            setReloadToken((t) => t + 1);
+            void refreshFollowUps();
+            void refreshNotifications();
             if (view.kind === 'mail') {
               void getAPI()
                 .listMessages(folderToMessageOptions(view.folder, accounts))

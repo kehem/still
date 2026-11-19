@@ -169,4 +169,27 @@ describe('MessageRepository.list folder semantics', () => {
     expect(unread.n).toBe(0);
     expect(conversation.unread_count).toBe(0);
   });
+  it('moves only the selected conversation to local Trash and restores original folders', () => {
+    const ts = new Date().toISOString();
+    service.db.prepare(
+      "INSERT INTO conversations(id, account_id, subject, last_message_at, created_at, updated_at) VALUES('c-trash', 'acc-1', 'Trash test', ?, ?, ?)",
+    ).run(ts, ts, ts);
+    const insert = service.db.prepare(
+      `INSERT INTO messages(id, account_id, conversation_id, folder_id, subject, from_address, sent_at, direction, created_at)
+       VALUES(?, 'acc-1', 'c-trash', ?, 'Trash test', 'someone@example.com', ?, ?, ?)`,
+    );
+    insert.run('trash-in', null, ts, 'inbound', ts);
+    insert.run('trash-out', 'f-sent', ts, 'outbound', ts);
+    repo.setConversationTrashed('c-trash', true);
+    expect(repo.list({ folderKind: 'trash' }).map((m) => m.id)).toEqual(expect.arrayContaining(['trash-in', 'trash-out']));
+    expect(repo.list({ folderKind: 'inbox' }).some((m) => m.id === 'trash-in')).toBe(false);
+    expect(repo.list({ folderKind: 'sent' }).some((m) => m.id === 'trash-out')).toBe(false);
+    expect(repo.list({ folderKind: 'inbox' }).some((m) => m.id === 'in-clean')).toBe(true);
+    repo.setConversationTrashed('c-trash', false);
+    expect(repo.list({ folderKind: 'trash' }).some((m) => m.conversationId === 'c-trash')).toBe(false);
+    expect(repo.list({ folderKind: 'inbox' }).some((m) => m.id === 'trash-in')).toBe(true);
+    expect(repo.list({ folderKind: 'sent' }).find((m) => m.id === 'trash-out')?.folderId).toBe('f-sent');
+    repo.setConversationTrashed('missing-conversation', true);
+  });
+
 });

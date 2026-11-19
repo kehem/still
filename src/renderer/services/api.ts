@@ -569,6 +569,17 @@ class BrowserPreviewAPI implements StillAPI {
     return { conversation, messages };
   }
 
+  async trashConversation(conversationId: string): Promise<void> {
+    const deletedAt = new Date().toISOString();
+    this.messages = this.messages.map((m) => m.conversationId === conversationId ? { ...m, deletedAt } : m);
+    lsWrite('messages', this.messages);
+  }
+
+  async restoreConversation(conversationId: string): Promise<void> {
+    this.messages = this.messages.map((m) => m.conversationId === conversationId ? { ...m, deletedAt: null } : m);
+    lsWrite('messages', this.messages);
+  }
+
   async markConversationRead(conversationId: string): Promise<void> {
     this.messages = this.messages.map((m) =>
       m.conversationId === conversationId && !m.isRead ? { ...m, isRead: true } : m,

@@ -25,14 +25,23 @@ function formatHtmlDoc(html: string): string {
 }
 
 function cleanPlainBody(text: string): string {
-  if (!text.includes('Content-Type:') && !text.includes('Content-Transfer-Encoding:')) {
+  if (
+    !text.includes('Content-Type:') &&
+    !text.includes('Content-Transfer-Encoding:') &&
+    !text.includes('=E2=80=')
+  ) {
     return text;
   }
   return text
-    .replace(/--[A-Za-z0-9_=.-]+--?/g, '')
-    .replace(/Content-Type:[^\r\n]+/gi, '')
-    .replace(/Content-Transfer-Encoding:[^\r\n]+/gi, '')
-    .replace(/\n{3,}/g, '\n\n')
+    .replace(/-{1,2}_[A-Za-z0-9_=.-]+/g, '')
+    .replace(/Content-Type:\s*[^\s;]+(?:;\s*charset="[^"]*")?/gi, '')
+    .replace(/Content-Transfer-Encoding:\s*\S+/gi, '')
+    .replace(/=E2=80=99/g, '’')
+    .replace(/=E2=80=9C/g, '“')
+    .replace(/=E2=80=9D/g, '”')
+    .replace(/=E2=80=AF/g, ' ')
+    .replace(/=20/g, ' ')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 }
 

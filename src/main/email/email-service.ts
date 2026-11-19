@@ -328,6 +328,7 @@ export class EmailService {
             if (existing) {
               const needsReparse =
                 existing.folder_id === inboxFolderId ||
+                existing.body_html === null ||
                 Boolean(existing.body_text?.includes('Content-Type:')) ||
                 Boolean(existing.body_text?.includes('Content-Transfer-Encoding:')) ||
                 Boolean(existing.body_text?.includes('=E2=80='));

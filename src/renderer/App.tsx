@@ -221,6 +221,10 @@ function Shell() {
         const list = await getAPI().listMessages(folderToMessageOptions(view.folder, accounts));
         setMessages(list);
       }
+      if (selection.conversationId) {
+        const conv = await getAPI().getConversation(selection.conversationId);
+        if (conv) setDetail(conv);
+      }
     } catch {
       setSyncStatus('error');
     }

@@ -13,6 +13,10 @@ export function AutomationPage({ accounts, onSent }: { accounts: Account[]; onSe
   const [rows, setRows] = useState<QueueRow[]>(() => {
     try { return (JSON.parse(localStorage.getItem(KEY) || '[]') as QueueRow[]).map(r => r.status === 'sending' ? { ...r, status: 'failed', error: 'Interrupted send: check Sent before importing again. Not retried.' } : r); } catch { return []; }
   });
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState('');
+  const [importStatus, setImportStatus] = useState('Choose a CSV or .xlsx file to begin.');
+  const importVersion = useRef(0);
   const [table, setTable] = useState<string[][]>([]);
   const [columns, setColumns] = useState([0, 1, 2]);
   const [account, setAccount] = useState(savedConfig().account || accounts[0]?.id || '');
@@ -71,30 +75,57 @@ export function AutomationPage({ accounts, onSent }: { accounts: Account[]; onSe
     <h1 className="text-xl font-semibold">Automation</h1>
     <p className="my-2 text-sm text-text-secondary">Import a CSV or Excel (.xlsx) sheet, map columns, and select rows. First row is the header; Excel uses the first sheet. Queue stays on this device. Keep Still open: closing pauses automation; resume explicitly after reopening.</p>
     <p className="my-2 text-sm">Only send to recipients who expect your mail. Failed or interrupted rows are never retried automatically. Daily limits count attempts, including failures, across queues.</p>
+    <p role="status" aria-live="polite" className="my-3 text-sm text-text-secondary">{importStatus}</p>
+    {importError && <p role="alert" className="my-3 text-sm">{importError}</p>}
     <fieldset disabled={running || busy.current} className="my-4 flex flex-wrap items-center gap-3">
       <input aria-label="Import CSV or Excel" type="file" accept=".csv,.xlsx" onChange={async e => {
-        const file = e.target.files?.[0]; if (!file) return;
+        const file = e.target.files?.[0];
+        e.target.value = ''; // Allow retrying the same file after an error.
+        if (!file) return;
+        const version = ++importVersion.current;
+        setTable([]);
+        setColumns([0, 1, 2]);
+        setImportError('');
+        setImporting(true);
+        setImportStatus(`Reading ${file.name}…`);
+        let timeout: ReturnType<typeof setTimeout> | undefined;
         try {
           if (file.size > 5 * 1024 * 1024) throw new Error('Maximum file size is 5 MB');
-          let data: string[][];
-          if (/\.xlsx$/i.test(file.name)) data = (await readSheet(file, 1)).map(r => r.map(c => c == null ? '' : String(c)));
-          else if (/\.csv$/i.test(file.name)) {
-            const parsed = Papa.parse<string[]>(await file.text(), { skipEmptyLines: 'greedy' });
-            if (parsed.errors.length) throw new Error(parsed.errors[0].message);
-            data = parsed.data;
-          } else throw new Error('Use CSV or .xlsx');
+          const parse = async (): Promise<string[][]> => {
+            if (/\.xlsx$/i.test(file.name)) return (await readSheet(file, 1)).map(r => r.map(c => c == null ? '' : String(c)));
+            if (/\.csv$/i.test(file.name)) {
+              const parsed = Papa.parse<string[]>(await file.text(), { skipEmptyLines: 'greedy' });
+              if (parsed.errors.length) throw new Error(parsed.errors[0].message);
+              return parsed.data;
+            }
+            throw new Error('Use a CSV or .xlsx file (legacy .xls is not supported).');
+          };
+          const data = await Promise.race([
+            parse(),
+            new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error('Reading timed out. Try saving the first sheet as CSV UTF-8 and selecting it again.')), 30000); }),
+          ]);
+          if (version !== importVersion.current) return;
           if (data.length < 2 || data.length > 1001) throw new Error('Import 1–1000 data rows with a header');
-          setTable(data); setNotice('Map columns, then build the queue.');
-        } catch (err) { setNotice(String(err)); }
+          if (data[0].length < 3) throw new Error('The header needs at least three columns: email, subject and body.');
+          setTable(data);
+          setImportStatus(`${file.name}: ${data.length - 1} rows loaded. Choose the email, subject and body columns, then click Build queue.`);
+        } catch (err) {
+          if (version !== importVersion.current) return;
+          setImportError(`Could not import ${file.name}: ${err instanceof Error ? err.message : String(err)}`);
+          setImportStatus('Import failed. Choose the file again to retry. Your existing queue has not changed.');
+        } finally {
+          clearTimeout(timeout);
+          if (version === importVersion.current) setImporting(false);
+        }
       }} />
-      {table.length > 0 && <>
-        {['Email column', 'Subject column', 'Body column'].map((label, i) => <label key={label}>{label} <select className={input} aria-label={label} value={columns[i]} onChange={e => setColumns(c => c.map((v, j) => j === i ? Number(e.target.value) : v))}>{table[0].map((h, j) => <option key={j} value={j}>{j + 1}: {h}</option>)}</select></label>)}
-        <button className={input} onClick={() => {
-          if (new Set(columns).size !== 3) { setNotice('Choose three different columns.'); return; }
+      <>
+        {['Email column', 'Subject column', 'Body column'].map((label, i) => <label key={label}>{label} <select className={input} disabled={importing || table.length === 0} aria-label={label} value={columns[i]} onChange={e => setColumns(c => c.map((v, j) => j === i ? Number(e.target.value) : v))}>{(table[0] || ['Choose a file first']).map((h, j) => <option key={j} value={j}>{j + 1}: {h}</option>)}</select></label>)}
+        <button className={input} disabled={importing || table.length === 0} onClick={() => {
+          if (columns.some(c => c < 0 || c >= table[0].length) || new Set(columns).size !== 3) { setNotice('Choose three different columns.'); return; }
           if (rows.length && !window.confirm('Replace the current queue? Previously sent mail cannot be undone.')) return;
-          try { commit(table.slice(1).map(r => ({ id: crypto.randomUUID(), to: (r[columns[0]] || '').trim(), subject: r[columns[1]] || '', body: r[columns[2]] || '', selected: false, status: 'pending' }))); } catch { setNotice('Cannot store queue. No mail sent.'); }
+          try { commit(table.slice(1).map(r => ({ id: crypto.randomUUID(), to: (r[columns[0]] || '').trim(), subject: r[columns[1]] || '', body: r[columns[2]] || '', selected: false, status: 'pending' }))); setImportStatus('Queue built. Select the rows you want to send, then use Send next or Start automatic sending.'); } catch { setNotice('Cannot store queue. No mail sent.'); }
         }}>Build queue</button>
-      </>}
+      </>
       <label>From <select aria-label="Automation sending account" className={input} value={account} onChange={e => setAccount(e.target.value)}>{accounts.map(a => <option key={a.id} value={a.id}>{a.email}</option>)}</select></label>
       <label>Emails per day <input className={input} aria-label="Emails per day" type="number" min="1" max="10000" value={daily} onChange={e => setDaily(Number(e.target.value))} /></label>
       <label>Interval (seconds) <input className={input} aria-label="Interval in seconds" type="number" min="1" max="86400" value={seconds} onChange={e => setSeconds(Number(e.target.value))} /></label>
@@ -106,7 +137,7 @@ export function AutomationPage({ accounts, onSent }: { accounts: Account[]; onSe
         if (window.confirm(`Automatically send selected rows, up to ${daily} per day, at least ${seconds} seconds apart?`)) { run.current = true; setRunning(true); void sendNext(); }
       }}>Start automatic sending</button>
       <button className={input} disabled={!running} onClick={pause}>Pause</button>
-      <span role="status">{running ? 'Running' : 'Paused'} · {notice}</span>
+      <span role="status" aria-label="Sending status">{running ? 'Running' : 'Paused'} · {notice}</span>
     </div>
     <button className={input} disabled={running} onClick={() => commit(rows.map(r => ({ ...r, selected: r.status === 'pending' && validRow(r) })))}>Select all valid pending rows</button>
     <button className={input} disabled={running || busy.current} onClick={() => { if (window.confirm('Clear the local automation queue? Sent emails and daily counters are not removed.')) { try { commit([]); } catch { setNotice('Cannot clear queue.'); } } }}>Clear queue</button>

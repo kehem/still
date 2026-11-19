@@ -98,3 +98,7 @@ Business logic lives in the shared and main-process layers. The renderer present
 Still is proprietary software. All rights reserved.
 
 </div>
+
+## Spreadsheet automation
+
+Use **Productivity → Automation** to import CSV or Excel (`.xlsx`), map email/subject/body columns, select rows, and send manually or automatically with daily and interval limits. See the [automation guide](docs/automation.md) for setup, local storage and delivery/recovery limitations.

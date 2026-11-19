@@ -19,6 +19,7 @@ interface MessageListProps {
   selectedConversationId: string | null;
   onSelect: (row: MessageRow) => void;
   onOpenDraft: (draft: Draft) => void;
+  onTrashConversation: (id: string, restore: boolean) => void;
   onDeleteDraft: (draft: Draft) => void;
   query: string;
   onQueryChange: (q: string) => void;
@@ -37,6 +38,7 @@ export function MessageList({
   onSelect,
   onOpenDraft,
   onDeleteDraft,
+  onTrashConversation,
   query,
   onQueryChange,
   showAccountIndicator,
@@ -99,11 +101,11 @@ export function MessageList({
     const unread = row.hasUnread;
 
     return (
+      <div key={row.key} className="flex items-center border-b border-border">
       <button
-        key={row.key}
         type="button"
         onClick={() => onSelect(row)}
-        className={`flex w-full items-start gap-2 border-b border-border px-4 text-left transition-colors ${
+        className={`flex w-full items-start gap-2 px-4 text-left transition-colors ${
           compact ? 'py-[calc(var(--row-py)*0.6)]' : 'py-[var(--row-py)]'
         } ${selected ? 'bg-surface-hover' : 'hover:bg-surface-hover'}`}
       >
@@ -158,6 +160,8 @@ export function MessageList({
           )}
         </span>
       </button>
+      {row.conversationId && <button type="button" className="mr-3 shrink-0 rounded p-2 text-text-secondary hover:bg-surface-hover" title={message.deletedAt ? 'Restore conversation (local only)' : 'Move conversation to Trash (local only)'} aria-label={message.deletedAt ? 'Restore conversation' : 'Delete conversation'} onClick={() => onTrashConversation(row.conversationId!, Boolean(message.deletedAt))}><TrashIcon size={15} /></button>}
+      </div>
     );
   };
 

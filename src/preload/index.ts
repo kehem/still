@@ -20,6 +20,8 @@ const api: StillAPI = {
   getConversation: (id) => ipcRenderer.invoke('conversations:get', id),
   markConversationRead: (conversationId) =>
     ipcRenderer.invoke('conversations:markRead', conversationId),
+  trashConversation: (id) => ipcRenderer.invoke('conversations:trash', id),
+  restoreConversation: (id) => ipcRenderer.invoke('conversations:restore', id),
   listFollowUps: () => ipcRenderer.invoke('followups:list'),
   createFollowUp: (input) => ipcRenderer.invoke('followups:create', input),
   disableFollowUp: (conversationId) =>

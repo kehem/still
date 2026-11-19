@@ -427,6 +427,12 @@ export class MessageRepository {
    * Mark a whole conversation as read in one transaction, so the list and the
    * reading pane can never disagree about unread state (spec §11 Inbox).
    */
+  /** Local soft deletion only; provider mail and original folders are untouched. */
+  setConversationTrashed(conversationId: string, trashed: boolean): void {
+    this.db.db.prepare('UPDATE messages SET deleted_at = ? WHERE conversation_id = ?')
+      .run(trashed ? new Date().toISOString() : null, conversationId);
+  }
+
   markConversationRead(conversationId: string): void {
     const now = new Date().toISOString();
     const run = this.db.db.transaction((id: string) => {

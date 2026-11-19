@@ -366,6 +366,8 @@ export interface StillAPI {
   getConversation(id: string): Promise<ConversationDetail | null>;
   /** Mark every message in a conversation as read and clear its unread count. */
   markConversationRead(conversationId: string): Promise<void>;
+  trashConversation(conversationId: string): Promise<void>;
+  restoreConversation(conversationId: string): Promise<void>;
   listFollowUps(): Promise<FollowUpListItem[]>;
   /**
    * Starts tracking a conversation. Returns null when it cannot be tracked

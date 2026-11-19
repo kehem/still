@@ -1051,3 +1051,22 @@ describe('custom follow-up interval (spec §6.2, §7)', () => {
     expect(drafts[0].followUpIntervalDays).toBe(1);
   });
 });
+
+describe('local conversation trash', () => {
+  it('deletes directly from the inbox and restores from Trash', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    await renderApp();
+    const subject = 'Q4 planning sync';
+    const button = await screen.findByRole('button', { name: new RegExp(subject) });
+    const row = button.parentElement!;
+    fireEvent.click(within(row).getByRole('button', { name: 'Delete conversation' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: new RegExp(subject) })).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: /^Trash$/ }));
+    const trashed = await screen.findByRole('button', { name: new RegExp(subject) });
+    fireEvent.click(within(trashed.parentElement!).getByRole('button', { name: 'Restore conversation' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: new RegExp(subject) })).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: /^All Inbox$/ }));
+    expect(await screen.findByRole('button', { name: new RegExp(subject) })).toBeTruthy();
+    vi.restoreAllMocks();
+  });
+});

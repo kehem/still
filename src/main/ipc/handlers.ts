@@ -124,6 +124,13 @@ export function registerIpcHandlers(s: AppServices): void {
     s.messages.markConversationRead(parseOrThrow(idSchema, id));
   });
 
+  ipcMain.handle('conversations:trash', (_event, id: unknown) => {
+    s.messages.setConversationTrashed(parseOrThrow(idSchema, id), true);
+  });
+  ipcMain.handle('conversations:restore', (_event, id: unknown) => {
+    s.messages.setConversationTrashed(parseOrThrow(idSchema, id), false);
+  });
+
   ipcMain.handle('followups:list', () => s.followups.list());
 
   ipcMain.handle('followups:create', (_event, input: unknown) => {

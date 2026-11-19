@@ -1,6 +1,6 @@
 import type { Account, ConversationDetail, FollowUpListItem } from '../../shared/types';
 import { useDateFormatters } from '../hooks/useDateFormatters';
-import { ClockIcon, ForwardIcon, InboxIcon, PaperclipIcon, ReplyIcon, XIcon } from './icons';
+import { ClockIcon, ForwardIcon, InboxIcon, PaperclipIcon, ReplyIcon, TrashIcon, XIcon } from './icons';
 
 function formatHtmlDoc(html: string): string {
   const baseStyle = `<style>
@@ -57,6 +57,7 @@ interface ReadingPaneProps {
   onDisableFollowUp: (detail: ConversationDetail) => void;
   /** For inbound-only threads: answer with follow-up switched on. */
   onReplyWithFollowUp: (detail: ConversationDetail) => void;
+  onTrash: (detail: ConversationDetail, restore: boolean) => void;
   onSendFollowUp: (item: FollowUpListItem) => void;
 }
 
@@ -80,6 +81,7 @@ export function ReadingPane({
   onDisableFollowUp,
   onReplyWithFollowUp,
   onSendFollowUp,
+  onTrash,
 }: ReadingPaneProps) {
   const dates = useDateFormatters();
 
@@ -93,6 +95,7 @@ export function ReadingPane({
   }
 
   const { conversation, messages } = detail;
+  const isTrashed = messages.length > 0 && messages.every((m) => m.deletedAt !== null);
   const hasOutbound = messages.some((m) => m.direction === 'outbound');
   const trackingActive =
     followUp !== null &&
@@ -125,6 +128,12 @@ export function ReadingPane({
           <ActionButton icon={<ReplyIcon size={14} />} label="Reply" onClick={() => onReply(detail, 'reply')} />
           <ActionButton icon={<ReplyIcon size={14} />} label="Reply all" onClick={() => onReply(detail, 'reply-all')} />
           <ActionButton icon={<ForwardIcon size={14} />} label="Forward" onClick={() => onReply(detail, 'forward')} />
+          <ActionButton
+            icon={<TrashIcon size={14} />}
+            label={isTrashed ? 'Restore conversation' : 'Move to Trash'}
+            onClick={() => onTrash(detail, isTrashed)}
+          />
+          <span className="text-[11px] text-text-tertiary">Local copy only · provider mail unchanged</span>
           <span className="mx-1 h-4 w-px bg-border" />
           {followUp ? (
             <>

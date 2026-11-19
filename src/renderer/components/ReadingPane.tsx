@@ -93,9 +93,7 @@ export function ReadingPane({
   return (
     <main className="flex min-w-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-border px-6 pb-4 pt-5">
-        <h1 className="text-[22px] font-semibold leading-snug">
-          {messages[messages.length - 1]?.subject || conversation.subject}
-        </h1>
+        <h1 className="text-[22px] font-semibold leading-snug">{conversation.subject}</h1>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-secondary">
           <span>
             {conversation.participants

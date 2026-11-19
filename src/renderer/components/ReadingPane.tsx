@@ -202,11 +202,16 @@ export function ReadingPane({
                 title={`Message ${message.id}`}
                 sandbox="allow-same-origin"
                 srcDoc={formatHtmlDoc(message.bodyHtml)}
-                className="mt-2 min-h-[120px] w-full rounded border-0 bg-transparent"
+                className="mt-2 min-h-[120px] w-full overflow-hidden rounded border-0 bg-transparent"
                 onLoad={(e) => {
                   const doc = e.currentTarget.contentDocument;
                   if (doc?.body) {
-                    e.currentTarget.style.height = `${Math.max(doc.body.scrollHeight + 16, 120)}px`;
+                    const h = Math.max(
+                      doc.documentElement?.scrollHeight ?? 0,
+                      doc.body.scrollHeight,
+                      120,
+                    );
+                    e.currentTarget.style.height = `${h + 16}px`;
                   }
                 }}
               />

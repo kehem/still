@@ -292,12 +292,17 @@ export class EmailService {
 
             const existing = this.db.db
               .prepare(
-                `SELECT id, folder_id FROM messages
+                `SELECT id, folder_id, body_text, body_html FROM messages
                  WHERE account_id = ? AND (provider_message_id = ? OR (message_id_header IS NOT NULL AND message_id_header = ?))
                  LIMIT 1`,
               )
               .get(account.id, providerId, messageIdHeader) as
-              | { id: string; folder_id: string | null; body_text: string | null }
+              | {
+                  id: string;
+                  folder_id: string | null;
+                  body_text: string | null;
+                  body_html: string | null;
+                }
               | undefined;
 
             const subject = msg.envelope?.subject || '(no subject)';

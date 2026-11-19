@@ -2,6 +2,40 @@ import type { Account, ConversationDetail, FollowUpListItem } from '../../shared
 import { useDateFormatters } from '../hooks/useDateFormatters';
 import { ClockIcon, ForwardIcon, InboxIcon, PaperclipIcon, ReplyIcon, XIcon } from './icons';
 
+function formatHtmlDoc(html: string): string {
+  const baseStyle = `<style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #1f2328;
+      background: transparent;
+      word-break: break-word;
+    }
+    img { max-width: 100%; height: auto; }
+    a { color: #2563eb; }
+    pre, code { white-space: pre-wrap; max-width: 100%; }
+  </style>`;
+  if (/<head[^>]*>/i.test(html)) {
+    return html.replace(/<head[^>]*>/i, (m) => `${m}${baseStyle}`);
+  }
+  return `<!doctype html><html><head>${baseStyle}</head><body>${html}</body></html>`;
+}
+
+function cleanPlainBody(text: string): string {
+  if (!text.includes('Content-Type:') && !text.includes('Content-Transfer-Encoding:')) {
+    return text;
+  }
+  return text
+    .replace(/--[A-Za-z0-9_=.-]+--?/g, '')
+    .replace(/Content-Type:[^\r\n]+/gi, '')
+    .replace(/Content-Transfer-Encoding:[^\r\n]+/gi, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 interface ReadingPaneProps {
   detail: ConversationDetail | null;
   account: Account | null;
@@ -59,9 +93,7 @@ export function ReadingPane({
   return (
     <main className="flex min-w-0 flex-1 flex-col">
       <header className="shrink-0 border-b border-border px-6 pb-4 pt-5">
-        <h1 className="text-[22px] font-semibold leading-snug">
-          {messages[messages.length - 1]?.subject || conversation.subject}
-        </h1>
+        <h1 className="text-[22px] font-semibold leading-snug">{conversation.subject}</h1>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-secondary">
           <span>
             {conversation.participants
@@ -159,8 +191,8 @@ export function ReadingPane({
               <iframe
                 title={`Message ${message.id}`}
                 sandbox="allow-same-origin"
-                srcDoc={message.bodyHtml}
-                className="mt-2 min-h-[220px] w-full rounded border-0 bg-transparent"
+                srcDoc={formatHtmlDoc(message.bodyHtml)}
+                className="mt-2 min-h-[120px] w-full rounded border-0 bg-transparent"
                 onLoad={(e) => {
                   const doc = e.currentTarget.contentDocument;
                   if (doc?.body) {
@@ -171,7 +203,7 @@ export function ReadingPane({
             ) : (
               message.bodyText && (
                 <p className="mt-2 whitespace-pre-wrap text-[14px] leading-relaxed text-text">
-                  {message.bodyText}
+                  {cleanPlainBody(message.bodyText)}
                 </p>
               )
             )}

@@ -88,6 +88,7 @@ export const DEFAULT_SETTINGS: Settings = {
   dataRetentionDays: 0,
 
   syncOnStartup: true,
+  syncIntervalSeconds: 30,
   attachmentStoragePath: null,
 };
 

@@ -999,11 +999,31 @@ function StorageSection() {
 
   return (
     <Section title="Storage & Synchronization" description="Everything is stored locally on this device.">
-      <Row label="Sync on startup" pending="Consumed by the sync engine in Phase 3.">
+      <Row label="Sync on startup">
         <Toggle
           checked={settings.syncOnStartup}
           onChange={(v) => void update({ syncOnStartup: v })}
         />
+      </Row>
+      <Row
+        label="Background sync interval"
+        description="How often Still checks for new emails automatically."
+      >
+        <select
+          value={settings.syncIntervalSeconds ?? 30}
+          onChange={(e) =>
+            void update({
+              syncIntervalSeconds: Number(e.target.value) as 5 | 30 | 60 | 300 | 600,
+            })
+          }
+          className="rounded-md border border-border bg-surface px-2.5 py-1.5 text-[13px] outline-none focus:border-accent"
+        >
+          <option value={5}>5 seconds</option>
+          <option value={30}>30 seconds</option>
+          <option value={60}>1 minute</option>
+          <option value={300}>5 minutes</option>
+          <option value={600}>10 minutes</option>
+        </select>
       </Row>
       <Row label="Local database">
         <span className="max-w-72 truncate text-[12px] text-text-secondary" title={info?.dbPath}>

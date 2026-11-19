@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   Account,
   ConversationDetail,
@@ -69,6 +69,7 @@ function Shell() {
   const [query, setQuery] = useState('');
   const [composer, setComposer] = useState<ComposerState>({ open: false, initial: {} });
   const [syncStatus, setSyncStatus] = useState<'local' | 'syncing' | 'synced' | 'error'>('local');
+  const syncingRef = useRef(false);
   const [listWidth, setListWidth] = useState(360);
   const [reloadToken, setReloadToken] = useState(0);
 

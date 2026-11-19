@@ -300,6 +300,7 @@ export interface Settings {
   dataRetentionDays: number;
   // Storage & synchronization
   syncOnStartup: boolean;
+  syncIntervalSeconds: 5 | 30 | 60 | 300 | 600;
   attachmentStoragePath: string | null;
 }
 

@@ -1,3 +1,4 @@
+import { enableAutomationFollowUp } from '../email/automation-followup';
 import { AutomationRepository } from '../database/automation';
 import { app, ipcMain } from 'electron';
 import type { DatabaseService } from '../database/db';
@@ -265,16 +266,10 @@ export function registerIpcHandlers(s: AppServices): void {
         return automation.finish(claimed.deliveryId, id, { error: error instanceof Error ? error.message : String(error) });
       }
       let warning: string | undefined;
-      if (claimed.workspace.followUp) {
-        try {
-          const settings = s.settings.getAll();
-          const schedules = s.schedules.list();
-          const schedule = schedules.find(x => x.id === settings.defaultScheduleId) ?? schedules.find(x => x.isDefault) ?? schedules[0];
-          if (!schedule || !s.followups.create(result.conversationId, {
-            stages: schedule.stages.slice(0, Math.max(1, settings.maxStages)), scheduleId: schedule.id,
-            useWorkingDays: settings.useWorkingDays && settings.weekendBehavior === 'skip', reminderTime: settings.reminderTime,
-          })) throw new Error('No follow-up schedule available');
-        } catch { warning = 'Mail sent, but follow-up could not be enabled. Enable it from Sent. Do not resend.'; }
+      try {
+        enableAutomationFollowUp(s, result.conversationId);
+      } catch {
+        warning = 'Mail sent, but follow-up could not be enabled. Enable it from Sent. Do not resend.';
       }
       return automation.finish(claimed.deliveryId, id, { ...result, warning });
     } finally { automationSending = false; }

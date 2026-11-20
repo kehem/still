@@ -1,9 +1,10 @@
+import { FOLLOW_UP_TABS, followUpTab, followUpDate, type FollowUpTab } from '../../shared/followup/tabs';
 import { useEffect, useState } from 'react';
 import type { FollowUpListItem, FollowUpSchedule } from '../../shared/types';
 import { getAPI } from '../services/api';
 import { useDateFormatters } from '../hooks/useDateFormatters';
 import { useSettings } from '../hooks/useSettings';
-import { BellIcon, CheckIcon, ClockIcon, GearIcon, SendIcon, XIcon } from './icons';
+import { BellIcon, CheckIcon, ClockIcon, GearIcon, InboxIcon, SendIcon, XIcon } from './icons';
 
 interface FollowUpsPageProps {
   items: FollowUpListItem[];
@@ -12,13 +13,15 @@ interface FollowUpsPageProps {
   onChanged: () => void;
 }
 
-interface Group {
-  key: string;
-  title: string;
-  items: FollowUpListItem[];
-}
-
 export function FollowUpsPage({ items, onOpen, onSendFollowUp, onChanged }: FollowUpsPageProps) {
+  const [tab, setTab] = useState<FollowUpTab>('today');
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const refresh = () => setNow(new Date());
+    const timer = window.setInterval(refresh, 30000);
+    window.addEventListener('focus', refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
+  }, []);
   const [schedules, setSchedules] = useState<FollowUpSchedule[]>([]);
 
   useEffect(() => {
@@ -33,23 +36,11 @@ export function FollowUpsPage({ items, onOpen, onSendFollowUp, onChanged }: Foll
     };
   }, []);
 
-  const groups: Group[] = [
-    { key: 'due', title: 'Due Today', items: items.filter((i) => i.status === 'due') },
-    { key: 'overdue', title: 'Overdue', items: items.filter((i) => i.status === 'overdue') },
-    {
-      key: 'upcoming',
-      title: 'Upcoming',
-      items: items.filter((i) => i.status === 'scheduled' || i.status === 'snoozed'),
-    },
-    { key: 'waiting', title: 'Waiting for Reply', items: items.filter((i) => i.status === 'waiting') },
-    {
-      key: 'done',
-      title: 'Completed',
-      items: items.filter(
-        (i) => i.status === 'completed' || i.status === 'replied' || i.status === 'cancelled',
-      ),
-    },
-  ];
+  const buckets = Object.fromEntries(FOLLOW_UP_TABS.map(t => [t.key,
+    items.filter(item => followUpTab(item, now) === t.key).sort((a, b) =>
+      (followUpDate(a) || a.lastSentAt).localeCompare(followUpDate(b) || b.lastSentAt)),
+  ])) as Record<FollowUpTab, FollowUpListItem[]>;
+  const selected = FOLLOW_UP_TABS.find(t => t.key === tab)!;
 
   return (
     <main className="min-h-0 min-w-0 flex-1 overflow-y-auto px-6 py-6">
@@ -59,36 +50,39 @@ export function FollowUpsPage({ items, onOpen, onSendFollowUp, onChanged }: Foll
           Conversations you are tracking because the recipient has not replied yet.
         </p>
 
-        {items.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-20 text-center">
-            <BellIcon size={28} className="text-text-tertiary" />
-            <p className="text-[13px] text-text-secondary">
-              No follow-ups yet. Enable follow-up when you send an email and Still will track it here.
-            </p>
-          </div>
-        ) : (
-          groups
-            .filter((g) => g.items.length > 0)
-            .map((group) => (
-              <section key={group.key} className="mt-8">
-                <h2 className="text-[12px] font-semibold uppercase tracking-wider text-text-tertiary">
-                  {group.title}
-                </h2>
-                <div className="mt-1">
-                  {group.items.map((item) => (
-                    <FollowUpRow
-                      key={item.sequence.id}
-                      item={item}
-                      schedules={schedules}
-                      onOpen={() => onOpen(item)}
-                      onSendFollowUp={() => onSendFollowUp(item)}
-                      onChanged={onChanged}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))
-        )}
+
+        <div role="tablist" aria-label="Follow-up dates" className="mt-6 flex gap-1 overflow-x-auto border-b border-border">
+          {FOLLOW_UP_TABS.map((entry, index) => <button key={entry.key} type="button" role="tab"
+            id={`followup-tab-${entry.key}`} aria-controls={`followup-panel-${entry.key}`}
+            aria-selected={tab === entry.key} tabIndex={tab === entry.key ? 0 : -1}
+            onClick={() => { setNow(new Date()); setTab(entry.key); }}
+            onKeyDown={event => {
+              let next = index;
+              if (event.key === 'ArrowRight') next = (index + 1) % FOLLOW_UP_TABS.length;
+              else if (event.key === 'ArrowLeft') next = (index + FOLLOW_UP_TABS.length - 1) % FOLLOW_UP_TABS.length;
+              else if (event.key === 'Home') next = 0;
+              else if (event.key === 'End') next = FOLLOW_UP_TABS.length - 1;
+              else return;
+              event.preventDefault(); setTab(FOLLOW_UP_TABS[next].key);
+              document.getElementById(`followup-tab-${FOLLOW_UP_TABS[next].key}`)?.focus();
+            }}
+            className={`flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-[12px] transition-colors ${tab === entry.key ? 'border-accent font-semibold text-text' : 'border-transparent text-text-secondary hover:text-text'}`}>
+            {entry.label}<span className="text-[10px] tabular-nums text-text-tertiary">{buckets[entry.key].length}</span>
+          </button>)}
+        </div>
+        <p className="mt-3 text-[11px] text-text-tertiary">Today shows only today’s dates. Earlier unfinished follow-ups move to Due. Dates use your local time.</p>
+        <section role="tabpanel" id={`followup-panel-${tab}`} aria-labelledby={`followup-tab-${tab}`} className="mt-5" tabIndex={0}>
+          {buckets[tab].length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-16 text-center">
+              <BellIcon size={26} className="text-text-tertiary" />
+              <p className="text-[13px] text-text-secondary">{items.length === 0 ? 'No follow-ups yet. Enable follow-up when you send an email and Still will track it here.' : `No follow-ups ${tab === 'today' ? 'for today' : tab === 'due' ? 'past due' : `in ${selected.label.toLowerCase()}`}.`}</p>
+            </div>
+          ) : <>
+            <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-text-tertiary">{selected.heading}</h2>
+            {buckets[tab].map(item => <FollowUpRow key={item.sequence.id} item={item} schedules={schedules}
+              onOpen={() => onOpen(item)} onSendFollowUp={() => onSendFollowUp(item)} onChanged={onChanged} />)}
+          </>}
+        </section>
       </div>
     </main>
   );
@@ -132,7 +126,7 @@ function FollowUpRow({
 
   return (
     <div className="group relative flex items-center gap-3 border-b border-border py-3">
-      <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
+      <button type="button" onClick={onSendFollowUp} title="Reply to this conversation" className="min-w-0 flex-1 text-left">
         <span className="flex items-baseline gap-2">
           <span className="truncate text-[13px] font-medium">{item.recipient}</span>
           <span className="shrink-0 text-[11px] text-text-tertiary">
@@ -153,6 +147,7 @@ function FollowUpRow({
         </span>
       </button>
 
+      <RowAction icon={<InboxIcon size={13} />} label="Open conversation" onClick={onOpen} />
       {!terminal && (
         <span className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
           <RowAction icon={<SendIcon size={13} />} label="Send follow-up" onClick={onSendFollowUp} />

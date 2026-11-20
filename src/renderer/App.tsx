@@ -260,7 +260,7 @@ function Shell() {
         toAddresses: to,
         ccAddresses: cc,
         subject,
-        inReplyToConversationId: d.conversation.id,
+        inReplyToConversationId: mode === 'forward' ? null : d.conversation.id,
       });
     },
     [openComposer, settings.ccOnReplyAll],
@@ -415,7 +415,7 @@ function Shell() {
     openComposer({
       accountId: item.account.id,
       toAddresses: [item.recipient],
-      subject: `Re: ${item.subject}`,
+      subject: /^re:/i.test(item.subject) ? item.subject : `Re: ${item.subject}`,
       inReplyToConversationId: item.conversation.id,
       followUpEnabled: true,
     });
@@ -580,7 +580,7 @@ function Shell() {
                 openComposer({
                   accountId: d.conversation.accountId,
                   subject: `Re: ${d.conversation.subject}`,
-                  inReplyToConversationId: d.conversation.id,
+                  inReplyToConversationId: mode === 'forward' ? null : d.conversation.id,
                   followUpEnabled: true,
                 })
               }
@@ -592,6 +592,7 @@ function Shell() {
 
       {composer.open && (
         <Composer
+          key={composer.initial.id ?? composer.initial.inReplyToConversationId ?? 'new'}
           accounts={accounts}
           initial={composer.initial}
           onClose={() => setComposer({ open: false, initial: {} })}

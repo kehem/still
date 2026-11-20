@@ -13,7 +13,7 @@ export class AutomationRepository {
   }
   private read(): AutomationWorkspace {
     const row = this.db.db.prepare('SELECT document FROM automation_workspace WHERE id = 1').get() as { document: string } | undefined;
-    return row ? JSON.parse(row.document) : emptyAutomation();
+    return row ? { ...JSON.parse(row.document), followUp: true } : emptyAutomation();
   }
   private write(ws: AutomationWorkspace): void {
     this.db.db.prepare(`INSERT INTO automation_workspace(id, document, updated_at) VALUES(1, ?, ?)
@@ -55,6 +55,7 @@ export class AutomationRepository {
     return { workspace: ws, sentToday: counts.sent, attemptedToday: counts.attempted, sentTotal: total.n, lastAttemptAt: last.ts ? Date.parse(last.ts) : 0 };
   }
   save(input: AutomationWorkspace): AutomationSnapshot {
+    input.followUp = true;
     const previous = this.read();
     const existing = new Map(previous.rows.map(r => [r.id, r]));
     input.rows = input.rows.map(row => {

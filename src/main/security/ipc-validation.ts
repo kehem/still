@@ -242,3 +242,5 @@ export const automationImportSchema = z.object({
 }).superRefine((value, ctx) => {
   if (JSON.stringify(value.table).length > 10 * 1024 * 1024) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Spreadsheet exceeds 10 MB of text' });
 });
+
+export const emailProviderDomainsSchema = z.array(z.string().min(3).max(253).regex(/^[a-z0-9.-]+$/i)).max(100);

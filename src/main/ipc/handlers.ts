@@ -1,3 +1,4 @@
+import { EmailProviderLookup } from '../email/providers';
 import { enableAutomationFollowUp } from '../email/automation-followup';
 import { AutomationRepository } from '../database/automation';
 import { app, ipcMain } from 'electron';
@@ -15,6 +16,7 @@ import { CredentialStore } from '../security/credentials';
 import { EmailService } from '../email/email-service';
 import type { ReminderOptions } from '../../shared/notifications/reminder-engine';
 import {
+  emailProviderDomainsSchema,
   automationWorkspaceSchema,
   automationImportSchema,
   createFollowUpSchema,
@@ -68,6 +70,10 @@ export interface AppServices {
  * before touching the database (spec §3).
  */
 export function registerIpcHandlers(s: AppServices): void {
+  const emailProviders = new EmailProviderLookup();
+  ipcMain.handle('email:providers', (_event, input: unknown) =>
+    emailProviders.get(parseOrThrow(emailProviderDomainsSchema, input)));
+
   ipcMain.handle('settings:get', () => s.settings.getAll());
 
   ipcMain.handle('settings:update', (_event, patch: unknown) =>

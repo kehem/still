@@ -1,3 +1,4 @@
+import { emailDomain, knownEmailProvider } from '../../../shared/email-providers';
 import { useEffect, useRef, useState } from 'react';
 import Papa from 'papaparse';
 import { readSheet } from 'read-excel-file/browser';
@@ -23,6 +24,7 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
   const [dailyText, setDailyText] = useState('50');
   const [secondsText, setSecondsText] = useState('30');
   const [showImport, setShowImport] = useState(false);
+  const [providers, setProviders] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const accept = (value: AutomationSnapshot) => {
     current.current = value; setSnapshot(value);
@@ -125,6 +127,28 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
   };
 
   const ws = snapshot?.workspace;
+  const domainKey = JSON.stringify([...new Set((ws?.rows || []).map(row => emailDomain(row.to)).filter((d): d is string => Boolean(d)))].sort());
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    const domains = JSON.parse(domainKey) as string[];
+    const custom = domains.filter(domain => !knownEmailProvider(domain));
+    void (async () => {
+      for (let i = 0; i < custom.length; i += 20) {
+        if (cancelled) return;
+        const batch = custom.slice(i, i + 20);
+        let results: Record<string, string>;
+        try { results = await getAPI().getEmailProviders(batch); }
+        catch { results = Object.fromEntries(batch.map(domain => [domain, 'Unknown'])); }
+        if (!cancelled) setProviders(previous => ({ ...previous, ...results }));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [domainKey, active]);
+  const providerFor = (address: string) => {
+    const domain = emailDomain(address);
+    return domain ? knownEmailProvider(domain) ?? providers[domain] ?? 'Checking provider…' : 'Unknown';
+  };
   const disabled = loading || working || importing || running;
   const input = 'h-9 w-full rounded-md border border-border bg-bg px-3 text-[12px] outline-none focus:border-accent disabled:opacity-50';
   const button = 'inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-border bg-bg px-3 text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40';
@@ -194,10 +218,10 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
             <tbody>{ws.rows.map((r, i) => <tr key={r.id} className="border-b border-border last:border-0 hover:bg-surface-hover">
               <td className="px-3 py-4 align-top"><input type="checkbox" aria-label={`Select row ${i + 2}`} checked={r.selected} disabled={disabled || r.status !== 'pending' || !validRow(r)} onChange={e => void save({ rows: ws.rows.map(x => x.id === r.id ? { ...x, selected: e.target.checked } : x) })} /></td>
               <td className="py-4 align-top tabular-nums text-text-tertiary">{i + 2}</td>
-              <td className="truncate py-4 pr-4 align-top" title={r.to}>{r.to}</td>
+              <td className="py-4 pr-4 align-top"><div className="truncate" title={r.to}>{r.to}</div><div className="mt-1 text-[10px] text-text-tertiary" title="Detected from the public email domain or MX records. A gateway may hide the mailbox provider; this does not verify the mailbox exists.">{providerFor(r.to)}</div></td>
               <td className="py-4 pr-5 align-top"><button className="block w-full truncate text-left font-medium" aria-label={`Preview row ${i + 2}`} onClick={() => setExpanded(expanded === r.id ? null : r.id)}>{r.subject || '(no subject)'}</button><p className={`${expanded === r.id ? 'whitespace-pre-wrap' : 'truncate'} mt-1 text-text-secondary`}>{expanded === r.id ? r.body : r.body.slice(0, 100)}</p>{r.error && <p className="mt-2 text-[11px] text-text-secondary">{r.error}</p>}</td>
               <td className="py-4 pr-3 align-top"><span className={`rounded-full px-2 py-1 text-[10px] ${r.status === 'sent' ? 'bg-accent/10 text-accent' : 'bg-surface text-text-secondary'}`}>{r.status === 'sent' ? 'Done' : !validRow(r) ? 'Invalid data' : r.status === 'pending' ? 'Ready' : r.status === 'sending' ? 'Sending…' : 'Needs review'}</span>{r.followUpActive && <p className="mt-2 text-[10px] text-accent">Follow-up active</p>}{r.sentAt && <p className="mt-2 text-[10px] text-text-tertiary">{new Date(r.sentAt).toLocaleDateString()}</p>}</td>
-              <td className="px-3 py-3 text-right align-top"><button className={`${button} !h-8 !px-2`} aria-label={`Send mail to ${r.to}`} disabled={disabled || r.status !== 'pending' || !validRow(r) || !settingsValid} onClick={() => { if (window.confirm(`Send "${r.subject}" to ${r.to}?`)) void send(r.id); }}><SendIcon size={12} />Send mail</button></td>
+              <td className="px-3 py-3 text-right align-top"><button className={`${button} !h-8 !px-2`} aria-label={`Send mail to ${r.to}`} disabled={disabled || r.status !== 'pending' || !validRow(r) || !settingsValid} onClick={() => { if (window.confirm(`Send email?\n\nTo: ${r.to}\nEmail provider: ${providerFor(r.to)}\nSubject: ${r.subject}\n\nProvider detection is based on the domain or MX records, not mailbox verification.`)) void send(r.id); }}><SendIcon size={12} />Send mail</button></td>
             </tr>)}</tbody>
           </table>
           {!ws.rows.length && <div className="px-6 py-14 text-center"><FileTextIcon size={26} className="mx-auto mb-3 text-text-tertiary" /><p className="text-[13px] font-medium">{ws.table.length ? 'Your spreadsheet is saved.' : 'A clear place for your next send.'}</p><p className="mt-1 text-[12px] text-text-secondary">{ws.table.length ? 'Choose the columns above and build your queue.' : 'Import a spreadsheet to prepare individual emails.'}</p></div>}

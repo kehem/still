@@ -352,6 +352,7 @@ export interface AppInfo {
 // ─── Preload API (implemented by the preload bridge, consumed by the renderer)
 
 export interface StillAPI {
+  getEmailProviders(domains: string[]): Promise<Record<string, string>>;
   getAutomation(): Promise<AutomationSnapshot>;
   saveAutomation(workspace: AutomationWorkspace): Promise<AutomationSnapshot>;
   importAutomationFile(input: { name: string; base64: string; table: string[][] }): Promise<AutomationSnapshot>;

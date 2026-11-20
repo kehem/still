@@ -88,3 +88,14 @@ it('refreshes sent detection on demand without sending any mail', async () => {
   expect(mock.api.sendAutomationRow).not.toHaveBeenCalled();
   expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('refreshed');
 });
+
+it('shows the receiver mail provider below the address and in the send confirmation', async () => {
+  mock.api.getEmailProviders.mockResolvedValue({ 'example.com': 'Google Workspace' });
+  await open();
+  await screen.findAllByText('Google Workspace');
+  vi.mocked(window.confirm).mockReturnValue(false);
+  fireEvent.click(screen.getByRole('button', { name: 'Send mail to r1@example.com' }));
+  expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Email provider: Google Workspace'));
+  expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('To: r1@example.com'));
+  expect(mock.api.sendAutomationRow).not.toHaveBeenCalled();
+});

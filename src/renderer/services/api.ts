@@ -1,3 +1,4 @@
+import { knownEmailProvider } from '../../shared/email-providers';
 import { emptyAutomation, type AutomationWorkspace, type AutomationSnapshot } from '../../shared/automation';
 import type {
   Account,
@@ -453,6 +454,9 @@ const defaultSchedule: FollowUpSchedule = {
 // ── Browser preview implementation ───────────────────────────────────────────
 
 class BrowserPreviewAPI implements StillAPI {
+  async getEmailProviders(domains: string[]): Promise<Record<string, string>> {
+    return Object.fromEntries(domains.map(domain => [domain, knownEmailProvider(domain) ?? 'Unknown (desktop lookup required)']));
+  }
   async getAutomation(): Promise<AutomationSnapshot> {
     return { workspace: lsRead('automation-workspace', emptyAutomation()), sentToday: 0, sentTotal: 0, attemptedToday: 0, lastAttemptAt: 0 };
   }

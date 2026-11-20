@@ -46,3 +46,10 @@ The displayed date buckets update every 30 seconds and when the window regains f
 
 
 Clicking a follow-up opens a reply draft addressed to its recipient using the original sending account and conversation. **Open conversation** remains available for reading without composing. Clicking a row never sends email automatically. Replies resolve `In-Reply-To` and `References` from saved message headers, so reopening a draft preserves threading. If the original Message-ID is missing, sending is blocked with a request to sync instead of silently creating an unthreaded message.
+
+
+## Recipient email providers
+
+Automation displays the recipient's email service beneath their address and in the per-row send confirmation. Public domains such as Gmail and Outlook are recognized locally. For custom domains, the desktop app looks up DNS MX records to identify hosts such as Google Workspace, Microsoft 365 or Zoho. These domain-only DNS queries use the system-configured DNS resolver; the mailbox name, subject and body are not included. Results are cached temporarily, with bounded lookup concurrency and timeouts.
+
+Provider identification is a best-effort hint, not mailbox validation or a delivery guarantee. MX gateways (for example Proofpoint or Mimecast) are labelled as gateways because they can hide the actual mailbox host. Unsupported providers, offline DNS and missing MX records show Unknown. Sending does not wait for provider detection. Browser preview does not query DNS for custom domains.

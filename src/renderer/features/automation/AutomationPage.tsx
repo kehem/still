@@ -2,148 +2,206 @@ import { useEffect, useRef, useState } from 'react';
 import Papa from 'papaparse';
 import { readSheet } from 'read-excel-file/browser';
 import type { Account } from '../../../shared/types';
+import type { AutomationSnapshot, AutomationWorkspace } from '../../../shared/automation';
 import { getAPI, isElectron } from '../../services/api';
-import { limitsValid, localDay, validRow, type QueueRow } from './model';
+import { limitsValid, validRow } from './model';
+import { fileBase64, loadAutomation } from './storage';
+import { FileTextIcon, SendIcon } from '../../components/icons';
 
-const KEY = 'still:automation:v1';
-function savedConfig(): { daily?: number; seconds?: number; account?: string } {
-  try { return JSON.parse(localStorage.getItem('still:automation:config') || '{}'); } catch { return {}; }
-}
-export function AutomationPage({ accounts, onSent }: { accounts: Account[]; onSent: () => void }) {
-  const [rows, setRows] = useState<QueueRow[]>(() => {
-    try { return (JSON.parse(localStorage.getItem(KEY) || '[]') as QueueRow[]).map(r => r.status === 'sending' ? { ...r, status: 'failed', error: 'Interrupted send: check Sent before importing again. Not retried.' } : r); } catch { return []; }
-  });
-  const [importing, setImporting] = useState(false);
-  const [importError, setImportError] = useState('');
-  const [importStatus, setImportStatus] = useState('Choose a CSV or .xlsx file to begin.');
-  const importVersion = useRef(0);
-  const [table, setTable] = useState<string[][]>([]);
-  const [columns, setColumns] = useState([0, 1, 2]);
-  const [account, setAccount] = useState(savedConfig().account || accounts[0]?.id || '');
-  const [daily, setDaily] = useState(savedConfig().daily || 50);
-  const [seconds, setSeconds] = useState(savedConfig().seconds || 30);
-  const [running, setRunning] = useState(false);
-  const [notice, setNotice] = useState('');
+export function AutomationPage({ accounts, onSent, active = true }: { accounts: Account[]; onSent: () => void; active?: boolean }) {
+  const [snapshot, setSnapshot] = useState<AutomationSnapshot | null>(null);
+  const current = useRef<AutomationSnapshot | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [working, setWorking] = useState(false);
   const busy = useRef(false);
+  const [running, setRunning] = useState(false);
   const run = useRef(false);
-  const rowsRef = useRef(rows);
-  rowsRef.current = rows;
-  const commit = (next: QueueRow[]) => { localStorage.setItem(KEY, JSON.stringify(next)); rowsRef.current = next; setRows(next); };
-  const pause = () => { run.current = false; setRunning(false); };
-  useEffect(() => () => { run.current = false; }, []);
-
-  const sendNext = async () => {
-    if (busy.current) return;
-    if (!isElectron) { pause(); setNotice('Sending requires the desktop app.'); return; }
-    if (!accounts.some(a => a.id === account) || !limitsValid(daily, seconds)) { pause(); setNotice('Choose an account and valid limits.'); return; }
-    const row = rowsRef.current.find(r => r.selected && r.status === 'pending');
-    if (!row) { pause(); setNotice('No selected pending rows.'); return; }
-    if (!validRow(row)) { pause(); setNotice('Fix invalid email, subject or body before sending.'); return; }
-    busy.current = true;
-    let attempted = false;
-    try {
-      localStorage.setItem('still:automation:config', JSON.stringify({ daily, seconds, account }));
-      const now = Date.now();
-      const ledger = JSON.parse(localStorage.getItem('still:automation:limits') || '{}') as { day?: string; count?: number; last?: number };
-      const count = ledger.day === localDay() ? ledger.count || 0 : 0;
-      if (count >= daily) { setNotice('Daily limit reached. Waiting for tomorrow.'); return; }
-      if (now - (ledger.last || 0) < seconds * 1000) { setNotice('Waiting for the send interval.'); return; }
-      // Persist before SMTP: ambiguous failures are never automatically retried.
-      commit(rowsRef.current.map(r => r.id === row.id ? { ...r, status: 'sending' } : r));
-      localStorage.setItem('still:automation:limits', JSON.stringify({ day: localDay(), count: count + 1, last: now }));
-      attempted = true;
-      await getAPI().sendEmail({ accountId: account, to: [row.to], subject: row.subject, bodyText: row.body });
-      commit(rowsRef.current.map(r => r.id === row.id ? { ...r, status: 'sent' } : r));
-      setNotice(`Sent to ${row.to}`); onSent();
-    } catch (error) {
-      pause();
-      const message = error instanceof Error ? error.message : String(error);
-      if (attempted) {
-        try { commit(rowsRef.current.map(r => r.id === row.id ? { ...r, status: 'failed', error: message } : r)); } catch { /* Keep persisted sending status for recovery. */ }
-      }
-      setNotice(`${message}. Queue paused. Check Sent before retrying any uncertain delivery.`);
-    } finally { busy.current = false; }
+  const [importing, setImporting] = useState(false);
+  const importVersion = useRef(0);
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+  const [dailyText, setDailyText] = useState('50');
+  const [secondsText, setSecondsText] = useState('30');
+  const [showImport, setShowImport] = useState(false);
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const accept = (value: AutomationSnapshot) => {
+    current.current = value; setSnapshot(value);
+    setDailyText(String(value.workspace.daily)); setSecondsText(String(value.workspace.seconds));
   };
-  const tick = useRef(sendNext); tick.current = sendNext;
+  useEffect(() => {
+    let mounted = true;
+    void loadAutomation().then(async value => {
+      if (!value.workspace.accountId && accounts[0]) value = await getAPI().saveAutomation({ ...value.workspace, accountId: accounts[0].id });
+      if (mounted) { accept(value); setShowImport(!value.workspace.fileName || !value.workspace.rows.length); }
+    }).catch(e => { if (mounted) setError(String(e)); }).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; run.current = false; importVersion.current++; };
+  }, []);
+
+  const pause = () => { run.current = false; setRunning(false); };
+  const save = async (patch: Partial<AutomationWorkspace>) => {
+    if (busy.current || !current.current) return;
+    busy.current = true; setWorking(true); setError('');
+    try { accept(await getAPI().saveAutomation({ ...current.current.workspace, ...patch })); }
+    catch (e) { setError(`Changes not saved: ${e instanceof Error ? e.message : String(e)}`); }
+    finally { busy.current = false; setWorking(false); }
+  };
+  const refresh = async () => {
+    if (busy.current || importing || loading) return;
+    busy.current = true;
+    try { accept(await getAPI().getAutomation()); }
+    catch (e) { setError(`Could not refresh saved data: ${String(e)}`); }
+    finally { busy.current = false; }
+  };
+  const refreshRef = useRef(refresh); refreshRef.current = refresh;
+  useEffect(() => {
+    if ((!active && !running) || loading) return;
+    void refreshRef.current();
+    const id = window.setInterval(() => { void refreshRef.current(); }, 15000);
+    return () => window.clearInterval(id);
+  }, [active, loading, running]);
+
+  const send = async (id?: string) => {
+    if (busy.current || importing || !current.current) return;
+    const ws = current.current.workspace;
+    if (!isElectron) { pause(); setError('Sending requires the desktop app.'); return; }
+    if (!accounts.some(a => a.id === ws.accountId)) { pause(); setError('Choose a sending account.'); return; }
+    if (!limitsValid(Number(dailyText), Number(secondsText)) || Number(dailyText) !== ws.daily || Number(secondsText) !== ws.seconds) {
+      pause(); setError('Save a daily limit of 1–10,000 and an interval of 1–86,400 seconds before sending.'); return;
+    }
+    const row = id ? ws.rows.find(r => r.id === id) : ws.rows.find(r => r.selected && r.status === 'pending' && validRow(r));
+    if (!row || row.status !== 'pending' || !validRow(row)) { pause(); setNotice('No selected valid pending rows.'); return; }
+    if (current.current.attemptedToday >= ws.daily) { setNotice('Daily limit reached. Automatic sending will wait for tomorrow.'); return; }
+    if (Date.now() - current.current.lastAttemptAt < ws.seconds * 1000) { setNotice('Waiting for the send interval.'); return; }
+    busy.current = true; setWorking(true); setError(''); setNotice(`Sending to ${row.to}…`);
+    try {
+      const result = await getAPI().sendAutomationRow(row.id);
+      accept(result);
+      const delivered = result.workspace.rows.find(r => r.id === row.id);
+      if (delivered?.status === 'failed') { pause(); setError(`${delivered.error || 'Delivery failed'}. Check Sent before retrying uncertain deliveries.`); }
+      else { setNotice(delivered?.followUpActive ? 'Sent. Follow-up is active.' : 'Email sent.'); onSent(); }
+      if (delivered?.error && delivered.status === 'sent') setError(delivered.error);
+    } catch (e) {
+      pause(); setError(e instanceof Error ? e.message : String(e));
+      try { accept(await getAPI().getAutomation()); } catch { /* Keep the queue frozen until a successful refresh. */ }
+    } finally { busy.current = false; setWorking(false); }
+  };
+  const tick = useRef(send); tick.current = send;
   useEffect(() => {
     if (!running) return;
     const id = window.setInterval(() => { if (run.current) void tick.current(); }, 1000);
     return () => window.clearInterval(id);
   }, [running]);
-  const input = 'rounded border border-border bg-surface px-3 py-2 text-sm';
-  return <main className="min-w-0 flex-1 overflow-auto p-6">
-    <h1 className="text-xl font-semibold">Automation</h1>
-    <p className="my-2 text-sm text-text-secondary">Import a CSV or Excel (.xlsx) sheet, map columns, and select rows. First row is the header; Excel uses the first sheet. Queue stays on this device. Keep Still open: closing pauses automation; resume explicitly after reopening.</p>
-    <p className="my-2 text-sm">Only send to recipients who expect your mail. Failed or interrupted rows are never retried automatically. Daily limits count attempts, including failures, across queues.</p>
-    <p role="status" aria-live="polite" className="my-3 text-sm text-text-secondary">{importStatus}</p>
-    {importError && <p role="alert" className="my-3 text-sm">{importError}</p>}
-    <fieldset disabled={running || busy.current} className="my-4 flex flex-wrap items-center gap-3">
-      <input aria-label="Import CSV or Excel" type="file" accept=".csv,.xlsx" onChange={async e => {
-        const file = e.target.files?.[0];
-        e.target.value = ''; // Allow retrying the same file after an error.
-        if (!file) return;
-        const version = ++importVersion.current;
-        setTable([]);
-        setColumns([0, 1, 2]);
-        setImportError('');
-        setImporting(true);
-        setImportStatus(`Reading ${file.name}…`);
-        let timeout: ReturnType<typeof setTimeout> | undefined;
-        try {
-          if (file.size > 5 * 1024 * 1024) throw new Error('Maximum file size is 5 MB');
-          const parse = async (): Promise<string[][]> => {
-            if (/\.xlsx$/i.test(file.name)) return (await readSheet(file, 1)).map(r => r.map(c => c == null ? '' : String(c)));
-            if (/\.csv$/i.test(file.name)) {
-              const parsed = Papa.parse<string[]>(await file.text(), { skipEmptyLines: 'greedy' });
-              if (parsed.errors.length) throw new Error(parsed.errors[0].message);
-              return parsed.data;
-            }
-            throw new Error('Use a CSV or .xlsx file (legacy .xls is not supported).');
-          };
-          const data = await Promise.race([
-            parse(),
-            new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error('Reading timed out. Try saving the first sheet as CSV UTF-8 and selecting it again.')), 30000); }),
-          ]);
-          if (version !== importVersion.current) return;
-          if (data.length < 2 || data.length > 1001) throw new Error('Import 1–1000 data rows with a header');
-          if (data[0].length < 3) throw new Error('The header needs at least three columns: email, subject and body.');
-          setTable(data);
-          setImportStatus(`${file.name}: ${data.length - 1} rows loaded. Choose the email, subject and body columns, then click Build queue.`);
-        } catch (err) {
-          if (version !== importVersion.current) return;
-          setImportError(`Could not import ${file.name}: ${err instanceof Error ? err.message : String(err)}`);
-          setImportStatus('Import failed. Choose the file again to retry. Your existing queue has not changed.');
-        } finally {
-          clearTimeout(timeout);
-          if (version === importVersion.current) setImporting(false);
+
+  const importFile = async (file: File) => {
+    if (!current.current || busy.current) return;
+    if (current.current.workspace.rows.length && !window.confirm('Replace the current spreadsheet and queue? Sent history and daily counters will be kept.')) return;
+    const version = ++importVersion.current;
+    setImporting(true); setError(''); setNotice(`Reading ${file.name}…`);
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      if (file.size > 5 * 1024 * 1024) throw new Error('Maximum file size is 5 MB');
+      const parse = async () => {
+        if (/\.xlsx$/i.test(file.name)) return (await readSheet(file, 1)).map(r => r.map(c => c == null ? '' : String(c)));
+        if (/\.csv$/i.test(file.name)) {
+          const parsed = Papa.parse<string[]>(await file.text(), { skipEmptyLines: 'greedy' });
+          if (parsed.errors.length) throw new Error(parsed.errors[0].message);
+          return parsed.data;
         }
-      }} />
-      <>
-        {['Email column', 'Subject column', 'Body column'].map((label, i) => <label key={label}>{label} <select className={input} disabled={importing || table.length === 0} aria-label={label} value={columns[i]} onChange={e => setColumns(c => c.map((v, j) => j === i ? Number(e.target.value) : v))}>{(table[0] || ['Choose a file first']).map((h, j) => <option key={j} value={j}>{j + 1}: {h}</option>)}</select></label>)}
-        <button className={input} disabled={importing || table.length === 0} onClick={() => {
-          if (columns.some(c => c < 0 || c >= table[0].length) || new Set(columns).size !== 3) { setNotice('Choose three different columns.'); return; }
-          if (rows.length && !window.confirm('Replace the current queue? Previously sent mail cannot be undone.')) return;
-          try { commit(table.slice(1).map(r => ({ id: crypto.randomUUID(), to: (r[columns[0]] || '').trim(), subject: r[columns[1]] || '', body: r[columns[2]] || '', selected: false, status: 'pending' }))); setImportStatus('Queue built. Select the rows you want to send, then use Send next or Start automatic sending.'); } catch { setNotice('Cannot store queue. No mail sent.'); }
-        }}>Build queue</button>
-      </>
-      <label>From <select aria-label="Automation sending account" className={input} value={account} onChange={e => setAccount(e.target.value)}>{accounts.map(a => <option key={a.id} value={a.id}>{a.email}</option>)}</select></label>
-      <label>Emails per day <input className={input} aria-label="Emails per day" type="number" min="1" max="10000" value={daily} onChange={e => setDaily(Number(e.target.value))} /></label>
-      <label>Interval (seconds) <input className={input} aria-label="Interval in seconds" type="number" min="1" max="86400" value={seconds} onChange={e => setSeconds(Number(e.target.value))} /></label>
-    </fieldset>
-    <div className="my-3 flex gap-3">
-      <button className={input} disabled={running} onClick={() => { if (window.confirm('Send the next selected email now?')) void sendNext(); }}>Send next</button>
-      <button className={input} disabled={running} onClick={() => {
-        if (!rows.some(r => r.selected && r.status === 'pending') || !limitsValid(daily, seconds)) { setNotice('Select pending rows and valid limits.'); return; }
-        if (window.confirm(`Automatically send selected rows, up to ${daily} per day, at least ${seconds} seconds apart?`)) { run.current = true; setRunning(true); void sendNext(); }
-      }}>Start automatic sending</button>
-      <button className={input} disabled={!running} onClick={pause}>Pause</button>
-      <span role="status" aria-label="Sending status">{running ? 'Running' : 'Paused'} · {notice}</span>
+        throw new Error('Use a CSV or .xlsx file (legacy .xls is not supported).');
+      };
+      const [table, base64] = await Promise.race([
+        Promise.all([parse(), fileBase64(file)]),
+        new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error('Reading timed out. Try CSV UTF-8.')), 30000); }),
+      ]);
+      if (version !== importVersion.current) return;
+      if (table.length < 2 || table.length > 1001) throw new Error('Import 1–1000 data rows with a header');
+      if (table[0].length < 3) throw new Error('The header needs at least three columns: email, subject and body.');
+      if (table.some(r => r.length > 200)) throw new Error('Maximum 200 columns');
+      accept(await getAPI().importAutomationFile({ name: file.name, base64, table }));
+      setShowImport(true); setNotice(`${file.name}: ${table.length - 1} rows loaded and saved. Map the columns, then build your queue.`);
+    } catch (e) { if (version === importVersion.current) setError(`Could not import ${file.name}: ${e instanceof Error ? e.message : String(e)}. Your previous saved data is unchanged.`); }
+    finally { clearTimeout(timeout); if (version === importVersion.current) setImporting(false); }
+  };
+
+  const ws = snapshot?.workspace;
+  const disabled = loading || working || importing || running;
+  const input = 'h-9 w-full rounded-md border border-border bg-bg px-3 text-[12px] outline-none focus:border-accent disabled:opacity-50';
+  const button = 'inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-border bg-bg px-3 text-[12px] font-medium text-text-secondary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40';
+  const primary = `${button} !border-transparent !bg-accent !text-white hover:!bg-accent-hover`;
+  const done = ws?.rows.filter(r => r.status === 'sent').length || 0;
+  const pending = ws?.rows.filter(r => r.status === 'pending' && validRow(r)).length || 0;
+  const selected = ws?.rows.filter(r => r.selected && r.status === 'pending' && validRow(r)).length || 0;
+  const invalid = ws?.rows.filter(r => !validRow(r)).length || 0;
+  const settingsValid = limitsValid(Number(dailyText), Number(secondsText));
+
+  return <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-bg">
+    <div className="mx-auto w-full max-w-[1440px] px-6 py-7 lg:px-10">
+      <header className="mb-7 flex flex-wrap items-start justify-between gap-4">
+        <div><div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-text-tertiary">Productivity</div>
+          <h1 className="text-[24px] font-semibold tracking-tight">Automation</h1>
+          <p className="mt-1 text-[13px] text-text-secondary">A considered queue. One personal email at a time.</p>
+        </div>
+        <button className={button} disabled={loading || working || importing || running} onClick={() => setShowImport(v => !v)}><FileTextIcon size={14} />{showImport ? 'Hide import' : ws?.fileName ? 'Manage spreadsheet' : 'Import spreadsheet'}</button>
+      </header>
+      {loading && <p role="status" className="py-8 text-sm text-text-secondary">Loading saved workspace…</p>}
+      {error && <p role="alert" className="mb-4 rounded-lg border border-border bg-surface px-4 py-3 text-[12px]">{error}</p>}
+      {ws && <>
+        <section className="mb-5 grid grid-cols-2 gap-5 border-y border-border py-5 sm:grid-cols-4" aria-label="Delivery progress">
+          {[[done, 'Done in this queue'], [pending, 'Ready to send'], [snapshot?.sentToday || 0, 'Sent today'], [snapshot?.sentTotal || 0, 'Automation sends · all time']].map(([value, label]) => <div key={label}><div className="text-[25px] font-semibold tabular-nums tracking-tight">{value}</div><div className="mt-1 text-[11px] text-text-tertiary">{label}</div></div>)}
+        </section>
+        {(showImport || !ws.fileName) && <section className="mb-5 rounded-xl border border-border bg-surface p-5" aria-label="Spreadsheet import">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-[13px] font-semibold">Your spreadsheet</h2><p className="mt-1 text-[12px] text-text-secondary">CSV or .xlsx · first sheet, first row as headers · up to 1,000 rows</p></div>
+            <label className={`${button} relative overflow-hidden ${disabled ? 'opacity-40' : 'cursor-pointer'}`}>
+              {importing ? 'Reading file…' : ws.fileName ? 'Replace file' : 'Choose file'}
+              <input className="absolute inset-0 cursor-pointer opacity-0" disabled={disabled} aria-label="Import CSV or Excel" type="file" accept=".csv,.xlsx" onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void importFile(file); }} />
+            </label>
+          </div>
+          <div className="grid items-end gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+            {['Email column', 'Subject column', 'Body column'].map((label, i) => <label key={label} className="text-[11px] text-text-secondary">{label}<select className={`${input} mt-1.5`} disabled={disabled || !ws.table.length} aria-label={label} value={ws.table.length ? ws.columns[i] : ''} onChange={e => void save({ columns: ws.columns.map((v, j) => j === i ? Number(e.target.value) : v) })}>
+              {!ws.table.length && <option value="">Choose a file first</option>}{ws.table[0]?.map((h, j) => <option key={j} value={j}>{j + 1}: {h || `Column ${j + 1}`}</option>)}
+            </select></label>)}
+            <button className={primary} disabled={disabled || !ws.table.length} onClick={async () => {
+              if (new Set(ws.columns).size !== 3 || ws.columns.some(c => c >= ws.table[0].length)) { setError('Choose three different columns.'); return; }
+              if (ws.rows.length && !window.confirm('Rebuild the queue? Matching sent emails will remain done.')) return;
+              await save({ rows: ws.table.slice(1).map(r => ({ id: crypto.randomUUID(), to: (r[ws.columns[0]] || '').trim(), subject: r[ws.columns[1]] || '', body: r[ws.columns[2]] || '', selected: false, status: 'pending' })) });
+              setShowImport(false); setNotice('Queue saved. Select rows or send an individual email.');
+            }}>Build queue</button>
+          </div>
+        </section>}
+        <section className="mb-6 grid items-end gap-4 rounded-xl border border-border p-4 sm:grid-cols-2 lg:grid-cols-[minmax(160px,1fr)_140px_140px_auto]" aria-label="Sending preferences">
+          <label className="text-[11px] text-text-secondary">Send from<select aria-label="Automation sending account" className={`${input} mt-1.5`} value={ws.accountId} disabled={disabled} onChange={e => void save({ accountId: e.target.value })}><option value="">Choose account</option>{accounts.map(a => <option key={a.id} value={a.id}>{a.email}</option>)}</select></label>
+          <label className="text-[11px] text-text-secondary">Emails per day<input aria-label="Emails per day" className={`${input} mt-1.5`} type="number" min="1" max="10000" value={dailyText} disabled={disabled} onChange={e => setDailyText(e.target.value)} onBlur={() => { if (limitsValid(Number(dailyText), ws.seconds)) void save({ daily: Number(dailyText) }); }} /></label>
+          <label className="text-[11px] text-text-secondary">Interval · seconds<input aria-label="Interval in seconds" className={`${input} mt-1.5`} type="number" min="1" max="86400" value={secondsText} disabled={disabled} onChange={e => setSecondsText(e.target.value)} onBlur={() => { if (limitsValid(ws.daily, Number(secondsText))) void save({ seconds: Number(secondsText) }); }} /></label>
+          <label className="flex h-9 items-center gap-2 text-[12px] text-text-secondary"><input type="checkbox" checked={ws.followUp} disabled={disabled} onChange={e => void save({ followUp: e.target.checked })} />Track follow-ups</label>
+          {!settingsValid && <p className="text-[12px] text-text-secondary sm:col-span-2 lg:col-span-4">Enter at least 1 email per day and 1 second between emails.</p>}
+        </section>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0"><h2 className="truncate text-[13px] font-semibold">{ws.fileName || 'No spreadsheet yet'}</h2><p className="mt-1 text-[11px] text-text-tertiary">{ws.rows.length} rows · {selected} selected{invalid > 0 ? ` · ${invalid} invalid` : ''} · {isElectron ? 'Saved on this device · SQLite' : 'Browser preview · local storage'}</p></div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button className={button} disabled={disabled || !pending} onClick={() => void save({ rows: ws.rows.map(r => ({ ...r, selected: r.status === 'pending' && validRow(r) })) })}>Select all valid pending rows</button>
+            <button className={button} disabled={disabled || !selected || !settingsValid} onClick={() => { if (window.confirm('Send the next selected email now?')) void send(); }}>Send next</button>
+            {running ? <button className={primary} onClick={pause}>Pause</button> : <button className={primary} disabled={disabled || !selected || !settingsValid} onClick={() => {
+              if (window.confirm(`Send ${selected} selected emails automatically, up to ${ws.daily} per day and at least ${ws.seconds} seconds apart?`)) { run.current = true; setRunning(true); void send(); }
+            }}>Start automatic sending</button>}
+          </div>
+        </div>
+        <p role="status" aria-label="Sending status" className="mb-3 text-[12px] text-text-secondary"><span className={`mr-2 inline-block h-1.5 w-1.5 rounded-full ${running ? 'bg-accent' : 'bg-border-strong'}`} />{running ? 'Running' : 'Paused'}{notice ? ` · ${notice}` : ''}</p>
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="w-full table-fixed text-left text-[12px]" style={{ minWidth: 780 }}>
+            <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-text-tertiary"><tr><th className="w-10 px-3 py-3"><span className="sr-only">Choose</span></th><th className="w-12 py-3">Row</th><th className="w-[22%] py-3">Recipient</th><th className="py-3">Message</th><th className="w-36 py-3">Status</th><th className="w-28 px-3 py-3 text-right">Action</th></tr></thead>
+            <tbody>{ws.rows.map((r, i) => <tr key={r.id} className="border-b border-border last:border-0 hover:bg-surface-hover">
+              <td className="px-3 py-4 align-top"><input type="checkbox" aria-label={`Select row ${i + 2}`} checked={r.selected} disabled={disabled || r.status !== 'pending' || !validRow(r)} onChange={e => void save({ rows: ws.rows.map(x => x.id === r.id ? { ...x, selected: e.target.checked } : x) })} /></td>
+              <td className="py-4 align-top tabular-nums text-text-tertiary">{i + 2}</td>
+              <td className="truncate py-4 pr-4 align-top" title={r.to}>{r.to}</td>
+              <td className="py-4 pr-5 align-top"><button className="block w-full truncate text-left font-medium" aria-label={`Preview row ${i + 2}`} onClick={() => setExpanded(expanded === r.id ? null : r.id)}>{r.subject || '(no subject)'}</button><p className={`${expanded === r.id ? 'whitespace-pre-wrap' : 'truncate'} mt-1 text-text-secondary`}>{expanded === r.id ? r.body : r.body.slice(0, 100)}</p>{r.error && <p className="mt-2 text-[11px] text-text-secondary">{r.error}</p>}</td>
+              <td className="py-4 pr-3 align-top"><span className={`rounded-full px-2 py-1 text-[10px] ${r.status === 'sent' ? 'bg-accent/10 text-accent' : 'bg-surface text-text-secondary'}`}>{r.status === 'sent' ? 'Done' : !validRow(r) ? 'Invalid data' : r.status === 'pending' ? 'Ready' : r.status === 'sending' ? 'Sending…' : 'Needs review'}</span>{r.followUpActive && <p className="mt-2 text-[10px] text-accent">Follow-up active</p>}{r.sentAt && <p className="mt-2 text-[10px] text-text-tertiary">{new Date(r.sentAt).toLocaleDateString()}</p>}</td>
+              <td className="px-3 py-3 text-right align-top"><button className={`${button} !h-8 !px-2`} aria-label={`Send mail to ${r.to}`} disabled={disabled || r.status !== 'pending' || !validRow(r) || !settingsValid} onClick={() => { if (window.confirm(`Send "${r.subject}" to ${r.to}?`)) void send(r.id); }}><SendIcon size={12} />Send mail</button></td>
+            </tr>)}</tbody>
+          </table>
+          {!ws.rows.length && <div className="px-6 py-14 text-center"><FileTextIcon size={26} className="mx-auto mb-3 text-text-tertiary" /><p className="text-[13px] font-medium">{ws.table.length ? 'Your spreadsheet is saved.' : 'A clear place for your next send.'}</p><p className="mt-1 text-[12px] text-text-secondary">{ws.table.length ? 'Choose the columns above and build your queue.' : 'Import a spreadsheet to prepare individual emails.'}</p></div>}
+        </div>
+        <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[11px] text-text-tertiary"><p>Keep Still open for scheduled sending. Failed deliveries are never retried automatically. Only contact recipients who expect your mail.</p><button disabled={disabled || !ws.fileName} className="hover:text-text disabled:opacity-40" onClick={() => { if (window.confirm('Clear the imported spreadsheet and queue? Delivery history and daily limits will be retained.')) void save({ fileName: '', table: [], rows: [], columns: [0, 1, 2] }); }}>Clear queue</button></footer>
+      </>}
     </div>
-    <button className={input} disabled={running} onClick={() => commit(rows.map(r => ({ ...r, selected: r.status === 'pending' && validRow(r) })))}>Select all valid pending rows</button>
-    <button className={input} disabled={running || busy.current} onClick={() => { if (window.confirm('Clear the local automation queue? Sent emails and daily counters are not removed.')) { try { commit([]); } catch { setNotice('Cannot clear queue.'); } } }}>Clear queue</button>
-    <table className="mt-4 w-full text-left text-sm"><thead><tr>{['Choose', 'Row', 'Email', 'Subject', 'Body preview', 'Status'].map(h => <th className="p-2" key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((r, i) => <tr key={r.id} className="border-t border-border">
-      <td className="p-2"><input type="checkbox" aria-label={`Select row ${i + 2}`} checked={r.selected} disabled={running || r.status !== 'pending'} onChange={e => commit(rows.map(x => x.id === r.id ? { ...x, selected: e.target.checked } : x))} /></td>
-      <td>{i + 2}</td><td>{r.to}</td><td>{r.subject.slice(0, 80)}</td><td className="max-w-xs truncate" title={r.body}>{r.body.slice(0, 100)}</td><td>{!validRow(r) ? 'Invalid data' : r.status}{r.error && <p>{r.error}</p>}</td>
-    </tr>)}</tbody></table>
   </main>;
 }

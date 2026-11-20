@@ -234,4 +234,35 @@ CREATE INDEX IF NOT EXISTS idx_notifications_sequence
   ON notifications(sequence_id);
 `,
   },
+  {
+    version: 3,
+    name: 'automation_workspace',
+    sql: `
+CREATE TABLE automation_workspace (
+  id INTEGER PRIMARY KEY CHECK(id = 1),
+  document TEXT NOT NULL,
+  source_name TEXT,
+  source_bytes BLOB,
+  updated_at TEXT NOT NULL
+);
+CREATE TABLE automation_deliveries (
+  id TEXT PRIMARY KEY,
+  row_id TEXT NOT NULL,
+  account_id TEXT NOT NULL,
+  recipient TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  status TEXT NOT NULL,
+  attempted_at TEXT NOT NULL,
+  day TEXT NOT NULL,
+  conversation_id TEXT,
+  sent_at TEXT,
+  error TEXT
+);
+CREATE INDEX automation_delivery_day ON automation_deliveries(day);
+CREATE INDEX automation_delivery_conversation ON automation_deliveries(conversation_id, status);
+CREATE INDEX idx_messages_automation_match ON messages(account_id, direction, subject);
+`,
+  },
+
 ];

@@ -1,3 +1,4 @@
+import { AutomationRepository } from '../database/automation';
 import { app, ipcMain } from 'electron';
 import type { DatabaseService } from '../database/db';
 import {
@@ -13,6 +14,8 @@ import { CredentialStore } from '../security/credentials';
 import { EmailService } from '../email/email-service';
 import type { ReminderOptions } from '../../shared/notifications/reminder-engine';
 import {
+  automationWorkspaceSchema,
+  automationImportSchema,
   createFollowUpSchema,
   followUpStatusSchema,
   idSchema,
@@ -235,6 +238,47 @@ export function registerIpcHandlers(s: AppServices): void {
   });
 
   const emailService = new EmailService(s.db, s.accounts, s.credentials);
+  const automation = new AutomationRepository(s.db);
+  automation.recover();
+  let automationSending = false;
+  ipcMain.handle('automation:get', () => automation.snapshot());
+  ipcMain.handle('automation:save', (_event, input: unknown) => {
+    if (automationSending) throw new Error('Wait for the current send to finish');
+    return automation.save(parseOrThrow(automationWorkspaceSchema, input));
+  });
+  ipcMain.handle('automation:import', (_event, input: unknown) => {
+    if (automationSending) throw new Error('Wait for the current send to finish');
+    const file = parseOrThrow(automationImportSchema, input);
+    return automation.importFile(file.name, file.base64, file.table);
+  });
+  ipcMain.handle('automation:send', async (_event, input: unknown) => {
+    const id = parseOrThrow(idSchema, input);
+    if (automationSending) throw new Error('An automation email is already sending');
+    automationSending = true;
+    try {
+      const claimed = automation.claim(id);
+      let result;
+      try {
+        result = await emailService.sendEmail({ accountId: claimed.workspace.accountId,
+          to: [claimed.row.to], subject: claimed.row.subject, bodyText: claimed.row.body });
+      } catch (error) {
+        return automation.finish(claimed.deliveryId, id, { error: error instanceof Error ? error.message : String(error) });
+      }
+      let warning: string | undefined;
+      if (claimed.workspace.followUp) {
+        try {
+          const settings = s.settings.getAll();
+          const schedules = s.schedules.list();
+          const schedule = schedules.find(x => x.id === settings.defaultScheduleId) ?? schedules.find(x => x.isDefault) ?? schedules[0];
+          if (!schedule || !s.followups.create(result.conversationId, {
+            stages: schedule.stages.slice(0, Math.max(1, settings.maxStages)), scheduleId: schedule.id,
+            useWorkingDays: settings.useWorkingDays && settings.weekendBehavior === 'skip', reminderTime: settings.reminderTime,
+          })) throw new Error('No follow-up schedule available');
+        } catch { warning = 'Mail sent, but follow-up could not be enabled. Enable it from Sent. Do not resend.'; }
+      }
+      return automation.finish(claimed.deliveryId, id, { ...result, warning });
+    } finally { automationSending = false; }
+  });
 
   ipcMain.handle('email:send', (_event, input: unknown) =>
     emailService.sendEmail(parseOrThrow(sendEmailSchema, input)),

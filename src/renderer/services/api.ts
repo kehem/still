@@ -1,3 +1,4 @@
+import { emptyAutomation, type AutomationWorkspace, type AutomationSnapshot } from '../../shared/automation';
 import type {
   Account,
   AppInfo,
@@ -452,6 +453,22 @@ const defaultSchedule: FollowUpSchedule = {
 // ── Browser preview implementation ───────────────────────────────────────────
 
 class BrowserPreviewAPI implements StillAPI {
+  async getAutomation(): Promise<AutomationSnapshot> {
+    return { workspace: lsRead('automation-workspace', emptyAutomation()), sentToday: 0, sentTotal: 0, attemptedToday: 0, lastAttemptAt: 0 };
+  }
+  async saveAutomation(workspace: AutomationWorkspace): Promise<AutomationSnapshot> {
+    lsWrite('automation-workspace', workspace);
+    return this.getAutomation();
+  }
+  async importAutomationFile(input: { name: string; base64: string; table: string[][] }): Promise<AutomationSnapshot> {
+    const { workspace } = await this.getAutomation();
+    // Browser preview stores parsed data only; original bytes belong in desktop SQLite.
+    return this.saveAutomation({ ...workspace, fileName: input.name, table: input.table, columns: [0, 1, 2], rows: [] });
+  }
+  async sendAutomationRow(_id: string): Promise<AutomationSnapshot> {
+    throw new Error('Sending requires the desktop app.');
+  }
+
   private settings: Settings = {
     ...DEFAULT_SETTINGS,
     ...lsRead<Partial<Settings>>('settings', {}),

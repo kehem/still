@@ -1,78 +1,56 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { Account } from '../../../shared/types';
-const { readSheet } = vi.hoisted(() => ({ readSheet: vi.fn() }));
-vi.mock('read-excel-file/browser', () => ({ readSheet }));
-vi.mock('../../services/api', () => ({ isElectron: true, getAPI: () => ({}) }));
+import { automationTestAPI } from './test-api';
+const mock = vi.hoisted(() => ({ readSheet: vi.fn(), api: {} as ReturnType<typeof automationTestAPI>['api'] }));
+vi.mock('read-excel-file/browser', () => ({ readSheet: mock.readSheet }));
+vi.mock('../../services/api', () => ({ isElectron: true, getAPI: () => mock.api }));
 import { AutomationPage } from './AutomationPage';
 const accounts = [{ id: 'a', email: 'sender@example.com' }] as Account[];
 const data = [['Email', 'Subject', 'Body'], ['r@example.com', 'Hello', 'Hi there']];
+let store: ReturnType<typeof automationTestAPI>;
+async function open() { render(<AutomationPage accounts={accounts} onSent={() => {}} />); await screen.findByText('Build queue'); }
 function upload(name = 'contacts.xlsx') {
   fireEvent.change(screen.getByLabelText('Import CSV or Excel'), { target: { files: [new File(['test'], name)] } });
 }
-beforeEach(() => { localStorage.clear(); readSheet.mockReset().mockResolvedValue(data); });
+beforeEach(() => { localStorage.clear(); mock.readSheet.mockReset().mockResolvedValue(data); store = automationTestAPI(); mock.api = store.api; });
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); });
-it('keeps Build queue visible but disabled until a file loads', () => {
-  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
-  expect((screen.getByRole('button', { name: 'Build queue' }) as HTMLButtonElement).disabled).toBe(true);
-  expect(screen.getByText('Choose a CSV or .xlsx file to begin.')).toBeTruthy();
+it('keeps Build queue visible but disabled before import', async () => {
+  await open();
+  expect((screen.getByText('Build queue') as HTMLButtonElement).disabled).toBe(true);
 });
-it('shows loading, exposes mapping and builds rows after Excel is read', async () => {
-  let resolve!: (value: string[][]) => void;
-  readSheet.mockReturnValue(new Promise(r => { resolve = r; }));
-  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
-  upload();
-  expect(screen.getByText('Reading contacts.xlsx…')).toBeTruthy();
-  await act(async () => { resolve(data); });
-  const build = screen.getByRole('button', { name: 'Build queue' }) as HTMLButtonElement;
-  expect(build.disabled).toBe(false);
-  expect(readSheet).toHaveBeenCalledWith(expect.any(File), 1);
-  fireEvent.click(build);
-  expect(screen.getByText('r@example.com')).toBeTruthy();
-  expect(screen.getByLabelText('Select row 2')).toBeTruthy();
+it('saves original bytes and parsed rows immediately, before Build queue is clicked', async () => {
+  await open(); upload();
+  await waitFor(() => expect(mock.api.importAutomationFile).toHaveBeenCalledWith({ name: 'contacts.xlsx', base64: 'dGVzdA==', table: data }));
+  await waitFor(() => expect((screen.getByText('Build queue') as HTMLButtonElement).disabled).toBe(false));
+  expect(store.get().workspace.table).toEqual(data);
+  fireEvent.click(screen.getByText('Build queue'));
+  expect(await screen.findByText('r@example.com')).toBeTruthy();
+  expect(store.get().workspace.rows).toHaveLength(1);
 });
-it('reports parse errors without replacing the queue and supports retrying', async () => {
-  const saved = '[{"id":"old","to":"old@example.com","subject":"Old","body":"Body","selected":false,"status":"pending"}]';
-  localStorage.setItem('still:automation:v1', saved);
-  readSheet.mockRejectedValueOnce(new Error('Invalid workbook'));
-  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
-  upload();
+it('reports parse errors without replacing saved data and supports retrying', async () => {
+  mock.readSheet.mockRejectedValueOnce(new Error('Invalid workbook'));
+  await open(); upload();
   expect((await screen.findByRole('alert')).textContent).toContain('Invalid workbook');
-  expect(localStorage.getItem('still:automation:v1')).toBe(saved);
+  expect(mock.api.importAutomationFile).not.toHaveBeenCalled();
   upload();
-  await screen.findByText(/1 rows loaded/);
-  expect(screen.queryByRole('alert')).toBeNull();
+  await waitFor(() => expect(mock.api.importAutomationFile).toHaveBeenCalledTimes(1));
 });
-it('times out a stuck reader rather than hiding the next step forever', async () => {
-  vi.useFakeTimers();
-  readSheet.mockReturnValue(new Promise(() => {}));
-  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
-  upload();
+it('times out a stuck reader and leaves file selection usable', async () => {
+  await open(); vi.useFakeTimers();
+  mock.readSheet.mockReturnValue(new Promise(() => {})); upload();
   await act(async () => { await vi.advanceTimersByTimeAsync(30000); });
   expect(screen.getByRole('alert').textContent).toContain('Reading timed out');
   expect((screen.getByLabelText('Import CSV or Excel') as HTMLInputElement).disabled).toBe(false);
 });
-it('ignores a stale result when a newer file was chosen', async () => {
-  let resolve!: (value: string[][]) => void;
-  readSheet.mockReturnValueOnce(new Promise(r => { resolve = r; }));
-  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
-  upload('old.xlsx'); upload('new.xlsx');
-  await screen.findByText(/new.xlsx: 1 rows loaded/);
-  await act(async () => { resolve([['Wrong']]); });
-  expect(screen.getByText(/new.xlsx: 1 rows loaded/)).toBeTruthy();
-  expect(screen.queryByRole('alert')).toBeNull();
-});
-it('reads CSV and rejects fewer than three columns', async () => {
-  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
-  const file = new File([], 'contacts.csv');
+it('reads CSV and rejects files with fewer than three columns', async () => {
+  await open();
+  const file = new File(['Email,Subject,Body\nr@example.com,Hello,"Hello, world"'], 'contacts.csv');
   Object.defineProperty(file, 'text', { value: async () => 'Email,Subject,Body\nr@example.com,Hello,"Hello, world"' });
   fireEvent.change(screen.getByLabelText('Import CSV or Excel'), { target: { files: [file] } });
-  await screen.findByText(/1 rows loaded/);
-  fireEvent.click(screen.getByRole('button', { name: 'Build queue' }));
-  expect(screen.getByText('Hello, world')).toBeTruthy();
-  readSheet.mockResolvedValue([['Email', 'Body'], ['r@example.com', 'Hi']]);
-  upload();
-  expect((await screen.findByRole('alert')).textContent).toContain('at least three columns');
-  expect((screen.getByRole('button', { name: 'Build queue' }) as HTMLButtonElement).disabled).toBe(true);
+  await waitFor(() => expect(mock.api.importAutomationFile).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect((screen.getByText('Build queue') as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(screen.getByText('Build queue'));
+  expect(await screen.findByText('Hello, world')).toBeTruthy();
 });

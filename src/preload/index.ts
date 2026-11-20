@@ -6,6 +6,10 @@ import type { StillAPI } from '../shared/types';
  * The renderer never touches Node APIs directly (spec §3).
  */
 const api: StillAPI = {
+  getAutomation: () => ipcRenderer.invoke('automation:get'),
+  saveAutomation: (workspace) => ipcRenderer.invoke('automation:save', workspace),
+  importAutomationFile: (input) => ipcRenderer.invoke('automation:import', input),
+  sendAutomationRow: (id) => ipcRenderer.invoke('automation:send', id),
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (patch) => ipcRenderer.invoke('settings:update', patch),
   listAccounts: () => ipcRenderer.invoke('accounts:list'),

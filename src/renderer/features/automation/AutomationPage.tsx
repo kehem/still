@@ -45,12 +45,13 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
     catch (e) { setError(`Changes not saved: ${e instanceof Error ? e.message : String(e)}`); }
     finally { busy.current = false; setWorking(false); }
   };
-  const refresh = async () => {
+  const refresh = async (manual = false) => {
     if (busy.current || importing || loading) return;
     busy.current = true;
-    try { accept(await getAPI().getAutomation()); }
+    if (manual) { setWorking(true); setError(''); }
+    try { accept(await getAPI().getAutomation()); if (manual) setNotice('Sent status refreshed from local messages and delivery history.'); }
     catch (e) { setError(`Could not refresh saved data: ${String(e)}`); }
-    finally { busy.current = false; }
+    finally { busy.current = false; if (manual) setWorking(false); }
   };
   const refreshRef = useRef(refresh); refreshRef.current = refresh;
   useEffect(() => {
@@ -178,6 +179,7 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0"><h2 className="truncate text-[13px] font-semibold">{ws.fileName || 'No spreadsheet yet'}</h2><p className="mt-1 text-[11px] text-text-tertiary">{ws.rows.length} rows · {selected} selected{invalid > 0 ? ` · ${invalid} invalid` : ''} · {isElectron ? 'Saved on this device · SQLite' : 'Browser preview · local storage'}</p></div>
           <div className="flex flex-wrap items-center gap-2">
+            <button className={button} disabled={disabled} onClick={() => void refresh(true)}>Refresh sent status</button>
             <button className={button} disabled={disabled || !pending} onClick={() => void save({ rows: ws.rows.map(r => ({ ...r, selected: r.status === 'pending' && validRow(r) })) })}>Select all valid pending rows</button>
             <button className={button} disabled={disabled || !selected || !settingsValid} onClick={() => { if (window.confirm('Send the next selected email now?')) void send(); }}>Send next</button>
             {running ? <button className={primary} onClick={pause}>Pause</button> : <button className={primary} disabled={disabled || !selected || !settingsValid} onClick={() => {

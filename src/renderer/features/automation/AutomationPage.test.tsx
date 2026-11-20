@@ -79,3 +79,12 @@ it('keeps progress and original mapping when the component is reopened', async (
   fireEvent.click(screen.getByText('Manage spreadsheet'));
   expect((screen.getByLabelText('Email column') as HTMLSelectElement).value).toBe('2');
 });
+
+it('refreshes sent detection on demand without sending any mail', async () => {
+  await open();
+  store.seed({ rows: [{ ...rows[0], status: 'sent', selected: false }] });
+  fireEvent.click(screen.getByText('Refresh sent status'));
+  expect(await screen.findByText('Done')).toBeTruthy();
+  expect(mock.api.sendAutomationRow).not.toHaveBeenCalled();
+  expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('refreshed');
+});

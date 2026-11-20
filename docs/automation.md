@@ -18,9 +18,9 @@ The progress summary displays **Done in this queue**, **Ready to send**, **Sent 
 
 ## Matching previous sends and follow-ups
 
-Still compares queued rows with local outbound messages using **the selected sending account, recipient (case-insensitive), exact subject and trimmed plain-text body**. A match is marked **Done**, with its send date and current follow-up status. It cannot be sent again from that row. Re-importing the same data does not reset those matches. Matching history is reflected in the daily/lifetime counters once, not on every refresh.
+Still compares queued rows with **successful delivery records and local outbound messages**, scoped to the selected sending account and recipient. Matching normalizes subject case, Unicode composition, line endings, non-breaking spaces and repeated whitespace. The body must still match after normalization. The currently configured default signature may be omitted from either side. A match is marked **Done**, with its send date and current follow-up status. It cannot be sent again from that row. Re-importing the same data does not reset those matches. Matching history is reflected in the daily/lifetime counters once, not on every refresh.
 
-Matching deliberately does not rely on recipient alone: a genuinely different message to the same person must not be marked done accidentally. Messages with different subjects, signatures or body formatting may not match. Follow-up status is refreshed when you return to Automation and periodically while it is visible or running.
+Matching deliberately does not rely on recipient alone: a genuinely different message to the same person must not be marked done accidentally. Substantively different messages, edited wording or unrecognized signatures are not automatically marked done. Durable successful send records still count even if the local message was removed or the spreadsheet was rebuilt. Failed attempts never count as proof of delivery. Use **Refresh sent status** to recheck immediately. Follow-up status is refreshed when you return to Automation and periodically while it is visible or running. Detection uses data already stored on this device; it does not fetch provider Sent folders, and cannot discover mail that has never been recorded locally.
 
 ## Execution and recovery
 

@@ -105,6 +105,36 @@ describe('SQLite automation persistence', () => {
     expect(db.prepare("SELECT schedule_id FROM followup_sequences WHERE conversation_id = 'c'").get()?.schedule_id).toBe('chosen');
     expect(snapshot.sentTotal).toBe(1);
   });
+  it('detects sends despite Windows line endings, wrapped whitespace and subject formatting', () => {
+    sentMessage();
+    db.prepare("UPDATE messages SET subject = ' Hello  World ', body_text = ? WHERE id = 'm'").run('Hi reader,\r\n\r\nThanks\u00a0for your\n time.');
+    const snapshot = repo.save({ ...emptyAutomation(), accountId: 'a', rows: [{ ...row, subject: 'hello world', body: 'Hi reader,\nThanks for your time.' }] });
+    expect(snapshot.workspace.rows[0].status).toBe('sent');
+    expect(() => repo.claim('r1')).toThrow('already sent');
+  });
+  it('recognizes the configured composer signature but not arbitrary added paragraphs', () => {
+    sentMessage();
+    db.prepare("INSERT INTO settings(key, value) VALUES('defaultSignature', ?)").run(JSON.stringify('Best,\nAlex'));
+    db.prepare("UPDATE messages SET body_text = ? WHERE id = 'm'").run('Body\r\n\r\nBest,\r\nAlex');
+    expect(saveRows().workspace.rows[0].status).toBe('sent');
+    const changed = repo.save({ ...emptyAutomation(), accountId: 'a', rows: [{ ...row, id: 'changed', body: 'Body. A different offer' }] });
+    expect(changed.workspace.rows[0].status).toBe('pending');
+  });
+  it('uses successful delivery history after clearing and rebuilding even if mail was removed', () => {
+    saveRows(); const claim = repo.claim('r1');
+    repo.finish(claim.deliveryId, 'r1', { conversationId: 'removed-thread', sentAt: new Date().toISOString() });
+    repo.save({ ...repo.snapshot().workspace, rows: [] });
+    const rebuilt = repo.save({ ...repo.snapshot().workspace, rows: [{ ...row, id: 'rebuilt' }] });
+    expect(rebuilt.workspace.rows[0]).toMatchObject({ status: 'sent', conversationId: 'removed-thread' });
+    expect(rebuilt.sentTotal).toBe(1); expect(repo.snapshot().sentTotal).toBe(1);
+    expect(() => repo.claim('rebuilt')).toThrow('already sent');
+  });
+  it('does not count failed or cross-account delivery records as proof of a send', () => {
+    saveRows(); const claim = repo.claim('r1'); repo.finish(claim.deliveryId, 'r1', { error: 'SMTP rejected' });
+    expect(repo.save({ ...repo.snapshot().workspace, rows: [{ ...row, id: 'new' }] }).workspace.rows[0].status).toBe('pending');
+    db.prepare("UPDATE automation_deliveries SET status = 'sent', account_id = 'other-account', sent_at = attempted_at").run();
+    expect(repo.snapshot().workspace.rows[0].status).toBe('pending');
+  });
   it('does not mark a different body or account as already sent', () => {
     sentMessage();
     const ws = { ...emptyAutomation(), accountId: 'a', rows: [{ ...row, body: 'New message' }] };

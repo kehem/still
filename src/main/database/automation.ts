@@ -1,3 +1,5 @@
+import { SettingsRepository } from './repositories';
+import { sentMatchKeys } from './automation-matching';
 import { randomUUID } from 'node:crypto';
 import type { DatabaseService } from './db';
 import { automationDay, emptyAutomation, validAutomationRow, type AutomationSnapshot, type AutomationWorkspace } from '../../shared/automation';
@@ -21,28 +23,51 @@ export class AutomationRepository {
   }
   snapshot(): AutomationSnapshot {
     const ws = this.read();
+    const signature = new SettingsRepository(this.db).getAll().defaultSignature;
+    type Evidence = { id: string; conversation_id: string | null; sent_at: string; source: 'ledger' | 'message' };
+    const history = new Map<string, Evidence>();
+    const wanted = new Set(ws.rows.flatMap(row => sentMatchKeys(row.to, row.subject, row.body, signature)));
+    // Prefer durable successful delivery records, even when local mail was removed.
+    const deliveries = this.db.db.prepare(`SELECT id, recipient, subject, body, conversation_id, sent_at
+      FROM automation_deliveries WHERE account_id = ? AND status = 'sent' AND sent_at IS NOT NULL
+      ORDER BY sent_at DESC`).iterate(ws.accountId) as Iterable<Omit<Evidence, 'source'> & { recipient: string; subject: string; body: string }>;
+    for (const delivery of deliveries) {
+      for (const key of sentMatchKeys(delivery.recipient, delivery.subject, delivery.body, signature)) {
+        if (wanted.has(key) && !history.has(key)) history.set(key, { ...delivery, source: 'ledger' });
+      }
+    }
+    const messages = this.db.db.prepare(`SELECT id, conversation_id, sent_at, subject, body_text, to_addresses
+      FROM messages WHERE account_id = ? AND direction = 'outbound' ORDER BY sent_at DESC, rowid DESC`)
+      .iterate(ws.accountId) as Iterable<Omit<Evidence, 'source'> & { subject: string; body_text: string | null; to_addresses: string }>;
+    for (const message of messages) {
+      let recipients: unknown;
+      try { recipients = JSON.parse(message.to_addresses); } catch { continue; }
+      if (!Array.isArray(recipients)) continue;
+      for (const to of recipients) {
+        if (typeof to !== 'string') continue;
+        for (const key of sentMatchKeys(to, message.subject, message.body_text || '', signature)) {
+          if (wanted.has(key) && !history.has(key)) history.set(key, { ...message, source: 'message' });
+        }
+      }
+    }
+    const tracked = new Set((this.db.db.prepare(`SELECT DISTINCT conversation_id FROM followup_sequences
+      WHERE account_id = ? AND status NOT IN ('completed','replied','cancelled')`).all(ws.accountId) as { conversation_id: string }[])
+      .map(row => row.conversation_id));
     for (const row of ws.rows) {
-      const match = this.db.db.prepare(`SELECT m.id, m.conversation_id, m.sent_at,
-        EXISTS(SELECT 1 FROM followup_sequences f WHERE f.conversation_id = m.conversation_id
-          AND f.status NOT IN ('completed','replied','cancelled')) AS tracking
-        FROM messages m WHERE m.direction = 'outbound' AND m.account_id = ?
-          AND m.subject = ? AND trim(COALESCE(m.body_text, '')) = trim(?)
-          AND EXISTS(SELECT 1 FROM json_each(m.to_addresses) WHERE lower(trim(value)) = lower(trim(?)))
-        ORDER BY m.sent_at DESC LIMIT 1`).get(ws.accountId, row.subject || '(no subject)', row.body, row.to) as { id: string; conversation_id: string; sent_at: string; tracking: number } | undefined;
+      const match = sentMatchKeys(row.to, row.subject, row.body, signature).map(key => history.get(key)).find(Boolean);
       if (match) {
         // Import known outbound history once, including mail sent from Compose.
         // Re-importing the same sheet must not reset progress or daily limits.
-        this.db.db.prepare(`INSERT OR IGNORE INTO automation_deliveries
+        if (match.source === 'message') this.db.db.prepare(`INSERT OR IGNORE INTO automation_deliveries
           (id, row_id, account_id, recipient, subject, body, status, attempted_at, day, conversation_id, sent_at)
           SELECT ?, ?, ?, ?, ?, ?, 'sent', ?, ?, ?, ?
           WHERE NOT EXISTS(SELECT 1 FROM automation_deliveries WHERE conversation_id = ? AND status = 'sent')`)
           .run(`history:${match.id}`, row.id, ws.accountId, row.to, row.subject, row.body,
             match.sent_at, automationDay(new Date(match.sent_at)), match.conversation_id, match.sent_at, match.conversation_id);
-        row.status = 'sent'; row.sentAt = match.sent_at; row.conversationId = match.conversation_id;
-        row.followUpActive = Boolean(match.tracking); row.selected = false; if (!row.error?.startsWith('Mail sent')) delete row.error;
+        row.status = 'sent'; row.sentAt = match.sent_at; row.conversationId = match.conversation_id ?? undefined;
+        row.followUpActive = Boolean(match.conversation_id && tracked.has(match.conversation_id)); row.selected = false; if (!row.error?.startsWith('Mail sent')) delete row.error;
       } else if (row.conversationId) {
-        const tracking = this.db.db.prepare("SELECT 1 FROM followup_sequences WHERE conversation_id = ? AND status NOT IN ('completed','replied','cancelled')").get(row.conversationId);
-        row.followUpActive = Boolean(tracking);
+        row.followUpActive = tracked.has(row.conversationId);
       }
     }
     this.write(ws);

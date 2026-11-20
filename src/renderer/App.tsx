@@ -580,7 +580,7 @@ function Shell() {
                 openComposer({
                   accountId: d.conversation.accountId,
                   subject: `Re: ${d.conversation.subject}`,
-                  inReplyToConversationId: mode === 'forward' ? null : d.conversation.id,
+                  inReplyToConversationId: d.conversation.id,
                   followUpEnabled: true,
                 })
               }

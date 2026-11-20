@@ -217,3 +217,28 @@ export function parseOrThrow<T>(schema: z.ZodType<T>, data: unknown): T {
   }
   return result.data;
 }
+
+
+export const automationWorkspaceSchema = z.object({
+  fileName: z.string().max(255),
+  table: z.array(z.array(z.string().max(500000)).max(200)).max(1001),
+  columns: z.array(z.number().int().min(0).max(199)).length(3),
+  rows: z.array(z.object({
+    id: idSchema, to: z.string().max(1000), subject: z.string().max(1000), body: z.string().max(500000),
+    selected: z.boolean(), status: z.enum(['pending', 'sending', 'sent', 'failed']),
+    error: z.string().max(4000).optional(), sentAt: z.string().max(100).optional(),
+    conversationId: idSchema.optional(), followUpActive: z.boolean().optional(),
+  })).max(1000),
+  accountId: z.string().max(128), daily: z.number().int().min(1).max(10000),
+  seconds: z.number().int().min(1).max(86400), followUp: z.boolean(),
+}).superRefine((value, ctx) => {
+  if (JSON.stringify(value).length > 12 * 1024 * 1024) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Workspace exceeds 12 MB' });
+  if (new Set(value.rows.map(r => r.id)).size !== value.rows.length) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Duplicate row IDs' });
+});
+export const automationImportSchema = z.object({
+  name: z.string().min(1).max(255).regex(/\.(csv|xlsx)$/i),
+  base64: z.string().max(7 * 1024 * 1024).regex(/^[A-Za-z0-9+/]*={0,2}$/),
+  table: z.array(z.array(z.string().max(500000)).max(200)).min(2).max(1001),
+}).superRefine((value, ctx) => {
+  if (JSON.stringify(value.table).length > 10 * 1024 * 1024) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Spreadsheet exceeds 10 MB of text' });
+});

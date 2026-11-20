@@ -517,7 +517,7 @@ function Shell() {
         />
 
         <div hidden={view.kind !== 'automation'} className={view.kind === 'automation' ? 'flex min-w-0 flex-1' : 'hidden'}>
-          <AutomationPage accounts={accounts} onSent={() => setReloadToken(t => t + 1)} />
+          <AutomationPage active={view.kind === 'automation'} accounts={accounts} onSent={() => { setReloadToken(t => t + 1); void refreshFollowUps(); void refreshNotifications(); }} />
         </div>
         {view.kind === 'automation' ? null : view.kind === 'settings' ? (
           <SettingsPage

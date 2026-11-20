@@ -1,3 +1,4 @@
+import type { AutomationWorkspace, AutomationSnapshot } from './automation';
 // ─── Accounts ────────────────────────────────────────────────────────────────
 
 export type ProviderType = 'google' | 'microsoft' | 'imap';
@@ -351,6 +352,10 @@ export interface AppInfo {
 // ─── Preload API (implemented by the preload bridge, consumed by the renderer)
 
 export interface StillAPI {
+  getAutomation(): Promise<AutomationSnapshot>;
+  saveAutomation(workspace: AutomationWorkspace): Promise<AutomationSnapshot>;
+  importAutomationFile(input: { name: string; base64: string; table: string[][] }): Promise<AutomationSnapshot>;
+  sendAutomationRow(id: string): Promise<AutomationSnapshot>;
   getSettings(): Promise<Settings>;
   updateSettings(patch: Partial<Settings>): Promise<Settings>;
   listAccounts(): Promise<Account[]>;

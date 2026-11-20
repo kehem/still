@@ -1,3 +1,4 @@
+import { replyHeaders } from './reply-headers';
 import crypto from 'node:crypto';
 import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
@@ -119,6 +120,7 @@ export class EmailService {
       ? `"${account.displayName.replace(/"/g, '\\"')}" <${account.email}>`
       : account.email;
 
+    const threading = replyHeaders(this.db, input);
     const mailOptions = {
       from: fromHeader,
       to: input.to.join(', '),
@@ -126,7 +128,8 @@ export class EmailService {
       bcc: input.bcc && input.bcc.length > 0 ? input.bcc.join(', ') : undefined,
       subject: input.subject || '(no subject)',
       text: input.bodyText,
-      inReplyTo: input.inReplyTo ?? undefined,
+      inReplyTo: threading.inReplyTo,
+      references: threading.references,
     };
 
     const sendWithSecure = async (secure: boolean) => {
@@ -192,10 +195,10 @@ export class EmailService {
       .prepare(
         `INSERT INTO messages(
           id, account_id, conversation_id, folder_id, provider_message_id,
-          message_id_header, in_reply_to, subject, snippet, body_text,
+          message_id_header, in_reply_to, references_header, subject, snippet, body_text,
           from_name, from_address, to_addresses, cc_addresses, bcc_addresses,
           sent_at, received_at, is_read, is_starred, direction, created_at
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 'outbound', ?)`,
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, 'outbound', ?)`,
       )
       .run(
         messageId,
@@ -204,7 +207,8 @@ export class EmailService {
         sentFolderId,
         info.messageId ?? null,
         info.messageId ?? null,
-        input.inReplyTo ?? null,
+        threading.inReplyTo ?? null,
+        threading.references?.join(' ') ?? null,
         input.subject || '(no subject)',
         snippet,
         input.bodyText,
@@ -405,7 +409,7 @@ export class EmailService {
               .prepare(
                 `INSERT INTO messages(
                   id, account_id, conversation_id, folder_id, provider_message_id,
-                  message_id_header, in_reply_to, subject, snippet, body_text, body_html,
+                  message_id_header, in_reply_to, references_header, subject, snippet, body_text, body_html,
                   from_name, from_address, to_addresses, cc_addresses, bcc_addresses,
                   sent_at, received_at, is_read, is_starred, direction, created_at
                 ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound', ?)`,

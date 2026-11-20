@@ -267,10 +267,10 @@ describe('follow-ups section (spec §6.6)', () => {
 
     expect(await screen.findByRole('heading', { name: 'Follow-ups' })).toBeTruthy();
     expect(screen.getByText('Due Today')).toBeTruthy();
-    expect(screen.getByText('Overdue')).toBeTruthy();
-    expect(screen.getByText('Upcoming')).toBeTruthy();
-    expect(screen.getByText('Waiting for Reply')).toBeTruthy();
-    expect(screen.getByText('Completed')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: /^Due / })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: /^Upcoming / })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: /^Waiting / })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: /^Completed / })).toBeTruthy();
 
     const dueToday = screen.getByText('Due Today').parentElement as HTMLElement;
     expect(within(dueToday).getByText('Partnership inquiry')).toBeTruthy();
@@ -344,7 +344,7 @@ describe('follow-ups section (spec §6.6)', () => {
     });
   });
 
-  it('opens the tracked conversation from the follow-up list', async () => {
+  it('opens a reply draft to the original recipient from the follow-up list', async () => {
     await renderApp();
     await screen.findByRole('heading', { name: 'All Inbox' });
     fireEvent.click(screen.getByRole('button', { name: /Follow-ups/ }));
@@ -352,9 +352,11 @@ describe('follow-ups section (spec §6.6)', () => {
 
     fireEvent.click(screen.getByText('Partnership inquiry'));
 
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Partnership inquiry' }),
-    ).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Reply' })).toBeTruthy();
+    expect(screen.getByDisplayValue('marco@partner.example')).toBeTruthy();
+    expect(screen.getByDisplayValue('Re: Partnership inquiry')).toBeTruthy();
+    expect(screen.getByText('Follow-up: On')).toBeTruthy();
+    expect(screen.queryByText('Sending…')).toBeNull();
   });
 });
 

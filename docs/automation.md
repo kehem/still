@@ -4,7 +4,7 @@ Open **Productivity → Automation** in the desktop app.
 
 1. Choose a CSV or `.xlsx` file (up to 5 MB, 1,000 data rows, 200 columns). Legacy `.xls` is not supported. The first row supplies headers; Excel uses the first sheet. On successful import the **original file bytes and parsed cells are saved immediately in SQLite**, before building a queue. An import failure keeps the previously saved workspace.
 2. Map the email, subject and body columns, then **Build queue**. Mapping selections are saved too.
-3. Choose the sending account, daily maximum and interval. Daily limits start at 1, not 0. Enable **Track follow-ups** to use your default follow-up schedule for these messages.
+3. Choose the sending account, daily maximum and interval. Daily limits start at 1, not 0. Every successfully sent Automation email automatically starts follow-up tracking with the schedule selected in Settings → Follow-up. Its stage limit, working-day rules and reminder time apply too. No extra toggle is required.
 4. Click **Send mail** on any valid pending row to send that particular email. No checkbox is required for per-row sending. Or select multiple rows and use **Send next** / **Start automatic sending**.
 5. Inspect **Done**, sent dates and **Follow-up active** badges. Click a message subject to expand its full body before sending.
 
@@ -36,3 +36,13 @@ Only send to recipients who expect your mail and respect your provider's sending
 ## Local Trash
 
 Inbox and reading-pane actions move whole conversations to local Trash and restore them. They do not move/delete provider-side mail. Permanent deletion and individual-message deletion are not implemented.
+
+
+## Follow-up date tabs
+
+Follow-ups opens on **Today**, showing only active conversations whose effective reminder date is today in your local timezone, including reminder hours later today. **Due** contains unfinished follow-ups dated before today. **Upcoming** contains future dates, including future snoozes. Snoozed items use the snoozed-until date, not the original reminder date. **Waiting** and **Completed** (including replied/cancelled) remain separate.
+
+The displayed date buckets update every 30 seconds and when the window regains focus, so yesterday’s items move from Today to Due without restarting. This changes the list presentation, not reminder delivery times or automatic message sending.
+
+
+Clicking a follow-up opens a reply draft addressed to its recipient using the original sending account and conversation. **Open conversation** remains available for reading without composing. Clicking a row never sends email automatically. Replies resolve `In-Reply-To` and `References` from saved message headers, so reopening a draft preserves threading. If the original Message-ID is missing, sending is blocked with a request to sync instead of silently creating an unthreaded message.

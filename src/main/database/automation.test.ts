@@ -8,6 +8,8 @@ import { AutomationRepository } from './automation';
 import { FollowUpRepository } from './repositories';
 import type { DatabaseService } from './db';
 import { automationWorkspaceSchema, automationImportSchema } from '../security/ipc-validation';
+import { enableAutomationFollowUp } from '../email/automation-followup';
+import { DEFAULT_SETTINGS } from '../../shared/constants';
 import { emptyAutomation } from '../../shared/automation';
 
 // Exercise actual SQLite SQL and on-disk persistence using Node's SQLite engine.
@@ -43,6 +45,12 @@ beforeEach(() => {
 });
 afterEach(() => { db.close(); rmSync(directory, { recursive: true, force: true }); vi.restoreAllMocks(); });
 describe('SQLite automation persistence', () => {
+  it('upgrades legacy opt-out flags so every new automation send is tracked', () => {
+    const legacy = { ...emptyAutomation(), followUp: false };
+    db.prepare('INSERT INTO automation_workspace(id, document, updated_at) VALUES(1, ?, ?)').run(JSON.stringify(legacy), new Date().toISOString());
+    expect(repo.snapshot().workspace.followUp).toBe(true);
+    expect(repo.save(legacy).workspace.followUp).toBe(true);
+  });
   it('saves original file bytes immediately and restores mapping, settings and rows after reopening', () => {
     const table = [['Email', 'Subject', 'Body'], ['reader@example.com', 'Hello', 'Body']];
     repo.importFile('contacts.csv', Buffer.from('original,csv,bytes').toString('base64'), table);
@@ -80,6 +88,22 @@ describe('SQLite automation persistence', () => {
     expect(() => repo.claim('r1')).toThrow('already sent');
     db.prepare("UPDATE followup_sequences SET status = 'completed' WHERE conversation_id = 'c'").run();
     expect(repo.snapshot().workspace.rows[0]).toMatchObject({ status: 'sent', followUpActive: false });
+  });
+  it('persists automatic default-schedule tracking with the sent automation row', () => {
+    saveRows();
+    const claim = repo.claim('r1');
+    sentMessage(); // SMTP result has been saved as a local outbound message.
+    const now = new Date().toISOString();
+    db.prepare("INSERT INTO followup_schedules(id, name, stages, is_default, created_at, updated_at) VALUES('chosen', 'My default', '[2,5,10]', 0, ?, ?)").run(now, now);
+    enableAutomationFollowUp({
+      settings: { getAll: () => ({ ...DEFAULT_SETTINGS, defaultScheduleId: 'chosen', maxStages: 2 }) },
+      schedules: { list: () => [{ id: 'chosen', name: 'My default', stages: [2, 5, 10], isDefault: false, createdAt: now, updatedAt: now }] },
+      followups: new FollowUpRepository(service(db)),
+    }, 'c');
+    const snapshot = repo.finish(claim.deliveryId, 'r1', { conversationId: 'c', sentAt: now });
+    expect(snapshot.workspace.rows[0]).toMatchObject({ status: 'sent', followUpActive: true });
+    expect(db.prepare("SELECT schedule_id FROM followup_sequences WHERE conversation_id = 'c'").get()?.schedule_id).toBe('chosen');
+    expect(snapshot.sentTotal).toBe(1);
   });
   it('does not mark a different body or account as already sent', () => {
     sentMessage();

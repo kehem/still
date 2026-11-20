@@ -18,6 +18,7 @@ export interface AutomationWorkspace {
   accountId: string;
   daily: number;
   seconds: number;
+  /** Legacy workspace flag. Automation always tracks successful sends. */
   followUp: boolean;
 }
 export interface AutomationSnapshot {
@@ -28,7 +29,7 @@ export interface AutomationSnapshot {
   lastAttemptAt: number;
 }
 export const emptyAutomation = (): AutomationWorkspace => ({
-  fileName: '', table: [], columns: [0, 1, 2], rows: [], accountId: '', daily: 50, seconds: 30, followUp: false,
+  fileName: '', table: [], columns: [0, 1, 2], rows: [], accountId: '', daily: 50, seconds: 30, followUp: true,
 });
 export function validAutomationRow(row: AutomationRow): boolean {
   return /^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(row.to) && row.to.length <= 254 && row.subject.length <= 1000 && row.body.trim().length > 0 && row.body.length <= 500000;

@@ -1,3 +1,4 @@
+import { FollowUpRepository, SettingsRepository } from '../database/repositories';
 import { replyHeaders } from './reply-headers';
 import crypto from 'node:crypto';
 import { ImapFlow } from 'imapflow';
@@ -320,11 +321,10 @@ export class EmailService {
               .map((a) => a.address)
               .filter((a): a is string => Boolean(a));
             const sentAt = new Date(msg.envelope?.date ?? Date.now()).toISOString();
-            const isRead = msg.flags?.has('\\Seen') ? 1 : 0;
-            const isStarred = msg.flags?.has('\\Flagged') ? 1 : 0;
-            const inReplyTo = msg.envelope?.inReplyTo ?? null;
-
+            const isRead = msg.flags?.has('\Seen') ? 1 : 0;
+            const isStarred = msg.flags?.has('\Flagged') ? 1 : 0;
             const parsedMail = msg.source ? await simpleParser(msg.source) : null;
+            const inReplyTo = parsedMail?.inReplyTo ?? msg.envelope?.inReplyTo ?? null;
             const bodyHtml =
               parsedMail && typeof parsedMail.html === 'string' ? parsedMail.html : null;
             const rawText =
@@ -354,6 +354,7 @@ export class EmailService {
 
             // Find or create conversation
             let conversationId: string | null = null;
+            let linkedReply = false;
             if (inReplyTo) {
               const parent = this.db.db
                 .prepare(
@@ -361,6 +362,7 @@ export class EmailService {
                 )
                 .get(account.id, inReplyTo) as { conversation_id: string | null } | undefined;
               conversationId = parent?.conversation_id ?? null;
+              linkedReply = Boolean(conversationId);
             }
             if (!conversationId) {
               const normalizedSubject = subject.replace(/^(re|fwd?):\s*/i, '').trim();
@@ -412,7 +414,7 @@ export class EmailService {
                   message_id_header, in_reply_to, references_header, subject, snippet, body_text, body_html,
                   from_name, from_address, to_addresses, cc_addresses, bcc_addresses,
                   sent_at, received_at, is_read, is_starred, direction, created_at
-                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound', ?)`,
+                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?, ?, ?, 'inbound', ?)`,
               )
               .run(
                 messageId,
@@ -422,6 +424,7 @@ export class EmailService {
                 providerId,
                 messageIdHeader,
                 inReplyTo,
+                Array.isArray(parsedMail?.references) ? parsedMail.references.join(' ') : parsedMail?.references ?? null,
                 subject,
                 snippet,
                 bodyText,
@@ -436,6 +439,19 @@ export class EmailService {
                 isStarred,
                 nowIso(),
               );
+            // Only explicit reply linkage from a known recipient can stop tracking.
+            // Subject-only grouping is insufficient proof (unrelated mail can share a subject).
+            if (linkedReply && fromAddress.toLowerCase() !== account.email.toLowerCase()) {
+              const senderWasRecipient = this.db.db.prepare(`SELECT 1 FROM messages m, json_each(m.to_addresses) recipient
+                WHERE m.conversation_id = ? AND m.direction = 'outbound' AND lower(recipient.value) = lower(?) LIMIT 1`)
+                .get(conversationId, fromAddress);
+              const settings = new SettingsRepository(this.db).getAll();
+              const autoSubmitted = String(parsedMail?.headers.get('auto-submitted') ?? 'no').toLowerCase();
+              const automatic = autoSubmitted !== 'no' || parsedMail?.headers.has('x-autoreply') || parsedMail?.headers.has('x-autorespond');
+              if (senderWasRecipient && settings.autoCompleteOnReply && (!automatic || settings.autoReplyHandling === 'complete')) {
+                new FollowUpRepository(this.db).completeFromReply(conversationId);
+              }
+            }
             syncedCount += 1;
           }
         }

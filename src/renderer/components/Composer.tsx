@@ -1,3 +1,5 @@
+import { createPortal } from 'react-dom';
+import { confirmAction } from '../services/dialogs';
 import { useEffect, useRef, useState } from 'react';
 import type { Account, Draft } from '../../shared/types';
 import {
@@ -49,6 +51,13 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
   );
   const [draftId, setDraftId] = useState<string | undefined>(initial.id);
   const sending = useRef(false);
+  const [isSending, setIsSending] = useState(false);
+  const draftIdRef = useRef(initial.id);
+  const saveChain = useRef<Promise<unknown>>(Promise.resolve());
+  const sentRef = useRef(false);
+  const toInput = useRef<HTMLInputElement>(null);
+  const panel = useRef<HTMLElement>(null);
+  const intervalEdited = useRef(false);
   const [sentConversation, setSentConversation] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   // Autosave follows a real edit. Programmatic prefills (the default signature,
@@ -70,7 +79,7 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
           list[0];
         setStages(schedule.stages);
         // Only preselect the first stage when the user has not chosen one.
-        if (initial.followUpIntervalDays == null) setFollowUpDays(schedule.stages[0]);
+        if (initial.followUpIntervalDays == null && !intervalEdited.current) setFollowUpDays(schedule.stages[0]);
       })
       .catch(() => {
         // Keep the built-in default stages.
@@ -109,26 +118,45 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
   const latest = useRef(snapshot());
   latest.current = snapshot();
 
+  const persistDraft = () => {
+    const task = saveChain.current.catch(() => {}).then(async () => {
+      if (sentRef.current) return;
+      const saved = await getAPI().saveDraft({ ...latest.current, id: draftIdRef.current });
+      draftIdRef.current = saved.id; latest.current.id = saved.id; setDraftId(saved.id);
+    });
+    saveChain.current = task;
+    return task;
+  };
+  const close = async () => {
+    if (sending.current) return;
+    try {
+      if (touched && !sentRef.current) await persistDraft();
+      else await saveChain.current;
+      onClose();
+    } catch { setNotice('Draft not saved. Please try Save draft before closing.'); }
+  };
+  const closeRef = useRef(close); closeRef.current = close;
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    if (!touched || sending.current || sentConversation) return;
+    const requestClose = () => { void closeRef.current(); };
+    window.addEventListener('still:close-composer', requestClose);
+    return () => window.removeEventListener('still:close-composer', requestClose);
+  }, []);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    const root = document.getElementById('root');
+    const wasInert = root?.inert;
+    if (root) root.inert = true;
+    toInput.current?.focus();
+    return () => { if (root) root.inert = wasInert ?? false; if (previous?.isConnected) previous.focus(); };
+  }, []);
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    if (!touched || sending.current || sentRef.current) return;
     const timer = window.setTimeout(() => {
-      if (sending.current || sentConversation) return;
-      void getAPI()
-        .saveDraft(latest.current)
-        .then((saved) => setDraftId(saved.id))
-        .catch(() => {
-          // Best-effort: the composer stays usable, but a draft that did not
-          // save must not fail silently — the user would otherwise believe
-          // their text is stored and lose it on close.
-          setNotice('Draft not saved.');
-        });
+      if (sending.current || sentRef.current) return;
+      void persistDraft().catch(() => setNotice('Draft not saved.'));
     }, 800);
     return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId, to, cc, bcc, subject, body, followUpEnabled, followUpDays, touched]);
 
   const handleSend = async () => {
@@ -143,13 +171,16 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
       return;
     }
     if (settings.confirmBeforeSend) {
-      const ok = window.confirm('Send this message?');
+      const ok = await confirmAction('Send this message?');
       if (!ok) return;
     }
     sending.current = true;
+    setIsSending(true);
     setNotice('Sending…');
     let delivered = false;
     try {
+      // A pending autosave must finish before SMTP removes the draft.
+      await saveChain.current;
       const ccList = parseAddresses(cc);
       const bccList = parseAddresses(bcc);
       const result = await getAPI().sendEmail({
@@ -160,9 +191,10 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
         subject,
         bodyText: body,
         conversationId: initial.inReplyToConversationId ?? null,
-        draftId: draftId ?? null,
+        draftId: draftIdRef.current ?? null,
       });
       delivered = true;
+      sentRef.current = true;
       setSentConversation(result.conversationId);
       if (followUpEnabled && result.conversationId) {
         const tracked = await getAPI().createFollowUp({
@@ -172,16 +204,25 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
         if (!tracked) throw new Error("Message sent, but follow-up was not enabled. Enable it from Sent; do not resend the message.");
       }
       onSent?.();
+      if (result.warning) { setNotice(result.warning); return; }
       onClose();
     } catch (err) {
       onSent?.();
       setNotice(delivered ? 'Message sent. Follow-up setup failed; enable it from Sent. Do not resend.' : (err instanceof Error ? err.message : 'Failed to send email.'));
     } finally {
       sending.current = false;
+      setIsSending(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); void close(); return; }
+    if (e.key === 'Tab') {
+      const controls = [...(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)') ?? [])];
+      const first = controls[0], last = controls[controls.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    }
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       handleSend();
@@ -193,18 +234,20 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
     }
   };
 
-  return (
-    <aside
-      className="absolute bottom-0 right-0 top-11 z-20 flex w-[520px] max-w-[90vw] flex-col border-l border-border bg-bg"
+  return createPortal(<>
+    <div className="fixed inset-x-0 bottom-0 top-11 z-40 bg-black/10" aria-hidden="true" onMouseDown={e => e.preventDefault()} />
+    <aside ref={panel} role="dialog" aria-modal="true" aria-labelledby="composer-heading"
+      className="no-drag fixed bottom-0 right-0 top-11 z-50 flex w-[520px] max-w-[90vw] flex-col border-l border-border bg-bg"
       onKeyDown={handleKeyDown}
     >
       <header className="flex shrink-0 items-center justify-between border-b border-border px-5 py-3">
-        <h2 className="text-[15px] font-semibold">
+        <h2 id="composer-heading" className="text-[15px] font-semibold">
           {initial.inReplyToConversationId ? 'Reply' : 'New message'}
         </h2>
         <button
           type="button"
-          onClick={onClose}
+          disabled={isSending}
+          onClick={() => void close()}
           className="rounded-md p-1 text-text-secondary transition-colors hover:bg-surface-hover hover:text-text"
           title="Close (Esc)"
         >
@@ -212,7 +255,7 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
         </button>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col px-5">
+      <fieldset disabled={isSending || Boolean(sentConversation)} className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5">
         <Field label="From">
           <select
             value={accountId ?? ''}
@@ -237,6 +280,7 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
               markTouched();
               setTo(e.target.value);
             }}
+            ref={toInput}
             placeholder="name@example.com"
             className="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-[13px] outline-none placeholder:text-text-tertiary focus:border-accent"
           />
@@ -287,15 +331,16 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
           />
         </Field>
         <textarea
+          aria-label="Message body"
           value={body}
           onChange={(e) => {
             markTouched();
             setBody(e.target.value);
           }}
           placeholder="Write your message…"
-          className="min-h-0 flex-1 resize-none py-3 text-[14px] leading-relaxed outline-none placeholder:text-text-tertiary"
+          className="min-h-[120px] flex-1 resize-none py-3 text-[14px] leading-relaxed outline-none placeholder:text-text-tertiary"
         />
-      </div>
+      </fieldset>
 
       <footer className="shrink-0 border-t border-border px-5 py-3">
         {notice && (
@@ -304,7 +349,7 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
             {notice}
           </p>
         )}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => {
@@ -325,7 +370,7 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
             <select
               value={customDays ? 'custom' : String(followUpDays)}
               onChange={(e) => {
-                markTouched();
+                markTouched(); intervalEdited.current = true;
                 if (e.target.value === 'custom') {
                   setCustomDays(true);
                   return;
@@ -352,7 +397,7 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
                 max={MAX_FOLLOWUP_INTERVAL_DAYS}
                 value={followUpDays}
                 onChange={(e) => {
-                  markTouched();
+                  markTouched(); intervalEdited.current = true;
                   // Clamp to the same bounds the IPC schema enforces. `max` on
                   // the input only steers the spinner, so without this a typed
                   // 9999 would be rejected on save and the draft silently lost.
@@ -376,31 +421,25 @@ export function Composer({ accounts, initial, onClose, onSent }: ComposerProps) 
           <div className="flex-1" />
           <button
             type="button"
-            onClick={() => {
-              void getAPI()
-                .saveDraft(snapshot())
-                .then((saved) => {
-                  setDraftId(saved.id);
-                  setNotice('Draft saved.');
-                });
-            }}
+            disabled={isSending || Boolean(sentConversation)}
+            onClick={() => { void persistDraft().then(() => setNotice('Draft saved.')).catch(() => setNotice('Draft not saved.')); }}
             className="rounded-md border border-border px-3 py-1.5 text-[13px] font-medium text-text-secondary transition-colors hover:text-text"
           >
             Save draft
           </button>
           <button
             type="button"
-            disabled={Boolean(sentConversation)}
+            disabled={isSending || Boolean(sentConversation)}
             onClick={handleSend}
             className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-accent-hover"
           >
             <SendIcon size={14} />
-            Send
+            {isSending ? 'Sending…' : 'Send'}
           </button>
         </div>
       </footer>
     </aside>
-  );
+  </>, document.body);
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

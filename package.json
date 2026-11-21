@@ -17,6 +17,7 @@
     "build:main": "node scripts/build-main.mjs",
     "start": "npm run build && electron .",
     "test": "vitest run",
+    "test:portable": "cross-env STILL_TEST_SQLITE=node vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "rebuild": "node scripts/rebuild-native.mjs --runtime=electron",
     "rebuild:node": "node scripts/rebuild-native.mjs --runtime=node",

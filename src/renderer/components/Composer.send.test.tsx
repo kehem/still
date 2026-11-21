@@ -30,3 +30,16 @@ it('guards concurrent clicks and blocks resend after follow-up setup fails', asy
   fireEvent.click(send);
   expect(mocks.sendEmail).toHaveBeenCalledTimes(1);
 });
+it('isolates the inbox, accepts body edits, and restores focus after closing', async () => {
+  const root = document.createElement('div'); root.id = 'root';
+  const trigger = document.createElement('button'); root.append(trigger); document.body.append(root); trigger.focus();
+  const view = compose();
+  expect(root.inert).toBe(true);
+  const body = screen.getByRole('textbox', { name: /body/i });
+  fireEvent.change(body, { target: { value: 'A message I can type' } });
+  expect((body as HTMLTextAreaElement).value).toBe('A message I can type');
+  view.unmount();
+  expect(root.inert).toBe(false);
+  expect(document.activeElement).toBe(trigger);
+  root.remove();
+});

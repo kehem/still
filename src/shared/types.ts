@@ -419,6 +419,7 @@ export interface StillAPI {
     conversationId: string;
     sentAt: string;
     messageIdHeader: string | null;
+    warning?: string;
   }>;
   syncEmails(): Promise<{
     syncedCount: number;

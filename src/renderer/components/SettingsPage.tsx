@@ -1,3 +1,4 @@
+import { confirmAction } from '../services/dialogs';
 import { useEffect, useState } from 'react';
 import type { Account, AppInfo, FollowUpSchedule } from '../../shared/types';
 import { ACCOUNT_COLORS, APP_NAME, DEFAULT_FOLLOWUP_STAGES, SHORTCUTS } from '../../shared/constants';
@@ -282,7 +283,7 @@ function AccountsSection({
 
   const remove = async (account: Account) => {
     if (settings.confirmBeforeDelete) {
-      const ok = window.confirm(`Remove ${account.displayName} (${account.email})? Local data for this account will be deleted.`);
+      const ok = await confirmAction(`Remove ${account.displayName} (${account.email})? Local data for this account will be deleted.`);
       if (!ok) return;
     }
     await getAPI().removeAccount(account.id);

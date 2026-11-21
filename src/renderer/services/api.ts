@@ -454,6 +454,9 @@ const defaultSchedule: FollowUpSchedule = {
 // ── Browser preview implementation ───────────────────────────────────────────
 
 class BrowserPreviewAPI implements StillAPI {
+  async checkEmailRecipients(addresses: string[]): Promise<Record<string, import('../../shared/types').RecipientCheck>> {
+    return Object.fromEntries(addresses.map(address => [address, { status: 'unknown', detail: 'MX and SMTP checks require the desktop app' }]));
+  }
   async getEmailProviders(domains: string[]): Promise<Record<string, string>> {
     return Object.fromEntries(domains.map(domain => [domain, knownEmailProvider(domain) ?? 'Unknown (desktop lookup required)']));
   }

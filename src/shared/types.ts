@@ -1,3 +1,4 @@
+export interface RecipientCheck { status: 'valid' | 'invalid' | 'unknown'; detail: string }
 import type { AutomationWorkspace, AutomationSnapshot } from './automation';
 // ─── Accounts ────────────────────────────────────────────────────────────────
 
@@ -352,6 +353,7 @@ export interface AppInfo {
 // ─── Preload API (implemented by the preload bridge, consumed by the renderer)
 
 export interface StillAPI {
+  checkEmailRecipients(addresses: string[]): Promise<Record<string, RecipientCheck>>;
   getEmailProviders(domains: string[]): Promise<Record<string, string>>;
   getAutomation(): Promise<AutomationSnapshot>;
   saveAutomation(workspace: AutomationWorkspace): Promise<AutomationSnapshot>;

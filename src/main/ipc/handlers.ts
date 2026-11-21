@@ -1,3 +1,4 @@
+import { RecipientChecker } from '../email/recipient-check';
 import { EmailProviderLookup } from '../email/providers';
 import { enableAutomationFollowUp } from '../email/automation-followup';
 import { AutomationRepository } from '../database/automation';
@@ -70,6 +71,13 @@ export interface AppServices {
  * before touching the database (spec §3).
  */
 export function registerIpcHandlers(s: AppServices): void {
+  const recipients = new RecipientChecker();
+  ipcMain.handle('email:check-recipients', async (_event, input: unknown) => {
+    if (!Array.isArray(input) || input.length > 20 || input.some(a => typeof a !== 'string' || a.length > 254)) throw new Error('Invalid recipient check batch');
+    const result: Record<string, import('../../shared/types').RecipientCheck> = {};
+    for (const address of input as string[]) result[address] = await recipients.check(address);
+    return result;
+  });
   const emailProviders = new EmailProviderLookup();
   ipcMain.handle('email:providers', (_event, input: unknown) =>
     emailProviders.get(parseOrThrow(emailProviderDomainsSchema, input)));
@@ -263,6 +271,8 @@ export function registerIpcHandlers(s: AppServices): void {
     if (automationSending) throw new Error('An automation email is already sending');
     automationSending = true;
     try {
+      const row = automation.snapshot().workspace.rows.find(row => row.id === id);
+      if (!row || (await recipients.check(row.to)).status !== 'valid') throw new Error('Recipient has not passed MX and SMTP checks. Refresh recipient checks before sending.');
       const claimed = automation.claim(id);
       let result;
       try {

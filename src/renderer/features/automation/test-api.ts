@@ -4,6 +4,7 @@ export function automationTestAPI() {
   let snapshot: AutomationSnapshot = { workspace: emptyAutomation(), sentToday: 0, attemptedToday: 0, sentTotal: 0, lastAttemptAt: 0 };
   const copy = () => structuredClone(snapshot);
   const api = {
+    checkEmailRecipients: vi.fn(async (addresses: string[]) => Object.fromEntries(addresses.map(a => [a, { status: 'valid', detail: 'MX and SMTP passed' }]))),
     getEmailProviders: vi.fn(async (domains: string[]) => Object.fromEntries(domains.map(d => [d, 'Unknown']))),
     getAutomation: vi.fn(async () => copy()),
     saveAutomation: vi.fn(async (workspace: AutomationWorkspace) => { snapshot.workspace = structuredClone(workspace); return copy(); }),

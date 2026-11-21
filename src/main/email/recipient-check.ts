@@ -1,0 +1,78 @@
+import { Resolver } from 'node:dns/promises';
+import { BlockList, createConnection } from 'node:net';
+import { emailDomain } from '../../shared/email-providers';
+import type { RecipientCheck } from '../../shared/types';
+
+const blocked = new BlockList();
+for (const [ip, prefix] of [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.0.2.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15], ['198.51.100.0', 24], ['203.0.113.0', 24], ['224.0.0.0', 3]] as const) blocked.addSubnet(ip, prefix);
+export const publicMailIP = (ip: string) => /^\d+\.\d+\.\d+\.\d+$/.test(ip) && !blocked.check(ip);
+
+/** No DATA, authentication, or message content. Connect only to a pinned public IPv4 address. */
+export function probeRecipient(ip: string, address: string): Promise<RecipientCheck> {
+  return new Promise(resolve => {
+    let finished = false, buffer = '', bytes = 0, step = 0;
+    const socket = createConnection({ host: ip, port: 25 });
+    const finish = (status: RecipientCheck['status'], detail: string) => {
+      if (finished) return; finished = true; clearTimeout(timer); socket.destroy(); resolve({ status, detail });
+    };
+    const timer = setTimeout(() => finish('unknown', 'SMTP check timed out'), 10000);
+    socket.on('error', () => finish('unknown', 'SMTP server unavailable or port 25 blocked'));
+    socket.on('end', () => finish('unknown', 'SMTP server closed the check'));
+    socket.on('data', chunk => {
+      bytes += chunk.length;
+      if (bytes > 32768) { finish('unknown', 'Unexpected SMTP response'); return; }
+      buffer += chunk.toString('utf8');
+      while (buffer.includes('\n') && !finished) {
+        const end = buffer.indexOf('\n'); const line = buffer.slice(0, end).trimEnd(); buffer = buffer.slice(end + 1);
+        if (!/^\d{3} /.test(line)) continue; // Wait for the final line of a multiline reply.
+        const code = Number(line.slice(0, 3));
+        if (step === 3) {
+          if (code === 250 || code === 251) finish('valid', 'MX found; SMTP accepted recipient (delivery not guaranteed)');
+          else if ([550, 551, 553].includes(code)) finish('invalid', 'SMTP rejected recipient (mailbox or server policy)');
+          else finish('unknown', 'SMTP recipient check inconclusive');
+          return;
+        }
+        if (code !== (step === 0 ? 220 : 250)) { finish('unknown', 'SMTP server declined verification'); return; }
+        socket.write(['EHLO still.invalid\r\n', 'MAIL FROM:<>\r\n', `RCPT TO:<${address}>\r\n`][step++]);
+      }
+    });
+  });
+}
+export class RecipientChecker {
+  private cache = new Map<string, { result: RecipientCheck; expires: number }>();
+  private pending = new Map<string, Promise<RecipientCheck>>();
+  constructor(private dns = new Resolver({ timeout: 2500, tries: 1 }), private probe = probeRecipient) {}
+  async check(address: string): Promise<RecipientCheck> {
+    const domain = emailDomain(address);
+    if (!domain || address.length > 254 || !/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@/.test(address)) return { status: 'invalid', detail: 'Invalid email address' };
+    const cached = this.cache.get(address);
+    if (cached && cached.expires > Date.now()) return cached.result;
+    const pending = this.pending.get(address); if (pending) return pending;
+    const task = this.lookup(address, domain).then(result => {
+      if (this.cache.size >= 2000) this.cache.delete(this.cache.keys().next().value!);
+      this.cache.set(address, { result, expires: Date.now() + (result.status === 'unknown' ? 60000 : 300000) }); return result;
+    });
+    this.pending.set(address, task);
+    try { return await task; } finally { this.pending.delete(address); }
+  }
+  private async lookup(address: string, domain: string): Promise<RecipientCheck> {
+    try {
+      const records = (await this.dns.resolveMx(domain)).sort((a, b) => a.priority - b.priority);
+      if (!records.length || records.some(r => r.exchange === '' || r.exchange === '.')) return { status: 'invalid', detail: 'Domain has no receiving MX server' };
+      for (const record of records.slice(0, 3)) {
+        let ips: string[];
+        try { ips = await this.dns.resolve4(record.exchange); } catch { continue; }
+        const ip = ips.find(publicMailIP);
+        if (!ip) continue;
+        const result = await this.probe(ip, address);
+        if (result.status !== 'unknown') return result;
+      }
+      return { status: 'unknown', detail: 'MX found; SMTP check unavailable or inconclusive' };
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      return code === 'ENOTFOUND' || code === 'ENODATA'
+        ? { status: 'invalid', detail: 'No receiving mail server found' }
+        : { status: 'unknown', detail: 'DNS check unavailable; try again later' };
+    }
+  }
+}

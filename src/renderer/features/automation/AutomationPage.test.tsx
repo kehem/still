@@ -54,7 +54,7 @@ it('shows active follow-up matches as done and prevents sending them again', asy
   render(<AutomationPage accounts={accounts} onSent={() => {}} />);
   expect(await screen.findByText('Follow-up active')).toBeTruthy();
   expect(screen.getByText('Done')).toBeTruthy();
-  expect((screen.getByRole('button', { name: 'Send mail to r1@example.com' }) as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.queryByRole('button', { name: 'Send mail to r1@example.com' })).toBeNull();
 });
 it('pauses after uncertain failures without retrying', async () => {
   mock.api.sendAutomationRow.mockRejectedValue(new Error('SMTP failure'));
@@ -97,5 +97,19 @@ it('shows the receiver mail provider below the address and in the send confirmat
   fireEvent.click(screen.getByRole('button', { name: 'Send mail to r1@example.com' }));
   expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Email provider: Google Workspace'));
   expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('To: r1@example.com'));
+  expect(mock.api.sendAutomationRow).not.toHaveBeenCalled();
+});
+
+it('hides row sending and blocks batch sending for failed or inconclusive recipient checks', async () => {
+  mock.api.checkEmailRecipients.mockResolvedValue({
+    'r1@example.com': { status: 'invalid', detail: 'SMTP rejected recipient' },
+    'r2@example.com': { status: 'unknown', detail: 'SMTP timed out' },
+  });
+  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
+  await screen.findByText('SMTP rejected recipient');
+  expect(screen.queryByRole('button', { name: 'Send mail to r1@example.com' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Send mail to r2@example.com' })).toBeNull();
+  expect((screen.getByText('Send next') as HTMLButtonElement).disabled).toBe(true);
+  expect((screen.getByText('Start automatic sending') as HTMLButtonElement).disabled).toBe(true);
   expect(mock.api.sendAutomationRow).not.toHaveBeenCalled();
 });

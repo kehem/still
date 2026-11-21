@@ -35,7 +35,7 @@ it('sends one row per manual click and respects the interval', async () => {
   await screen.findByText('Done');
   fireEvent.click(screen.getByText('Send next'));
   expect(mock.api.sendAutomationRow).toHaveBeenCalledTimes(1);
-  expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('interval');
+  await waitFor(() => expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('interval'));
 });
 it('saves a changed daily limit and stops at that limit', async () => {
   await open();
@@ -47,7 +47,7 @@ it('saves a changed daily limit and stops at that limit', async () => {
   await screen.findByText('Done');
   fireEvent.click(screen.getByText('Send next'));
   expect(mock.api.sendAutomationRow).toHaveBeenCalledTimes(1);
-  expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('Daily limit');
+  await waitFor(() => expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('Daily limit'));
 });
 it('shows active follow-up matches as done and prevents sending them again', async () => {
   store.seed({ rows: [{ ...rows[0], status: 'sent', followUpActive: true, selected: false, sentAt: new Date().toISOString() }] });

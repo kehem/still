@@ -16,8 +16,8 @@ import type {
   Settings,
   UpdateAccountInput,
 } from '../../shared/types';
-import { DEFAULT_SETTINGS } from '../../shared/constants';
-import { computeDueDate, deriveTimingStatus, initialSchedule, snoozeUntil } from '../../shared/followup/scheduler';
+import { DEFAULT_SETTINGS, DEFAULT_FOLLOWUP_STAGES } from '../../shared/constants';
+import { advanceOnFollowUpSent, computeDueDate, deriveTimingStatus, initialSchedule, snoozeUntil } from '../../shared/followup/scheduler';
 import { planReminders, type DueSequence, type ReminderOptions } from '../../shared/notifications/reminder-engine';
 
 function nowIso(): string {
@@ -733,6 +733,35 @@ export class FollowUpRepository {
     });
   }
 
+  /** Advance only on a successfully persisted outbound message; duplicate callbacks are harmless. */
+  recordFollowUpSent(conversationId: string, messageId: string, sentAt: string, settings: Settings): void {
+    this.db.db.transaction(() => {
+      const item = this.list().find(i => i.conversation.id === conversationId && !['completed', 'replied', 'cancelled'].includes(i.status));
+      if (!item) return;
+      if (this.db.db.prepare("SELECT 1 FROM followup_events WHERE sequence_id = ? AND kind = 'followup_sent' AND note = ?").get(item.sequence.id, messageId)) return;
+      const stored = this.db.db.prepare('SELECT stages FROM followup_schedules WHERE id = ?').get(item.sequence.scheduleId) as { stages: string } | undefined;
+      const stages = (stored ? parseJsonNumberArray(stored.stages) : DEFAULT_FOLLOWUP_STAGES).slice(0, Math.max(1, settings.maxStages));
+      const next = advanceOnFollowUpSent(item.sequence, stages, new Date(sentAt), {
+        useWorkingDays: settings.useWorkingDays && settings.weekendBehavior === 'skip', reminderTime: settings.reminderTime,
+      });
+      this.db.db.prepare(`UPDATE followup_sequences SET current_stage = ?, next_due_at = ?, status = ?,
+        last_sent_at = ?, snoozed_until = NULL, updated_at = ? WHERE id = ?`)
+        .run(next.currentStage, next.nextDueAt, next.status, sentAt, nowIso(), item.sequence.id);
+      this.db.db.prepare("INSERT INTO followup_events(id, sequence_id, kind, stage_index, note, created_at) VALUES(?, ?, 'followup_sent', ?, ?, ?)")
+        .run(randomUUID(), item.sequence.id, next.currentStage, messageId, nowIso());
+      this.db.db.prepare('DELETE FROM notifications WHERE sequence_id = ?').run(item.sequence.id);
+    })();
+  }
+
+  completeFromReply(conversationId: string): void {
+    this.db.db.transaction(() => {
+      for (const item of this.list().filter(i => i.conversation.id === conversationId && !['completed', 'replied', 'cancelled'].includes(i.status))) {
+        this.updateStatus(item.sequence.id, 'replied');
+        this.db.db.prepare('DELETE FROM notifications WHERE sequence_id = ?').run(item.sequence.id);
+      }
+    })();
+  }
+
   updateStatus(id: string, status: FollowUpStatus, snoozeDays?: number): void {
     const terminal = status === 'completed' || status === 'replied' || status === 'cancelled';
     const snoozedUntil = status === 'snoozed' ? snoozeUntil(snoozeDays ?? 3) : null;
@@ -744,7 +773,7 @@ export class FollowUpRepository {
           : status === 'cancelled'
             ? 'cancelled'
             : status === 'replied'
-              ? 'replied'
+              ? 'reply_received'
               : 'schedule_changed';
     const tx = this.db.db.transaction(() => {
       // A terminal sequence must never look due again: its pending reminder is

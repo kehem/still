@@ -483,6 +483,7 @@ class BrowserPreviewAPI implements StillAPI {
   private followUps: FollowUpListItem[] = lsRead<FollowUpListItem[]>('followups', seedFollowUps);
   private notifications: NotificationItem[] = lsRead<NotificationItem[]>('notifications', []);
   private messages: Message[] = lsRead<Message[]>('messages', seedMessages);
+  private conversations: Conversation[] = lsRead<Conversation[]>('conversations', seedConversations);
 
   async getSettings(): Promise<Settings> {
     return this.settings;
@@ -582,7 +583,7 @@ class BrowserPreviewAPI implements StillAPI {
   }
 
   async getConversation(id: string): Promise<ConversationDetail | null> {
-    const conversation = seedConversations.find((c) => c.id === id);
+    const conversation = this.conversations.find((c) => c.id === id);
     if (!conversation) return null;
     const messages = this.messages
       .filter((m) => m.conversationId === id)
@@ -634,7 +635,7 @@ class BrowserPreviewAPI implements StillAPI {
    * never produces a second sequence.
    */
   async createFollowUp(input: CreateFollowUpInput): Promise<FollowUpListItem | null> {
-    const conversation = seedConversations.find((c) => c.id === input.conversationId);
+    const conversation = this.conversations.find((c) => c.id === input.conversationId);
     if (!conversation) return null;
 
     const active = this.followUps.find(
@@ -997,6 +998,11 @@ class BrowserPreviewAPI implements StillAPI {
       deletedAt: null,
     };
     this.messages = [msg, ...this.messages];
+    lsWrite('messages', this.messages);
+    const conversation = this.conversations.find(c => c.id === conversationId);
+    if (conversation) conversation.lastMessageAt = sentAt;
+    else this.conversations.push({ id: conversationId, accountId: input.accountId, subject: input.subject || '(no subject)', participants: [account?.email || '', ...input.to], lastMessageAt: sentAt, unreadCount: 0, isStarred: false });
+    lsWrite('conversations', this.conversations);
     if (input.draftId) {
       this.drafts = this.drafts.filter((d) => d.id !== input.draftId);
       lsWrite('drafts', this.drafts);

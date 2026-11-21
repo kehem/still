@@ -1,3 +1,4 @@
+import { confirmAction, showAlert } from './services/dialogs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   Account,
@@ -303,7 +304,7 @@ function Shell() {
         target.isContentEditable;
 
       if (e.key === 'Escape') {
-        if (composer.open) setComposer({ open: false, initial: {} });
+        if (composer.open) { window.dispatchEvent(new Event('still:close-composer')); return; }
         else if (view?.kind !== 'mail') setView({ kind: 'mail', folder: homeFolder });
         return;
       }
@@ -337,7 +338,7 @@ function Shell() {
   }, []);
 
   const trashConversation = async (conversation: ConversationDetail, restore: boolean) => {
-    if (!restore && settings.confirmBeforeDelete && !window.confirm(
+    if (!restore && settings.confirmBeforeDelete && !await confirmAction(
       `Move "${conversation.conversation.subject || '(no subject)'}" to Trash? This affects the entire local conversation only. You can restore it from Trash. Mail at your provider is unchanged.`,
     )) return;
     try {
@@ -348,7 +349,7 @@ function Shell() {
       setDetail(null);
       setReloadToken((t) => t + 1);
     } catch {
-      window.alert('Could not update this conversation. Please try again.');
+      void showAlert('Could not update this conversation. Please try again.');
     }
   };
 
@@ -356,7 +357,7 @@ function Shell() {
   const deleteDraft = useCallback(
     async (draft: Draft) => {
       if (settings.confirmBeforeDelete) {
-        const ok = window.confirm(
+        const ok = await confirmAction(
           `Delete the draft "${draft.subject || '(no subject)'}"? This cannot be undone.`,
         );
         if (!ok) return;
@@ -549,7 +550,7 @@ function Shell() {
                 onSelect={selectRow}
                 onOpenDraft={(draft) => openComposer({ ...draft, id: draft.id })}
                 onTrashConversation={(id, restore) => {
-                  void getAPI().getConversation(id).then(d => { if (d) void trashConversation(d, restore); }).catch(() => window.alert('Could not load this conversation. Please try again.'));
+                  void getAPI().getConversation(id).then(d => { if (d) void trashConversation(d, restore); }).catch(() => void showAlert('Could not load this conversation. Please try again.'));
                 }}
                 onDeleteDraft={(draft) => void deleteDraft(draft)}
                 query={query}

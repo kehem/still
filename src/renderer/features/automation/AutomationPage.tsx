@@ -1,3 +1,4 @@
+import { confirmAction } from '../../services/dialogs';
 import { emailDomain, knownEmailProvider } from '../../../shared/email-providers';
 import { useEffect, useRef, useState } from 'react';
 import Papa from 'papaparse';
@@ -97,7 +98,7 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
 
   const importFile = async (file: File) => {
     if (!current.current || busy.current) return;
-    if (current.current.workspace.rows.length && !window.confirm('Replace the current spreadsheet and queue? Sent history and daily counters will be kept.')) return;
+    if (current.current.workspace.rows.length && !await confirmAction('Replace the current spreadsheet and queue? Sent history and daily counters will be kept.')) return;
     const version = ++importVersion.current;
     setImporting(true); setError(''); setNotice(`Reading ${file.name}…`);
     let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -187,7 +188,7 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
             </select></label>)}
             <button className={primary} disabled={disabled || !ws.table.length} onClick={async () => {
               if (new Set(ws.columns).size !== 3 || ws.columns.some(c => c >= ws.table[0].length)) { setError('Choose three different columns.'); return; }
-              if (ws.rows.length && !window.confirm('Rebuild the queue? Matching sent emails will remain done.')) return;
+              if (ws.rows.length && !await confirmAction('Rebuild the queue? Matching sent emails will remain done.')) return;
               await save({ rows: ws.table.slice(1).map(r => ({ id: crypto.randomUUID(), to: (r[ws.columns[0]] || '').trim(), subject: r[ws.columns[1]] || '', body: r[ws.columns[2]] || '', selected: false, status: 'pending' })) });
               setShowImport(false); setNotice('Queue saved. Select rows or send an individual email.');
             }}>Build queue</button>
@@ -205,9 +206,9 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
           <div className="flex flex-wrap items-center gap-2">
             <button className={button} disabled={disabled} onClick={() => void refresh(true)}>Refresh sent status</button>
             <button className={button} disabled={disabled || !pending} onClick={() => void save({ rows: ws.rows.map(r => ({ ...r, selected: r.status === 'pending' && validRow(r) })) })}>Select all valid pending rows</button>
-            <button className={button} disabled={disabled || !selected || !settingsValid} onClick={() => { if (window.confirm('Send the next selected email now?')) void send(); }}>Send next</button>
-            {running ? <button className={primary} onClick={pause}>Pause</button> : <button className={primary} disabled={disabled || !selected || !settingsValid} onClick={() => {
-              if (window.confirm(`Send ${selected} selected emails automatically, up to ${ws.daily} per day and at least ${ws.seconds} seconds apart?`)) { run.current = true; setRunning(true); void send(); }
+            <button className={button} disabled={disabled || !selected || !settingsValid} onClick={async () => { if (await confirmAction('Send the next selected email now?')) void send(); }}>Send next</button>
+            {running ? <button className={primary} onClick={pause}>Pause</button> : <button className={primary} disabled={disabled || !selected || !settingsValid} onClick={async () => {
+              if (await confirmAction(`Send ${selected} selected emails automatically, up to ${ws.daily} per day and at least ${ws.seconds} seconds apart?`)) { run.current = true; setRunning(true); void send(); }
             }}>Start automatic sending</button>}
           </div>
         </div>
@@ -221,12 +222,12 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
               <td className="py-4 pr-4 align-top"><div className="truncate" title={r.to}>{r.to}</div><div className="mt-1 text-[10px] text-text-tertiary" title="Detected from the public email domain or MX records. A gateway may hide the mailbox provider; this does not verify the mailbox exists.">{providerFor(r.to)}</div></td>
               <td className="py-4 pr-5 align-top"><button className="block w-full truncate text-left font-medium" aria-label={`Preview row ${i + 2}`} onClick={() => setExpanded(expanded === r.id ? null : r.id)}>{r.subject || '(no subject)'}</button><p className={`${expanded === r.id ? 'whitespace-pre-wrap' : 'truncate'} mt-1 text-text-secondary`}>{expanded === r.id ? r.body : r.body.slice(0, 100)}</p>{r.error && <p className="mt-2 text-[11px] text-text-secondary">{r.error}</p>}</td>
               <td className="py-4 pr-3 align-top"><span className={`rounded-full px-2 py-1 text-[10px] ${r.status === 'sent' ? 'bg-accent/10 text-accent' : 'bg-surface text-text-secondary'}`}>{r.status === 'sent' ? 'Done' : !validRow(r) ? 'Invalid data' : r.status === 'pending' ? 'Ready' : r.status === 'sending' ? 'Sending…' : 'Needs review'}</span>{r.followUpActive && <p className="mt-2 text-[10px] text-accent">Follow-up active</p>}{r.sentAt && <p className="mt-2 text-[10px] text-text-tertiary">{new Date(r.sentAt).toLocaleDateString()}</p>}</td>
-              <td className="px-3 py-3 text-right align-top"><button className={`${button} !h-8 !px-2`} aria-label={`Send mail to ${r.to}`} disabled={disabled || r.status !== 'pending' || !validRow(r) || !settingsValid} onClick={() => { if (window.confirm(`Send email?\n\nTo: ${r.to}\nEmail provider: ${providerFor(r.to)}\nSubject: ${r.subject}\n\nProvider detection is based on the domain or MX records, not mailbox verification.`)) void send(r.id); }}><SendIcon size={12} />Send mail</button></td>
+              <td className="px-3 py-3 text-right align-top"><button className={`${button} !h-8 !px-2`} aria-label={`Send mail to ${r.to}`} disabled={disabled || r.status !== 'pending' || !validRow(r) || !settingsValid} onClick={async () => { if (await confirmAction(`Send email?\n\nTo: ${r.to}\nEmail provider: ${providerFor(r.to)}\nSubject: ${r.subject}\n\nProvider detection is based on the domain or MX records, not mailbox verification.`)) void send(r.id); }}><SendIcon size={12} />Send mail</button></td>
             </tr>)}</tbody>
           </table>
           {!ws.rows.length && <div className="px-6 py-14 text-center"><FileTextIcon size={26} className="mx-auto mb-3 text-text-tertiary" /><p className="text-[13px] font-medium">{ws.table.length ? 'Your spreadsheet is saved.' : 'A clear place for your next send.'}</p><p className="mt-1 text-[12px] text-text-secondary">{ws.table.length ? 'Choose the columns above and build your queue.' : 'Import a spreadsheet to prepare individual emails.'}</p></div>}
         </div>
-        <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[11px] text-text-tertiary"><p>Keep Still open for scheduled sending. Failed deliveries are never retried automatically. Only contact recipients who expect your mail.</p><button disabled={disabled || !ws.fileName} className="hover:text-text disabled:opacity-40" onClick={() => { if (window.confirm('Clear the imported spreadsheet and queue? Delivery history and daily limits will be retained.')) void save({ fileName: '', table: [], rows: [], columns: [0, 1, 2] }); }}>Clear queue</button></footer>
+        <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 text-[11px] text-text-tertiary"><p>Keep Still open for scheduled sending. Failed deliveries are never retried automatically. Only contact recipients who expect your mail.</p><button disabled={disabled || !ws.fileName} className="hover:text-text disabled:opacity-40" onClick={async () => { if (await confirmAction('Clear the imported spreadsheet and queue? Delivery history and daily limits will be retained.')) void save({ fileName: '', table: [], rows: [], columns: [0, 1, 2] }); }}>Clear queue</button></footer>
       </>}
     </div>
   </main>;

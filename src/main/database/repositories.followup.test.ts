@@ -1,3 +1,4 @@
+import { DEFAULT_SETTINGS } from '../../shared/constants';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 // `db.ts` resolves an Electron userData path; the repositories under test do
@@ -75,6 +76,20 @@ describe('FollowUpRepository.create', () => {
     const schedules = new ScheduleRepository(service);
     scheduleId = schedules.create({ name: 'Default', stages: [3, 7, 15, 30] }).id;
     followups = new FollowUpRepository(service);
+  });
+
+  it('advances once per delivered follow-up and stops reminders on reply', () => {
+    const item = followups.create('conv-outbound', { stages: [3, 7, 15, 30], scheduleId, useWorkingDays: false, reminderTime: '09:00' })!;
+    const sentAt = '2026-11-21T10:00:00.000Z';
+    followups.recordFollowUpSent('conv-outbound', 'sent-followup', sentAt, { ...DEFAULT_SETTINGS, useWorkingDays: false });
+    expect(followups.list().find(i => i.sequence.id === item.sequence.id)!.sequence).toMatchObject({ currentStage: 1, lastSentAt: sentAt, status: 'scheduled' });
+    followups.recordFollowUpSent('conv-outbound', 'sent-followup', sentAt, DEFAULT_SETTINGS);
+    expect(followups.list().find(i => i.sequence.id === item.sequence.id)!.sequence.currentStage).toBe(1);
+    followups.completeFromReply('conv-outbound');
+    expect(followups.list().find(i => i.sequence.id === item.sequence.id)!.sequence).toMatchObject({ status: 'replied', nextDueAt: null });
+    // Leave this shared fixture ready for the creation tests below.
+    service.db.prepare('DELETE FROM followup_events WHERE sequence_id = ?').run(item.sequence.id);
+    service.db.prepare('DELETE FROM followup_sequences WHERE id = ?').run(item.sequence.id);
   });
 
   it('starts tracking from the actual outbound send time using stage 0', () => {
@@ -434,7 +449,7 @@ describe('FollowUpRepository.updateStatus', () => {
       'enabled',
       'snoozed',
       'completed',
-      'replied',
+      'reply_received',
     ]);
   });
 });

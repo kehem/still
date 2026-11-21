@@ -281,9 +281,15 @@ export function registerIpcHandlers(s: AppServices): void {
     } finally { automationSending = false; }
   });
 
-  ipcMain.handle('email:send', (_event, input: unknown) =>
-    emailService.sendEmail(parseOrThrow(sendEmailSchema, input)),
-  );
+  ipcMain.handle('email:send', async (_event, input: unknown) => {
+    const data = parseOrThrow(sendEmailSchema, input);
+    const result = await emailService.sendEmail(data);
+    if (data.conversationId) {
+      try { s.followups.recordFollowUpSent(result.conversationId, result.messageId, result.sentAt, s.settings.getAll()); }
+      catch { return { ...result, warning: 'Message sent, but the follow-up schedule could not advance. Do not resend; review it in Follow-ups.' }; }
+    }
+    return result;
+  });
 
   ipcMain.handle('email:sync', () => emailService.syncAllAccounts());
 

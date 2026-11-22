@@ -1,21 +1,22 @@
 import { Resolver } from 'node:dns/promises';
-import { BlockList, createConnection } from 'node:net';
+import { BlockList, createConnection, isIPv4 } from 'node:net';
 import { emailDomain } from '../../shared/email-providers';
 import type { RecipientCheck } from '../../shared/types';
 
 const blocked = new BlockList();
-for (const [ip, prefix] of [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.0.2.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15], ['198.51.100.0', 24], ['203.0.113.0', 24], ['224.0.0.0', 3]] as const) blocked.addSubnet(ip, prefix);
-export const publicMailIP = (ip: string) => /^\d+\.\d+\.\d+\.\d+$/.test(ip) && !blocked.check(ip);
+for (const [ip, prefix] of [['0.0.0.0', 8], ['10.0.0.0', 8], ['100.64.0.0', 10], ['127.0.0.0', 8], ['169.254.0.0', 16], ['172.16.0.0', 12], ['192.0.0.0', 24], ['192.0.2.0', 24], ['192.88.99.0', 24], ['192.168.0.0', 16], ['198.18.0.0', 15], ['198.51.100.0', 24], ['203.0.113.0', 24], ['224.0.0.0', 3]] as const) blocked.addSubnet(ip, prefix);
+export const publicMailIP = (ip: string) => isIPv4(ip) && !blocked.check(ip);
 
 /** No DATA, authentication, or message content. Connect only to a pinned public IPv4 address. */
-export function probeRecipient(ip: string, address: string): Promise<RecipientCheck> {
+export function probeRecipient(ip: string, address: string, timeoutMs = 5000): Promise<RecipientCheck> {
   return new Promise(resolve => {
+    let heloFallback = false;
     let finished = false, buffer = '', bytes = 0, step = 0;
     const socket = createConnection({ host: ip, port: 25 });
     const finish = (status: RecipientCheck['status'], detail: string) => {
       if (finished) return; finished = true; clearTimeout(timer); socket.destroy(); resolve({ status, detail });
     };
-    const timer = setTimeout(() => finish('unknown', 'SMTP check timed out'), 10000);
+    const timer = setTimeout(() => finish('unknown', 'SMTP check timed out'), timeoutMs);
     socket.on('error', () => finish('unknown', 'SMTP server unavailable or port 25 blocked'));
     socket.on('end', () => finish('unknown', 'SMTP server closed the check'));
     socket.on('data', chunk => {
@@ -28,9 +29,12 @@ export function probeRecipient(ip: string, address: string): Promise<RecipientCh
         const code = Number(line.slice(0, 3));
         if (step === 3) {
           if (code === 250 || code === 251) finish('valid', 'MX found; SMTP accepted recipient (delivery not guaranteed)');
-          else if ([550, 551, 553].includes(code)) finish('invalid', 'SMTP rejected recipient (mailbox or server policy)');
+          else if ([550, 551, 553].includes(code) && /5\.1\.[123]|user unknown|no such (?:user|mailbox)|mailbox.*(?:not found|does not exist)/i.test(line)) finish('invalid', 'SMTP reports recipient mailbox does not exist');
           else finish('unknown', 'SMTP recipient check inconclusive');
           return;
+        }
+        if (step === 1 && [500, 502, 504].includes(code) && !heloFallback) {
+          heloFallback = true; socket.write('HELO still.invalid\r\n'); continue;
         }
         if (code !== (step === 0 ? 220 : 250)) { finish('unknown', 'SMTP server declined verification'); return; }
         socket.write(['EHLO still.invalid\r\n', 'MAIL FROM:<>\r\n', `RCPT TO:<${address}>\r\n`][step++]);
@@ -40,11 +44,13 @@ export function probeRecipient(ip: string, address: string): Promise<RecipientCh
 }
 export class RecipientChecker {
   private cache = new Map<string, { result: RecipientCheck; expires: number }>();
+  private mxCache = new Map<string, { records: { exchange: string; priority: number }[]; expires: number }>();
   private pending = new Map<string, Promise<RecipientCheck>>();
-  constructor(private dns = new Resolver({ timeout: 2500, tries: 1 }), private probe = probeRecipient) {}
+  constructor(private dns = new Resolver({ timeout: 1500, tries: 1 }), private probe = probeRecipient) {}
   async check(address: string): Promise<RecipientCheck> {
     const domain = emailDomain(address);
-    if (!domain || address.length > 254 || !/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@/.test(address)) return { status: 'invalid', detail: 'Invalid email address' };
+    const local = address.slice(0, address.lastIndexOf('@'));
+    if (!domain || !local || local.length > 64 || local.startsWith('.') || local.endsWith('.') || local.includes('..') || address.length > 254 || !/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@/.test(address)) return { status: 'invalid', detail: 'Invalid email address' };
     const cached = this.cache.get(address);
     if (cached && cached.expires > Date.now()) return cached.result;
     const pending = this.pending.get(address); if (pending) return pending;
@@ -57,14 +63,22 @@ export class RecipientChecker {
   }
   private async lookup(address: string, domain: string): Promise<RecipientCheck> {
     try {
-      const records = (await this.dns.resolveMx(domain)).sort((a, b) => a.priority - b.priority);
+      const deadline = Date.now() + 12000;
+      const cachedMx = this.mxCache.get(domain);
+      let records = cachedMx && cachedMx.expires > Date.now() ? cachedMx.records : undefined;
+      if (!records) {
+        records = (await this.dns.resolveMx(domain)).sort((a, b) => a.priority - b.priority);
+        if (this.mxCache.size >= 2000) this.mxCache.delete(this.mxCache.keys().next().value!);
+        this.mxCache.set(domain, { records, expires: Date.now() + 300000 });
+      }
       if (!records.length || records.some(r => r.exchange === '' || r.exchange === '.')) return { status: 'invalid', detail: 'Domain has no receiving MX server' };
       for (const record of records.slice(0, 3)) {
+        if (Date.now() >= deadline) break;
         let ips: string[];
         try { ips = await this.dns.resolve4(record.exchange); } catch { continue; }
         const ip = ips.find(publicMailIP);
         if (!ip) continue;
-        const result = await this.probe(ip, address);
+        const result = await this.probe(ip, address, Math.max(1, Math.min(5000, deadline - Date.now())));
         if (result.status !== 'unknown') return result;
       }
       return { status: 'unknown', detail: 'MX found; SMTP check unavailable or inconclusive' };

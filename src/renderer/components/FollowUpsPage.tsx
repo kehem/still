@@ -142,7 +142,7 @@ function FollowUpRow({
             className="h-1.5 w-1.5 rounded-full"
             style={{ backgroundColor: item.account.color ?? '#9a9a9a' }}
           />
-          {item.account.displayName} · Last sent {dates.relative(item.lastSentAt)}
+          {item.account.displayName} · Next: follow-up {Math.max(item.sentFollowUpCount ?? 0, item.currentStage) + 1} · Last sent {dates.relative(item.lastSentAt)}
           {item.nextDueAt && <> · Next due {dates.relative(item.nextDueAt)}</>}
           {item.status === 'snoozed' && item.sequence.snoozedUntil && (
             <> · Snoozed until {dates.relative(item.sequence.snoozedUntil)}</>

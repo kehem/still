@@ -226,6 +226,8 @@ export interface CreateFollowUpInput {
 }
 
 export interface FollowUpListItem {
+  /** Successfully recorded sends retained in conversation follow-up history. */
+  sentFollowUpCount?: number;
   sequence: FollowUpSequence;
   conversation: Conversation;
   account: Account;

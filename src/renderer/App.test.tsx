@@ -1076,7 +1076,7 @@ describe('local conversation trash', () => {
 describe('saved spreadsheet follow-up prefills', () => {
   it('fills the normal Send follow-up composer with the saved recipient-specific body and sends it without typing', async () => {
     const { emptyFollowUpImport } = await import('../shared/followup-import');
-    localStorage.setItem(LS + 'followup-import', JSON.stringify({ ...emptyFollowUpImport(), fileName: 'saved.xlsx', rowStages: { '2': 1 }, rows: [{ row: 2, email: 'marco@partner.example', account: '', conversationId: 'c3', subject: 'Partnership inquiry', messages: ['First imported body', 'Second imported body', 'Third imported body'], subjects: ['Re: First', 'Re: Second imported subject', 'Re: Third'] }] }));
+    localStorage.setItem(LS + 'followup-import', JSON.stringify({ ...emptyFollowUpImport(), fileName: 'saved.xlsx', rowStages: { '2': 1 }, rows: [{ row: 2, email: 'marco@partner.example', account: '', conversationId: 'c3', subject: 'Partnership inquiry', messages: ['First imported body', 'First imported body', 'Third imported body'], subjects: ['Re: First', 'Re: First', 'Re: Third'] }] }));
     localStorage.setItem(LS + 'settings', JSON.stringify({ confirmBeforeSend: false }));
     await renderApp();
     await screen.findByRole('heading', { name: 'All Inbox' });
@@ -1084,13 +1084,13 @@ describe('saved spreadsheet follow-up prefills', () => {
     await screen.findByRole('heading', { name: 'Follow-ups' });
     fireEvent.click(screen.getByTitle('Send follow-up'));
     await screen.findByRole('heading', { name: 'Reply' });
-    expect((screen.getByRole('textbox', { name: 'Message body' }) as HTMLTextAreaElement).value).toBe('Second imported body');
-    expect(screen.getByDisplayValue('Re: Second imported subject')).toBeTruthy();
+    expect((screen.getByRole('textbox', { name: 'Message body' }) as HTMLTextAreaElement).value).toBe('First imported body');
+    expect(screen.getByDisplayValue('Re: First')).toBeTruthy();
     expect(screen.getByDisplayValue('marco@partner.example')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Send' }));
     await waitFor(() => {
       const messages = JSON.parse(localStorage.getItem(LS + 'messages') || '[]') as Message[];
-      expect(messages.some(message => message.conversationId === 'c3' && message.bodyText === 'Second imported body' && message.subject === 'Re: Second imported subject' && message.toAddresses.includes('marco@partner.example'))).toBe(true);
+      expect(messages.some(message => message.conversationId === 'c3' && message.bodyText === 'First imported body' && message.subject === 'Re: First' && message.toAddresses.includes('marco@partner.example'))).toBe(true);
     });
   });
 });

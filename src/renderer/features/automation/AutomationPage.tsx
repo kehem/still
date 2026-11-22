@@ -131,16 +131,17 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
   };
 
   const ws = snapshot?.workspace;
-  const recipientKey = JSON.stringify([...new Set((ws?.rows || []).filter(r => r.status === 'pending' && validRow(r)).map(r => r.to))].sort());
+  const previousCheckVersion = useRef(checkVersion);
+  const recipientKey = JSON.stringify([...new Set((ws?.rows || []).filter(r => r.status === 'pending' && validRow(r)).map(r => r.to))]);
   useEffect(() => {
     if (!active) return;
     let cancelled = false;
-    setChecks({});
+    if (previousCheckVersion.current !== checkVersion) { setChecks({}); previousCheckVersion.current = checkVersion; }
     void (async () => {
       const addresses = JSON.parse(recipientKey) as string[];
-      for (let i = 0; i < addresses.length; i += 5) {
+      for (let i = 0; i < addresses.length; i++) {
         if (cancelled) return;
-        const batch = addresses.slice(i, i + 5);
+        const batch = [addresses[i]];
         let results: Record<string, RecipientCheck>;
         try { results = await getAPI().checkEmailRecipients(batch); }
         catch { results = Object.fromEntries(batch.map(a => [a, { status: 'unknown', detail: 'Recipient check unavailable' }])); }

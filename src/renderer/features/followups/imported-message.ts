@@ -8,7 +8,7 @@ export function importedFollowUpMessage(workspace: FollowUpImportWorkspace, item
   if (!candidates.length) return null;
   if (candidates.length > 1) throw new Error('More than one imported row matches this conversation. Choose the intended row in the import table.');
   const row = candidates[0];
-  const stage = workspace.rowStages[String(row.row)] ?? workspace.stage;
+  const stage = Math.max(item.sentFollowUpCount ?? 0, item.currentStage ?? 0);
   const body = workspace.bodySource === 'custom' ? workspace.customBodies[stage] : row.messages[stage];
   if (!body?.trim()) throw new Error(`The saved Follow-up ${stage + 1} body for ${item.recipient} is empty. Choose a message in the import table first.`);
   return { body, subject: workspace.bodySource === 'spreadsheet' ? row.subjects?.[stage] || undefined : undefined };

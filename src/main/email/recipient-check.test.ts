@@ -11,7 +11,7 @@ it('requires MX and SMTP acceptance and caches checks per recipient', async () =
   expect((await checker.check('person@example.com')).status).toBe('valid');
   await checker.check('person@example.com');
   expect(dns.resolveMx).toHaveBeenCalledTimes(1);
-  expect(probe).toHaveBeenCalledWith('8.8.8.8', 'person@example.com');
+  expect(probe).toHaveBeenCalledWith('8.8.8.8', 'person@example.com', expect.any(Number));
 });
 it('rejects malformed addresses without DNS or SMTP', async () => {
   const { checker, dns } = setup();
@@ -37,4 +37,16 @@ it('does not treat temporary DNS failure or inconclusive SMTP as valid', async (
   expect((await checker.check('a@example.com')).status).toBe('unknown');
   probe.mockResolvedValue({ status: 'unknown', detail: 'Greylisted' });
   expect((await checker.check('b@example.com')).status).toBe('unknown');
+});
+it('reuses domain MX results for different recipients without skipping SMTP recipient checks', async () => {
+  const { checker, dns, probe } = setup();
+  await checker.check('first@example.com'); await checker.check('second@example.com');
+  expect(dns.resolveMx).toHaveBeenCalledTimes(1);
+  expect(probe).toHaveBeenCalledTimes(2);
+});
+it('tries a backup MX when the primary cannot be resolved', async () => {
+  const { checker, dns, probe } = setup([{ exchange: 'first.example.com', priority: 1 }, { exchange: 'second.example.com', priority: 2 }]);
+  dns.resolve4.mockRejectedValueOnce({ code: 'ENOTFOUND' });
+  expect((await checker.check('a@example.com')).status).toBe('valid');
+  expect(probe).toHaveBeenCalledTimes(1);
 });

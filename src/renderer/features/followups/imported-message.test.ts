@@ -21,3 +21,11 @@ it('never substitutes another recipient and refuses duplicate or empty matched t
   expect(() => importedFollowUpMessage({ ...workspace, rows: [row, { ...row, row: 3 }] }, item, [item])).toThrow('More than one');
   expect(() => importedFollowUpMessage(workspace, { ...item, sentFollowUpCount: 9 }, [{ ...item, sentFollowUpCount: 9 }])).toThrow('empty');
 });
+it('fills distinct bodies for multiple recipients at first, second and third follow-ups', () => {
+  const recipients = [0, 1, 2].map(index => ({ ...item, recipient: `person${index}@example.com`, conversation: { ...item.conversation, id: `c${index}` }, sequence: { ...item.sequence, id: `f${index}` }, sentFollowUpCount: index, subject: 'Re: Original' }));
+  const workspace = { ...emptyFollowUpImport(), rows: recipients.map((recipient, index) => ({ ...row, row: index + 2, email: recipient.recipient, conversationId: '', messages: [`First ${index}`, `Second ${index}`, `Third ${index}`] })) };
+  expect(recipients.map(recipient => importedFollowUpMessage(workspace, recipient, recipients)?.body)).toEqual(['First 0', 'Second 1', 'Third 2']);
+});
+it('shows a matching problem rather than silently opening a blank imported reply', () => {
+  expect(() => importedFollowUpMessage({ ...emptyFollowUpImport(), rows: [{ ...row, conversationId: '', subject: 'Different thread' }] }, item, [item])).toThrow('cannot be matched safely');
+});

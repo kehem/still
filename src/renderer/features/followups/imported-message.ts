@@ -5,7 +5,12 @@ import { matchFollowUp } from './spreadsheet';
 /** Resolve saved templates for the normal list/reading-pane follow-up action. */
 export function importedFollowUpMessage(workspace: FollowUpImportWorkspace, item: FollowUpListItem, items: FollowUpListItem[]): { body: string; subject?: string } | null {
   const candidates = workspace.rows.filter(row => matchFollowUp(row, items).item?.sequence.id === item.sequence.id);
-  if (!candidates.length) return null;
+  if (!candidates.length) {
+    const related = workspace.rows.filter(row => row.email.trim().toLowerCase() === item.recipient.trim().toLowerCase()
+      && (!row.account || row.account.trim().toLowerCase() === item.account.email.trim().toLowerCase()));
+    if (related.length) throw new Error(`Saved messages exist for ${item.recipient}, but cannot be matched safely to this conversation. Check the Original Subject or Conversation ID in the import table.`);
+    return null;
+  }
   if (candidates.length > 1) throw new Error('More than one imported row matches this conversation. Choose the intended row in the import table.');
   const row = candidates[0];
   const stage = Math.max(item.sentFollowUpCount ?? 0, item.currentStage ?? 0);

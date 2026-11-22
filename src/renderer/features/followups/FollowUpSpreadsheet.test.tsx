@@ -74,3 +74,14 @@ it('supports additional custom follow-up bodies and prevents whitespace-only mes
   fireEvent.click(screen.getByText('Select all matched rows'));
   expect((screen.getByRole('button', { name: 'Review follow-up 4' }) as HTMLButtonElement).disabled).toBe(false);
 });
+it('prepares the fifth follow-up subject and message from a business-email draft sheet', async () => {
+  const prepare = vi.fn();
+  render(<FollowUpSpreadsheet items={[item]} onPrepare={prepare} />);
+  await upload([['Company Name', 'Business Email', 'Original Subject', 'Follow-up 1 Message', 'Follow-up 5 Subject', 'Follow-up 5 Message'], ['Example Agency', 'person@example.com', 'Proposal', 'First message', 'Re: Fifth proposal', 'Fifth body']]);
+  await screen.findByLabelText('Follow-up for row 2');
+  fireEvent.click(screen.getByLabelText('Select follow-up row 2'));
+  fireEvent.change(screen.getByLabelText('Follow-up for row 2'), { target: { value: '4' } });
+  expect(screen.getByText('Subject: Re: Fifth proposal')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Review follow-up 5' }));
+  expect(prepare).toHaveBeenCalledWith(item, 'Fifth body', 'Re: Fifth proposal');
+});

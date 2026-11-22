@@ -2,10 +2,10 @@ import { useRef, useState } from 'react';
 import Papa from 'papaparse';
 import { readSheet } from 'read-excel-file/browser';
 import type { FollowUpListItem } from '../../../shared/types';
-import { followUpExport, HEADERS, matchFollowUp, parseFollowUpTable, safeCSVCell, type ImportedFollowUp } from './spreadsheet';
+import { followUpExport, DRAFT_HEADERS, matchFollowUp, parseFollowUpTable, safeCSVCell, type ImportedFollowUp } from './spreadsheet';
 
 const button = 'rounded-md border border-border px-3 py-2 text-[12px] disabled:opacity-40';
-export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListItem[]; onPrepare: (item: FollowUpListItem, body: string) => void }) {
+export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListItem[]; onPrepare: (item: FollowUpListItem, body: string, subject?: string) => void }) {
   const [rows, setRows] = useState<ImportedFollowUp[]>([]);
   const [stage, setStage] = useState(0);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
@@ -16,11 +16,13 @@ export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListI
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const spreadsheetStages = Math.max(3, ...rows.map(row => row.messages.length));
+  const stageCount = bodySource === 'custom' ? customBodies.length : spreadsheetStages;
   const upload = useRef<HTMLInputElement>(null);
   const download = async (format: 'xlsx' | 'csv', template = false) => {
     setError(''); setBusy(true);
     try {
-      const table = template ? [HEADERS, ['recipient@example.com', '', '', '', 'First follow-up message', 'Second follow-up message', 'Third follow-up message']] : followUpExport(items);
+      const table = template ? [DRAFT_HEADERS, ['Example company', 'recipient@example.com', '', '', '', 'Review before use', 'Original sent subject', '', ...Array.from({ length: 5 }, (_, n) => ['Re: Original sent subject', `Follow-up ${n + 1} message`]).flat()]] : followUpExport(items);
       const filename = template ? 'follow-up-template' : 'follow-ups';
       if (format === 'xlsx') {
         const { default: writeXlsxFile } = await import('write-excel-file/browser');
@@ -55,7 +57,7 @@ export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListI
   };
   return <section aria-label="Follow-up spreadsheet" className="mt-5 rounded-xl border border-border p-4">
     <h2 className="text-[13px] font-semibold">Excel / CSV follow-ups</h2>
-    <p className="mt-1 text-[11px] text-text-secondary">Match existing tracked conversations. Upload recipients, then use spreadsheet messages or write your own below. New recipients are not emailed. Files stay on this device.</p>
+    <p className="mt-1 text-[11px] text-text-secondary">Match existing tracked conversations. Upload recipients, then use spreadsheet messages or write your own below. New recipients are not emailed. Supports Business Email, Original Subject, and numbered Follow-up Subject / Message columns. Files stay on this device.</p>
     <div className="mt-3 flex flex-wrap gap-2">
       <button className={button} disabled={busy} onClick={() => upload.current?.click()}>Import Excel / CSV</button>
       <input ref={upload} type="file" aria-label="Upload follow-up spreadsheet" accept=".xlsx,.csv" className="hidden" onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void importFile(file); }} />
@@ -65,7 +67,7 @@ export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListI
     </div>
     <div className="mt-4 space-y-3">
       <label className="block text-[12px]">Message body source
-        <select aria-label="Follow-up body source" className="ml-2 rounded border border-border bg-bg p-2" value={bodySource} onChange={e => { setBodySource(e.target.value as 'spreadsheet' | 'custom'); if (e.target.value === 'spreadsheet') { setStage(previous => Math.min(previous, 2)); setRowStages(previous => Object.fromEntries(Object.entries(previous).map(([key, value]) => [key, Math.min(value, 2)]))); } }}>
+        <select aria-label="Follow-up body source" className="ml-2 rounded border border-border bg-bg p-2" value={bodySource} onChange={e => { setBodySource(e.target.value as 'spreadsheet' | 'custom'); if (e.target.value === 'spreadsheet') { setStage(previous => Math.min(previous, spreadsheetStages - 1)); setRowStages(previous => Object.fromEntries(Object.entries(previous).map(([key, value]) => [key, Math.min(value, spreadsheetStages - 1)]))); } }}>
           <option value="spreadsheet">Use spreadsheet messages</option>
           <option value="custom">Write my own message</option>
         </select>
@@ -83,7 +85,7 @@ export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListI
     <p role="status" className="mt-2 text-[11px] text-text-secondary">{busy ? 'Processing spreadsheet…' : notice}</p>
     {rows.length > 0 && <>
       <div className="mt-3 flex flex-wrap items-center gap-3 text-[12px]">
-        <span>{name}</span><label>Default follow-up <select aria-label="Follow-up message column" className="rounded border border-border bg-bg p-2" value={stage} onChange={e => setStage(Number(e.target.value))}>{Array.from({ length: bodySource === 'custom' ? customBodies.length : 3 }, (_, n) => n).map(n => <option key={n} value={n}>Follow-up {n + 1}</option>)}</select></label>
+        <span>{name}</span><label>Default follow-up <select aria-label="Follow-up message column" className="rounded border border-border bg-bg p-2" value={stage} onChange={e => setStage(Number(e.target.value))}>{Array.from({ length: stageCount }, (_, n) => n).map(n => <option key={n} value={n}>Follow-up {n + 1}</option>)}</select></label>
         <button className={button} onClick={() => { setRows([]); setSelectedRows([]); setRowStages({}); setName(''); setNotice('Imported preview cleared.'); }}>Clear preview</button>
       </div>
       <p className="mt-2 text-[11px] text-text-tertiary">The chosen column is a message template, not a stage override. Reminder stages advance only after sending. Import preview is temporary; save your file to keep templates.</p>
@@ -95,12 +97,13 @@ export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListI
       <p className="mt-2 text-[11px] text-text-tertiary">Select recipients, choose a follow-up for each row, then review their replies individually. Selection alone never sends mail.</p>
       <div className="mt-3 max-h-80 overflow-auto"><table className="w-full text-left text-[12px]"><thead><tr><th className="p-2">Select</th><th className="p-2">Recipient / conversation</th><th className="p-2">Follow-up</th><th className="p-2">Message / result</th><th className="p-2">Action</th></tr></thead><tbody>{rows.map(row => {
         const match = matchFollowUp(row, items);
-        const count = bodySource === 'custom' ? customBodies.length : 3;
+        const count = stageCount;
         const chosenStage = Math.min(rowStages[row.row] ?? stage, count - 1);
+        const subject = bodySource === 'spreadsheet' ? row.subjects?.[chosenStage] || undefined : undefined;
         const message = (bodySource === 'custom' ? customBodies[chosenStage] : row.messages[chosenStage]) || '';
         const selected = selectedRows.includes(row.row);
         const reason = match.error || (!message.trim() ? `Follow-up ${chosenStage + 1} is empty` : '');
-        return <tr key={row.row} className="border-t border-border"><td className="p-2 align-top"><input type="checkbox" aria-label={`Select follow-up row ${row.row}`} checked={selected} disabled={!match.item} onChange={e => setSelectedRows(previous => e.target.checked ? [...previous, row.row] : previous.filter(n => n !== row.row))} /></td><td className="p-2 align-top">Row {row.row}: {row.email}<p className="text-text-tertiary">{match.item?.subject || row.subject}</p></td><td className="p-2 align-top"><select aria-label={`Follow-up for row ${row.row}`} value={chosenStage} className="rounded border border-border bg-bg p-2" onChange={e => setRowStages(previous => ({ ...previous, [row.row]: Number(e.target.value) }))}>{Array.from({ length: count }, (_, n) => <option key={n} value={n}>Follow-up {n + 1}</option>)}</select></td><td className="max-w-xs p-2 align-top"><p className="whitespace-pre-wrap break-words">{reason || message.slice(0, 250)}</p></td><td className="p-2 align-top">{!reason && match.item && <button className={button} disabled={!selected} onClick={() => onPrepare(match.item!, message)}>Review follow-up {chosenStage + 1}</button>}</td></tr>;
+        return <tr key={row.row} className="border-t border-border"><td className="p-2 align-top"><input type="checkbox" aria-label={`Select follow-up row ${row.row}`} checked={selected} disabled={!match.item} onChange={e => setSelectedRows(previous => e.target.checked ? [...previous, row.row] : previous.filter(n => n !== row.row))} /></td><td className="p-2 align-top">Row {row.row}: {row.company && <span>{row.company} · </span>}{row.email}<p className="text-text-tertiary">{match.item?.subject || row.subject}</p></td><td className="p-2 align-top"><select aria-label={`Follow-up for row ${row.row}`} value={chosenStage} className="rounded border border-border bg-bg p-2" onChange={e => setRowStages(previous => ({ ...previous, [row.row]: Number(e.target.value) }))}>{Array.from({ length: count }, (_, n) => <option key={n} value={n}>Follow-up {n + 1}</option>)}</select></td><td className="max-w-xs p-2 align-top"><p className="whitespace-pre-wrap break-words">{reason || message.slice(0, 250)}</p>{subject && <p className="mt-1 text-text-secondary">Subject: {subject}</p>}{row.verification && <p className="mt-1 text-text-tertiary">Sheet verification (not checked by Still): {row.verification}</p>}</td><td className="p-2 align-top">{!reason && match.item && <button className={button} disabled={!selected} onClick={() => subject ? onPrepare(match.item!, message, subject) : onPrepare(match.item!, message)}>Review follow-up {chosenStage + 1}</button>}</td></tr>;
       })}</tbody></table></div>
     </>}
   </section>;

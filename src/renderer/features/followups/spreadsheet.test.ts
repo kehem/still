@@ -11,7 +11,7 @@ it('exports conversation identity and all three editable template columns', () =
   expect(matchFollowUp(rows[0], [item]).item).toBe(item);
 });
 it('requires email, accepts recipients without body columns and rejects duplicate headers', () => {
-  expect(() => parseFollowUpTable([['Message']])).toThrow('Required column: Email');
+  expect(() => parseFollowUpTable([['Message']])).toThrow('Required column: Email or Business Email');
   expect(parseFollowUpTable([['Email'], ['person@example.com']])[0].messages).toEqual(['', '', '']);
   expect(() => parseFollowUpTable([[...HEADERS, 'Email']])).toThrow('Duplicate');
 });
@@ -30,4 +30,21 @@ it('enforces row/cell limits and ignores blank lines', () => {
 it('escapes formula-like CSV values without changing ordinary text', () => {
   for (const value of ['=SUM(A1)', '+cmd', '-1', '@SUM(A1)', '\t=1', '  =1']) expect(safeCSVCell(value)).toBe(`'${value}`);
   expect(safeCSVCell('Hello')).toBe('Hello');
+});
+it('supports the five-stage business-email draft layout without importing initial mail as follow-up', () => {
+  const headers = ['Company Name', 'Business Email', 'Email Verification Status', 'Official Website', 'Company Category', 'Draft Status', 'Original Subject', 'Initial Email', ...Array.from({ length: 5 }, (_, n) => [`Follow-up ${n + 1} Subject`, `Follow-up ${n + 1} Message`]).flat()];
+  const row = ['Example Agency', 'person@example.com', 'Published on website', 'https://example.com', 'Agency', 'Review before use', 'Proposal', 'Not a follow-up', ...Array.from({ length: 5 }, (_, n) => [`Re: Proposal ${n + 1}`, `Message ${n + 1}\\n\\nRegards\\u2014Team`]).flat()];
+  const parsed = parseFollowUpTable([headers, row])[0];
+  expect(parsed.email).toBe('person@example.com');
+  expect(parsed.company).toBe('Example Agency');
+  expect(parsed.messages).toHaveLength(5);
+  expect(parsed.messages[4]).toBe('Message 5\n\nRegards—Team');
+  expect(parsed.subjects?.[4]).toBe('Re: Proposal 5');
+  expect(matchFollowUp(parsed, [item]).item).toBe(item);
+  expect(parsed.messages).not.toContain('Not a follow-up');
+});
+it('rejects conflicting aliases and multiline imported subjects', () => {
+  expect(() => parseFollowUpTable([['Email', 'Business Email']])).toThrow('Ambiguous');
+  expect(() => parseFollowUpTable([['Email', 'Follow-up 1', 'Follow-up 1 Message']])).toThrow('Ambiguous');
+  expect(() => parseFollowUpTable([['Business Email', 'Follow-up 1 Subject'], ['person@example.com', 'Subject\\nBcc: other@example.com']])).toThrow('single line');
 });

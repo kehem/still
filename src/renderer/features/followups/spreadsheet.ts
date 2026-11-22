@@ -1,18 +1,40 @@
 import type { FollowUpListItem } from '../../../shared/types';
 
 export const HEADERS = ['Email', 'Account', 'Conversation ID', 'Subject', 'Follow-up 1', 'Follow-up 2', 'Follow-up 3', 'Status', 'Next due', 'Current stage'];
-export interface ImportedFollowUp { row: number; email: string; account: string; conversationId: string; subject: string; messages: string[] }
+/** Draft-sheet layout; original Email / Follow-up N imports remain supported. */
+export const DRAFT_HEADERS = ['Company Name', 'Business Email', 'Email Verification Status', 'Official Website', 'Company Category', 'Draft Status', 'Original Subject', 'Initial Email',
+  ...Array.from({ length: 5 }, (_, n) => [`Follow-up ${n + 1} Subject`, `Follow-up ${n + 1} Message`]).flat()];
+export interface ImportedFollowUp { row: number; email: string; account: string; conversationId: string; subject: string; messages: string[]; subjects?: string[]; company?: string; verification?: string }
 const normalize = (value: string) => value.trim().toLowerCase().replace(/[\s_-]+/g, '');
 export function parseFollowUpTable(table: string[][]): ImportedFollowUp[] {
   if (table.length > 5001) throw new Error('Maximum 5,000 rows per file.');
   const headers = (table[0] || []).map(normalize);
-  const columns = ['email', 'account', 'conversationid', 'subject', 'followup1', 'followup2', 'followup3'].map(h => headers.indexOf(h));
-  if (columns[0] < 0) throw new Error('Required column: Email. Message columns are optional when writing your own body.');
+  const column = (...names: string[]) => {
+    const found = names.map(name => headers.indexOf(name)).filter(index => index >= 0);
+    if (found.length > 1) throw new Error(`Ambiguous columns: ${names.join(' / ')}`);
+    return found[0] ?? -1;
+  };
+  const columns = [column('email', 'businessemail'), column('account'), column('conversationid'), column('subject', 'originalsubject')];
+  if (columns[0] < 0) throw new Error('Required column: Email or Business Email. Message columns are optional when writing your own body.');
   if (new Set(headers).size !== headers.length) throw new Error('Duplicate column headers are not allowed.');
+  const stages = headers.map(header => /^followup([1-9]|10)(?:message|subject)?$/.exec(header)).filter(Boolean).map(match => Number(match![1]));
+  const count = Math.max(3, ...stages);
+  const messageColumns = Array.from({ length: count }, (_, n) => column(`followup${n + 1}`, `followup${n + 1}message`));
+  const subjectColumns = Array.from({ length: count }, (_, n) => column(`followup${n + 1}subject`));
+  const companyColumn = column('companyname'); const verificationColumn = column('emailverificationstatus');
+  // Some exported draft sheets store literal escaped line breaks/Unicode.
+  // Interpret those sequences only in message/subject fields, never identifiers.
+  const draftText = (text: string) => text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/\\r\\n|\\n/g, '\n').replace(/\\r/g, '\n');
   return table.slice(1).map((cells, index) => {
-    const values = columns.map(c => c < 0 ? '' : String(cells[c] ?? ''));
+    const cell = (c: number) => c < 0 ? '' : String(cells[c] ?? '');
+    const values = [...columns, ...messageColumns, ...subjectColumns, companyColumn, verificationColumn].map(cell);
     if (values.some(v => v.length > 50000)) throw new Error(`Row ${index + 2}: a cell exceeds 50,000 characters.`);
-    return { row: index + 2, email: values[0].trim(), account: values[1].trim(), conversationId: values[2].trim(), subject: values[3].trim(), messages: values.slice(4) };
+    const originalSubject = draftText(cell(columns[3])).trim();
+    const subjects = subjectColumns.map(c => draftText(cell(c)).trim());
+    if ([originalSubject, ...subjects].some(value => value.length > 1000 || /[\r\n]/.test(value))) throw new Error(`Row ${index + 2}: subjects must be a single line of at most 1,000 characters.`);
+    return { row: index + 2, email: cell(columns[0]).trim(), account: cell(columns[1]).trim(), conversationId: cell(columns[2]).trim(), subject: originalSubject,
+      messages: messageColumns.map(c => draftText(cell(c))), subjects, company: cell(companyColumn).trim(), verification: cell(verificationColumn).trim() };
   }).filter(r => [r.email, r.account, r.conversationId, r.subject, ...r.messages].some(v => v.trim()));
 }
 export function matchFollowUp(row: ImportedFollowUp, items: FollowUpListItem[]): { item?: FollowUpListItem; error?: string } {

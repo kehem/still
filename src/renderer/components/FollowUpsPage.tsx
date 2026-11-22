@@ -10,7 +10,7 @@ import { BellIcon, CheckIcon, ClockIcon, GearIcon, InboxIcon, SendIcon, XIcon } 
 interface FollowUpsPageProps {
   items: FollowUpListItem[];
   onOpen: (item: FollowUpListItem) => void;
-  onSendFollowUp: (item: FollowUpListItem, body?: string) => void;
+  onSendFollowUp: (item: FollowUpListItem, body?: string, subject?: string) => void;
   onChanged: () => void;
 }
 

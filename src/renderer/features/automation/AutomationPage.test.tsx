@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { Account } from '../../../shared/types';
 import { automationTestAPI } from './test-api';
 const mock = vi.hoisted(() => ({ api: {} as ReturnType<typeof automationTestAPI>['api'] }));
@@ -160,4 +160,17 @@ it('shows an interval wait and disables row sending until the interval permits i
   expect((send as HTMLButtonElement).disabled).toBe(true);
   expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('Waiting for the send interval');
   expect(mock.api.sendAutomationRow).not.toHaveBeenCalled();
+});
+
+it('does not periodically recheck settled recipients and supports explicit manual Recheck', async () => {
+  await open();
+  await waitFor(() => expect(mock.api.checkEmailRecipients).toHaveBeenCalledTimes(2));
+  vi.useFakeTimers();
+  try {
+    await act(async () => { await vi.advanceTimersByTimeAsync(6 * 60 * 1000); });
+    expect(mock.api.checkEmailRecipients).toHaveBeenCalledTimes(2);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Recheck recipients' })); });
+    expect(mock.api.checkEmailRecipients).toHaveBeenCalledWith(['r1@example.com'], true);
+    expect(mock.api.checkEmailRecipients).toHaveBeenCalledWith(['r2@example.com'], true);
+  } finally { vi.useRealTimers(); }
 });

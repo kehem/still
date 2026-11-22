@@ -76,10 +76,11 @@ export function registerIpcHandlers(s: AppServices): void {
   ipcMain.handle('followups:import:get', () => followUpImport.get());
   ipcMain.handle('followups:import:save', (_event, input: unknown) => followUpImport.save(input));
   const recipients = new RecipientChecker();
-  ipcMain.handle('email:check-recipients', async (_event, input: unknown) => {
+  ipcMain.handle('email:check-recipients', async (_event, input: unknown, force: unknown) => {
+    if (force !== undefined && typeof force !== 'boolean') throw new Error('Invalid recipient recheck option');
     if (!Array.isArray(input) || input.length > 20 || input.some(a => typeof a !== 'string' || a.length > 254)) throw new Error('Invalid recipient check batch');
     const result: Record<string, import('../../shared/types').RecipientCheck> = {};
-    for (const address of input as string[]) result[address] = await recipients.check(address);
+    for (const address of input as string[]) result[address] = await recipients.check(address, force === true);
     return result;
   });
   const emailProviders = new EmailProviderLookup();

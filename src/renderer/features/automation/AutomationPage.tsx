@@ -94,7 +94,7 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
       if (delivered?.error && delivered.status === 'sent') setError(delivered.error);
     } catch (e) {
       pause(); setError(e instanceof Error ? e.message : String(e));
-      if (e instanceof Error && /verification expired or changed/i.test(e.message)) setCheckVersion(v => v + 1);
+      if (e instanceof Error && /verification (?:expired|unavailable) or changed/i.test(e.message)) setCheckVersion(v => v + 1);
       try { accept(await getAPI().getAutomation()); } catch { /* Keep the queue frozen until a successful refresh. */ }
     } finally { busy.current = false; setWorking(false); }
   };
@@ -142,26 +142,21 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
   useEffect(() => {
     if (!active) return;
     let cancelled = false;
-    if (previousCheckVersion.current !== checkVersion) { setChecks({}); previousCheckVersion.current = checkVersion; }
+    const force = previousCheckVersion.current !== checkVersion;
+    if (force) { setChecks({}); previousCheckVersion.current = checkVersion; }
     void (async () => {
       const addresses = JSON.parse(recipientKey) as string[];
       for (let i = 0; i < addresses.length; i++) {
         if (cancelled) return;
         const batch = [addresses[i]];
         let results: Record<string, RecipientCheck>;
-        try { results = await getAPI().checkEmailRecipients(batch); }
+        try { results = await (force ? getAPI().checkEmailRecipients(batch, true) : getAPI().checkEmailRecipients(batch)); }
         catch { results = Object.fromEntries(batch.map(a => [a, { status: 'unknown', detail: 'Recipient check unavailable' }])); }
         if (!cancelled) setChecks(previous => ({ ...previous, ...results }));
       }
     })();
     return () => { cancelled = true; };
   }, [recipientKey, active, checkVersion]);
-  useEffect(() => {
-    const expiries = Object.values(checks).map(check => check.expiresAt).filter((value): value is number => value !== undefined);
-    if (!active || !expiries.length) return;
-    const timer = window.setTimeout(() => setCheckVersion(v => v + 1), Math.max(1, Math.min(...expiries) - Date.now() + 10));
-    return () => window.clearTimeout(timer);
-  }, [checks, active]);
   const domainKey = JSON.stringify([...new Set((ws?.rows || []).map(row => emailDomain(row.to)).filter((d): d is string => Boolean(d)))].sort());
   useEffect(() => {
     if (!active) return;

@@ -59,37 +59,47 @@ export function probeRecipient(ip: string, address: string, timeoutMs = 5000): P
   });
 }
 export class RecipientChecker {
-  private approvals = new Map<string, { address: string; expiresAt: number }>();
+  private approvals = new Map<string, { address: string }>();
   requireApproval(address: string, verificationId: unknown): void {
     const approval = typeof verificationId === 'string' ? this.approvals.get(verificationId) : undefined;
-    if (!approval || approval.address !== address || approval.expiresAt <= Date.now()) {
-      throw new Error('Recipient verification expired or changed. Refresh recipient checks before sending. No email was sent.');
+    if (!approval || approval.address !== address) {
+      throw new Error('Recipient verification unavailable or changed. Refresh recipient checks before sending. No email was sent.');
     }
   }
-  private cache = new Map<string, { result: RecipientCheck; expires: number }>();
+  private cache = new Map<string, RecipientCheck>();
   private mxCache = new Map<string, { records: { exchange: string; priority: number }[]; expires: number }>();
   private pending = new Map<string, Promise<RecipientCheck>>();
   constructor(private dns = new Resolver({ timeout: 1500, tries: 1 }), private probe = probeRecipient) {}
-  async check(address: string): Promise<RecipientCheck> {
+  async check(address: string, force = false): Promise<RecipientCheck> {
     const domain = emailDomain(address);
     const local = address.slice(0, address.lastIndexOf('@'));
     if (!domain || !local || local.length > 64 || local.startsWith('.') || local.endsWith('.') || local.includes('..') || address.length > 254 || !/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@/.test(address)) return { status: 'invalid', detail: 'Invalid email address' };
-    const cached = this.cache.get(address);
-    if (cached && cached.expires > Date.now()) return cached.result;
     const pending = this.pending.get(address); if (pending) return pending;
-    const task = this.lookup(address, domain).then(result => {
-      const expiresAt = Date.now() + (result.status === 'unknown' ? 60000 : 300000);
-      let verificationId: string | undefined;
-      if (recipientCanSend(result)) {
-        for (const [id, approval] of this.approvals) if (approval.expiresAt <= Date.now()) this.approvals.delete(id);
-        if (this.approvals.size >= 10000) throw new Error('Too many pending recipient approvals. Try again after earlier checks expire.');
-        verificationId = randomUUID();
-        this.approvals.set(verificationId, { address, expiresAt });
+    const cached = this.cache.get(address);
+    if (cached && !force) return cached;
+    if (cached?.verificationId) this.approvals.delete(cached.verificationId);
+    if (force) { this.cache.delete(address); this.mxCache.delete(domain); }
+    if (!this.cache.has(address) && this.cache.size + this.pending.size >= 10000) throw new Error('Recipient check session limit reached. Restart the app to check more addresses.');
+    const task = (async () => {
+      let result: RecipientCheck = { status: 'unknown', detail: 'Recipient check unavailable' };
+      let attempts = 0;
+      for (; attempts < 3; attempts++) {
+        try { result = await this.lookup(address, domain); }
+        catch { result = { status: 'unknown', detail: 'Recipient check unavailable' }; }
+        if (recipientCanSend(result)) break;
+        // Retry failed DNS/MX checks with a fresh response, not a cached failure.
+        this.mxCache.delete(domain);
       }
-      result = { ...result, expiresAt, verificationId };
-      if (this.cache.size >= 2000) this.cache.delete(this.cache.keys().next().value!);
-      this.cache.set(address, { result, expires: expiresAt }); return result;
-    });
+      if (!recipientCanSend(result)) {
+        result = { status: 'invalid', attempts: 3, detail: `Not valid for sending after 3 failed checks. ${result.detail}. This may be a verification failure, not proof the mailbox does not exist. Use Recheck to try again.` };
+      } else {
+        const verificationId = randomUUID();
+        this.approvals.set(verificationId, { address });
+        result = { ...result, attempts: attempts + 1, verificationId };
+      }
+      this.cache.set(address, result);
+      return result;
+    })();
     this.pending.set(address, task);
     try { return await task; } finally { this.pending.delete(address); }
   }

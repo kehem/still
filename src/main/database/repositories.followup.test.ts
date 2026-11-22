@@ -85,6 +85,8 @@ describe('FollowUpRepository.create', () => {
     expect(followups.list().find(i => i.sequence.id === item.sequence.id)!.sequence).toMatchObject({ currentStage: 1, lastSentAt: sentAt, status: 'scheduled' });
     followups.recordFollowUpSent('conv-outbound', 'sent-followup', sentAt, DEFAULT_SETTINGS);
     expect(followups.list().find(i => i.sequence.id === item.sequence.id)!.sequence.currentStage).toBe(1);
+    expect(followups.list().find(i => i.sequence.id === item.sequence.id)!.sentFollowUpCount).toBe(1);
+    expect(service.db.prepare("SELECT COUNT(*) AS n FROM followup_events WHERE sequence_id = ? AND kind = 'followup_sent'").get(item.sequence.id)).toMatchObject({ n: 1 });
     followups.completeFromReply('conv-outbound');
     expect(followups.list().find(i => i.sequence.id === item.sequence.id)!.sequence).toMatchObject({ status: 'replied', nextDueAt: null });
     // Leave this shared fixture ready for the creation tests below.

@@ -12,12 +12,13 @@ beforeEach(() => { mocks.get.mockResolvedValue(emptyFollowUpImport()); mocks.sav
 vi.mock('write-excel-file/browser', () => ({ default: mocks.write }));
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 const item = { recipient: 'person@example.com', account: { email: 'me@example.com' }, conversation: { id: 'thread' }, subject: 'Proposal', status: 'scheduled', currentStage: 0 } as FollowUpListItem;
-async function upload(table: string[][]) {
+async function upload(table: string[][], manual = true) {
   await waitFor(() => expect((screen.getByRole('button', { name: 'Import Excel / CSV' }) as HTMLButtonElement).disabled).toBe(false));
   const file = new File([], 'followups.csv', { type: 'text/csv' });
   Object.defineProperty(file, 'arrayBuffer', { value: async () => new TextEncoder().encode(Papa.unparse(table)).buffer });
   Object.defineProperty(file, 'text', { value: async () => Papa.unparse(table) });
   fireEvent.change(screen.getByLabelText('Upload follow-up spreadsheet'), { target: { files: [file] } });
+  if (manual) { await screen.findByLabelText('Choose next follow-up automatically'); fireEvent.click(screen.getByLabelText('Choose next follow-up automatically')); }
 }
 it('uploads a CSV and prepares the selected stage as a threaded review without sending', async () => {
   const prepare = vi.fn(); render(<FollowUpSpreadsheet items={[item]} onPrepare={prepare} />);
@@ -87,7 +88,8 @@ it('prepares the fifth follow-up subject and message from a business-email draft
   await screen.findByLabelText('Follow-up for row 2');
   fireEvent.click(screen.getByLabelText('Select follow-up row 2'));
   fireEvent.change(screen.getByLabelText('Follow-up for row 2'), { target: { value: '4' } });
-  expect(screen.getByText('Subject: Re: Fifth proposal')).toBeTruthy();
+  expect(screen.queryByText('Fifth body')).toBeNull();
+  expect(screen.queryByText('Subject: Re: Fifth proposal')).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Review follow-up 5' }));
   expect(prepare).toHaveBeenCalledWith(item, 'Fifth body', 'Re: Fifth proposal');
 });
@@ -97,6 +99,7 @@ it('restores a saved import and allows reviewing an upcoming conversation before
     rows: [{ row: 2, email: item.recipient, account: '', conversationId: 'thread', subject: 'Proposal', messages: ['First', 'Second', 'Third'] }] });
   const prepare = vi.fn(); render(<FollowUpSpreadsheet items={[future]} onPrepare={prepare} />);
   expect(await screen.findByText('saved.xlsx')).toBeTruthy();
+  fireEvent.click(screen.getByLabelText('Choose next follow-up automatically'));
   fireEvent.click(screen.getByRole('button', { name: 'Review follow-up 2' }));
   expect(prepare).toHaveBeenCalledWith(future, 'Second');
   fireEvent.change(screen.getByLabelText('Follow-up for row 2'), { target: { value: '2' } });
@@ -116,4 +119,14 @@ it('does not overwrite saved data when restoring the workspace fails', async () 
   await screen.findByText(/Could not load saved import/);
   expect(mocks.save).not.toHaveBeenCalled();
   expect((screen.getByRole('button', { name: 'Import Excel / CSV' }).closest('fieldset') as HTMLFieldSetElement).disabled).toBe(true);
+});
+it('automatically chooses the second message after one recorded send without displaying its preview', async () => {
+  const second = { ...item, sentFollowUpCount: 1 };
+  const prepare = vi.fn(); render(<FollowUpSpreadsheet items={[second]} onPrepare={prepare} />);
+  await upload([HEADERS, ['person@example.com', '', 'thread', 'Proposal', 'First body', 'Second secret body', 'Third body']], false);
+  fireEvent.click(await screen.findByLabelText('Select follow-up row 2'));
+  const review = await screen.findByRole('button', { name: 'Review follow-up 2' });
+  expect(screen.queryByText('Second secret body')).toBeNull();
+  fireEvent.click(review);
+  expect(prepare).toHaveBeenCalledWith(second, 'Second secret body');
 });

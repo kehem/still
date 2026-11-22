@@ -9,6 +9,7 @@ import { followUpExport, DRAFT_HEADERS, matchFollowUp, parseFollowUpTable, safeC
 const button = 'rounded-md border border-border px-3 py-2 text-[12px] disabled:opacity-40';
 export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListItem[]; onPrepare: (item: FollowUpListItem, body: string, subject?: string) => void }) {
   const [rows, setRows] = useState<ImportedFollowUp[]>([]);
+  const [automaticStage, setAutomaticStage] = useState(true);
   const [stage, setStage] = useState(0);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [rowStages, setRowStages] = useState<Record<number, number>>({});
@@ -122,7 +123,7 @@ export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListI
     <p role="status" className="mt-2 text-[11px] text-text-secondary">{busy ? 'Processing spreadsheet…' : notice}</p>
     {rows.length > 0 && <>
       <div className="mt-3 flex flex-wrap items-center gap-3 text-[12px]">
-        <span>{name}</span><label>Default follow-up <select aria-label="Follow-up message column" className="rounded border border-border bg-bg p-2" value={stage} onChange={e => setStage(Number(e.target.value))}>{Array.from({ length: stageCount }, (_, n) => n).map(n => <option key={n} value={n}>Follow-up {n + 1}</option>)}</select></label>
+        <span>{name}</span><label className="flex items-center gap-2"><input type="checkbox" aria-label="Choose next follow-up automatically" checked={automaticStage} onChange={e => setAutomaticStage(e.target.checked)} />Choose next follow-up automatically</label>{!automaticStage && <label>Default follow-up <select aria-label="Follow-up message column" className="rounded border border-border bg-bg p-2" value={stage} onChange={e => setStage(Number(e.target.value))}>{Array.from({ length: stageCount }, (_, n) => n).map(n => <option key={n} value={n}>Follow-up {n + 1}</option>)}</select></label>}
         <button className={button} onClick={() => { setRows([]); setSelectedRows([]); setRowStages({}); setName(''); setSourceBase64(''); setNotice('Saved import cleared.'); }}>Clear saved import</button>
       </div>
       <p className="mt-2 text-[11px] text-text-tertiary">The chosen column is a message template, not a stage override. Reminder stages advance only after sending. Imported messages and selections are restored when you reopen this page. Upcoming and waiting conversations can be reviewed too; due dates do not block manual follow-ups.</p>
@@ -131,16 +132,16 @@ export function FollowUpSpreadsheet({ items, onPrepare }: { items: FollowUpListI
         <button className={button} onClick={() => setSelectedRows([])}>Deselect all rows</button>
         <span className="text-[12px]">{selectedRows.length} rows selected</span>
       </div>
-      <p className="mt-2 text-[11px] text-text-tertiary">Select recipients, choose a follow-up for each row, then review their replies individually. Selection alone never sends mail.</p>
+      <p className="mt-2 text-[11px] text-text-tertiary">Select recipients; the next follow-up is chosen from sent history. Uncheck automatic selection only to choose a template manually. Selection alone never sends mail.</p>
       <div className="mt-3 max-h-80 overflow-auto"><table className="w-full text-left text-[12px]"><thead><tr><th className="p-2">Select</th><th className="p-2">Recipient / conversation</th><th className="p-2">Follow-up</th><th className="p-2">Message / result</th><th className="p-2">Action</th></tr></thead><tbody>{rows.map(row => {
         const match = matchFollowUp(row, items);
         const count = stageCount;
-        const chosenStage = Math.min(rowStages[row.row] ?? stage, count - 1);
+        const chosenStage = automaticStage && match.item ? Math.max(match.item.sentFollowUpCount ?? 0, match.item.currentStage ?? 0) : Math.min(rowStages[row.row] ?? stage, count - 1);
         const subject = bodySource === 'spreadsheet' ? row.subjects?.[chosenStage] || undefined : undefined;
         const message = (bodySource === 'custom' ? customBodies[chosenStage] : row.messages[chosenStage]) || '';
         const selected = selectedRows.includes(row.row);
-        const reason = match.error || (!message.trim() ? `Follow-up ${chosenStage + 1} is empty` : '');
-        return <tr key={row.row} className="border-t border-border"><td className="p-2 align-top"><input type="checkbox" aria-label={`Select follow-up row ${row.row}`} checked={selected} disabled={!match.item} onChange={e => setSelectedRows(previous => e.target.checked ? [...previous, row.row] : previous.filter(n => n !== row.row))} /></td><td className="p-2 align-top">Row {row.row}: {row.company && <span>{row.company} · </span>}{row.email}<p className="text-text-tertiary">{match.item?.subject || row.subject}</p></td><td className="p-2 align-top"><select aria-label={`Follow-up for row ${row.row}`} value={chosenStage} className="rounded border border-border bg-bg p-2" onChange={e => setRowStages(previous => ({ ...previous, [row.row]: Number(e.target.value) }))}>{Array.from({ length: count }, (_, n) => <option key={n} value={n}>Follow-up {n + 1}</option>)}</select></td><td className="max-w-xs p-2 align-top"><p className="whitespace-pre-wrap break-words">{reason || message.slice(0, 250)}</p>{subject && <p className="mt-1 text-text-secondary">Subject: {subject}</p>}{row.verification && <p className="mt-1 text-text-tertiary">Sheet verification (not checked by Still): {row.verification}</p>}</td><td className="p-2 align-top">{!reason && match.item && <button className={button} disabled={!selected} onClick={() => subject ? onPrepare(match.item!, message, subject) : onPrepare(match.item!, message)}>Review follow-up {chosenStage + 1}</button>}</td></tr>;
+        const reason = match.error || (chosenStage >= count ? 'All available follow-up messages have been used' : '') || (!message.trim() ? `Follow-up ${chosenStage + 1} is empty` : '');
+        return <tr key={row.row} className="border-t border-border"><td className="p-2 align-top"><input type="checkbox" aria-label={`Select follow-up row ${row.row}`} checked={selected} disabled={!match.item} onChange={e => setSelectedRows(previous => e.target.checked ? [...previous, row.row] : previous.filter(n => n !== row.row))} /></td><td className="p-2 align-top">Row {row.row}: {row.company && <span>{row.company} · </span>}{row.email}<p className="text-text-tertiary">{match.item?.subject || row.subject}</p></td><td className="p-2 align-top">{automaticStage ? <span>Follow-up {chosenStage + 1}</span> : <select aria-label={`Follow-up for row ${row.row}`} value={chosenStage} className="rounded border border-border bg-bg p-2" onChange={e => setRowStages(previous => ({ ...previous, [row.row]: Number(e.target.value) }))}>{Array.from({ length: count }, (_, n) => <option key={n} value={n}>Follow-up {n + 1}</option>)}</select>}</td><td className="max-w-xs p-2 align-top"><p className="whitespace-pre-wrap break-words">{reason || `Follow-up ${chosenStage + 1} ready`}</p>{row.verification && <p className="mt-1 text-text-tertiary">Sheet verification (not checked by Still): {row.verification}</p>}</td><td className="p-2 align-top">{!reason && match.item && <button className={button} disabled={!selected} onClick={() => subject ? onPrepare(match.item!, message, subject) : onPrepare(match.item!, message)}>Review follow-up {chosenStage + 1}</button>}</td></tr>;
       })}</tbody></table></div>
     </>}
     </fieldset>

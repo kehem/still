@@ -23,7 +23,7 @@ import type {
 } from '../../shared/types';
 import { DEFAULT_SETTINGS, DEFAULT_FOLLOWUP_STAGES } from '../../shared/constants';
 import { matchesFolder } from '../../shared/utils/messages';
-import { computeDueDate, deriveTimingStatus, initialSchedule } from '../../shared/followup/scheduler';
+import { advanceOnFollowUpSent, computeDueDate, deriveTimingStatus, initialSchedule } from '../../shared/followup/scheduler';
 import { planReminders, type DueSequence, type ReminderOptions } from '../../shared/notifications/reminder-engine';
 
 /**
@@ -1009,6 +1009,17 @@ class BrowserPreviewAPI implements StillAPI {
     if (conversation) conversation.lastMessageAt = sentAt;
     else this.conversations.push({ id: conversationId, accountId: input.accountId, subject: input.subject || '(no subject)', participants: [account?.email || '', ...input.to], lastMessageAt: sentAt, unreadCount: 0, isStarred: false });
     lsWrite('conversations', this.conversations);
+    if (input.conversationId) {
+      const tracked = this.followUps.find(item => item.conversation.id === conversationId && !['completed', 'replied', 'cancelled'].includes(item.status));
+      if (tracked) {
+        tracked.sentFollowUpCount = (tracked.sentFollowUpCount ?? tracked.currentStage) + 1;
+        const stages = this.schedules.find(schedule => schedule.id === tracked.sequence.scheduleId)?.stages || DEFAULT_FOLLOWUP_STAGES;
+        const next = advanceOnFollowUpSent(tracked.sequence, stages, new Date(sentAt), { useWorkingDays: this.settings.useWorkingDays, reminderTime: this.settings.reminderTime });
+        Object.assign(tracked.sequence, next, { lastSentAt: sentAt, updatedAt: sentAt });
+        Object.assign(tracked, next, { lastSentAt: sentAt });
+        lsWrite('followups', this.followUps);
+      }
+    }
     if (input.draftId) {
       this.drafts = this.drafts.filter((d) => d.id !== input.draftId);
       lsWrite('drafts', this.drafts);

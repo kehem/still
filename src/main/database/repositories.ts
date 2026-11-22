@@ -662,7 +662,9 @@ export class FollowUpRepository {
                 a.username AS acc_username, a.sync_enabled AS acc_sync,
                 a.is_default_sender AS acc_default, a.auth_status AS acc_auth,
                 a.created_at AS acc_created, a.updated_at AS acc_updated,
-                s.stages AS schedule_stages
+                s.stages AS schedule_stages,
+                (SELECT COUNT(*) FROM followup_events fe JOIN followup_sequences history ON history.id = fe.sequence_id
+                 WHERE history.conversation_id = fs.conversation_id AND fe.kind = 'followup_sent') AS sent_followup_count
          FROM followup_sequences fs
          JOIN conversations c ON c.id = fs.conversation_id
          JOIN accounts a ON a.id = fs.account_id
@@ -727,6 +729,7 @@ export class FollowUpRepository {
         lastSentAt: r.last_sent_at as string,
         nextDueAt: (r.next_due_at as string | null) ?? null,
         currentStage: r.current_stage as number,
+        sentFollowUpCount: Number(r.sent_followup_count ?? 0),
         stageCount: stages.length,
         status: r.status as FollowUpStatus,
       };
@@ -948,7 +951,9 @@ export class NotificationRepository {
     const rows = this.db.db
       .prepare(
         `SELECT fs.id AS sequence_id, fs.conversation_id, fs.current_stage, fs.next_due_at,
-                c.subject, c.participants, a.email AS account_email, s.stages AS schedule_stages
+                c.subject, c.participants, a.email AS account_email, s.stages AS schedule_stages,
+                (SELECT COUNT(*) FROM followup_events fe JOIN followup_sequences history ON history.id = fe.sequence_id
+                 WHERE history.conversation_id = fs.conversation_id AND fe.kind = 'followup_sent') AS sent_followup_count
          FROM followup_sequences fs
          JOIN conversations c ON c.id = fs.conversation_id
          JOIN accounts a ON a.id = fs.account_id

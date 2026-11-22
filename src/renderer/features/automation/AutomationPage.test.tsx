@@ -113,3 +113,18 @@ it('hides row sending and blocks batch sending for failed or inconclusive recipi
   expect((screen.getByText('Start automatic sending') as HTMLButtonElement).disabled).toBe(true);
   expect(mock.api.sendAutomationRow).not.toHaveBeenCalled();
 });
+it('reveals a passed recipient immediately while checking the next recipient separately', async () => {
+  let finishFirst!: (value: Record<string, { status: string; detail: string }>) => void;
+  let finishSecond!: (value: Record<string, { status: string; detail: string }>) => void;
+  mock.api.checkEmailRecipients.mockImplementationOnce(() => new Promise(resolve => { finishFirst = resolve; }))
+    .mockImplementationOnce(() => new Promise(resolve => { finishSecond = resolve; }));
+  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
+  await waitFor(() => expect(mock.api.checkEmailRecipients).toHaveBeenCalledWith(['r1@example.com']));
+  expect(screen.queryByRole('button', { name: 'Send mail to r1@example.com' })).toBeNull();
+  finishFirst({ 'r1@example.com': { status: 'valid', detail: 'SMTP accepted' } });
+  expect(await screen.findByRole('button', { name: 'Send mail to r1@example.com' })).toBeTruthy();
+  await waitFor(() => expect(mock.api.checkEmailRecipients).toHaveBeenCalledWith(['r2@example.com']));
+  expect(screen.queryByRole('button', { name: 'Send mail to r2@example.com' })).toBeNull();
+  finishSecond({ 'r2@example.com': { status: 'invalid', detail: 'No mailbox' } });
+  await screen.findByText('No mailbox');
+});

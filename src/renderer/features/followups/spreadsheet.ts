@@ -1,3 +1,4 @@
+import { decodeFollowUpDraftText } from '../../../shared/followup-import';
 import type { ImportedFollowUp } from '../../../shared/followup-import';
 export type { ImportedFollowUp } from '../../../shared/followup-import';
 import type { FollowUpListItem } from '../../../shared/types';
@@ -26,8 +27,7 @@ export function parseFollowUpTable(table: string[][]): ImportedFollowUp[] {
   const companyColumn = column('companyname'); const verificationColumn = column('emailverificationstatus');
   // Some exported draft sheets store literal escaped line breaks/Unicode.
   // Interpret those sequences only in message/subject fields, never identifiers.
-  const draftText = (text: string) => text.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)))
-    .replace(/\\r\\n|\\n/g, '\n').replace(/\\r/g, '\n');
+  const draftText = decodeFollowUpDraftText;
   return table.slice(1).map((cells, index) => {
     const cell = (c: number) => c < 0 ? '' : String(cells[c] ?? '');
     const values = [...columns, ...messageColumns, ...subjectColumns, companyColumn, verificationColumn].map(cell);
@@ -39,7 +39,7 @@ export function parseFollowUpTable(table: string[][]): ImportedFollowUp[] {
       messages: messageColumns.map(c => draftText(cell(c))), subjects, company: cell(companyColumn).trim(), verification: cell(verificationColumn).trim() };
   }).filter(r => [r.email, r.account, r.conversationId, r.subject, ...r.messages].some(v => v.trim()));
 }
-export const normalizeFollowUpSubject = (subject: string) => subject.normalize('NFC').trim().replace(/^(?:re\s*:\s*)+/i, '').replace(/\s+/g, ' ').toLowerCase();
+export const normalizeFollowUpSubject = (subject: string) => decodeFollowUpDraftText(subject).normalize('NFC').trim().replace(/^(?:re\s*:\s*)+/i, '').replace(/\s+/g, ' ').toLowerCase();
 export function matchFollowUp(row: ImportedFollowUp, items: FollowUpListItem[]): { item?: FollowUpListItem; error?: string } {
   if (!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(row.email)) return { error: 'Invalid email address' };
   const matches = items.filter(item => item.recipient.trim().toLowerCase() === row.email.trim().toLowerCase()

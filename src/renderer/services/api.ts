@@ -1,4 +1,4 @@
-import { emptyFollowUpImport, type FollowUpImportWorkspace } from '../../shared/followup-import';
+import { normalizeFollowUpImport, emptyFollowUpImport, type FollowUpImportWorkspace } from '../../shared/followup-import';
 import { knownEmailProvider } from '../../shared/email-providers';
 import { emptyAutomation, type AutomationWorkspace, type AutomationSnapshot } from '../../shared/automation';
 import type {
@@ -613,7 +613,7 @@ class BrowserPreviewAPI implements StillAPI {
     lsWrite('messages', this.messages);
   }
 
-  async getFollowUpImport(): Promise<FollowUpImportWorkspace> { return lsRead('followup-import', emptyFollowUpImport()); }
+  async getFollowUpImport(): Promise<FollowUpImportWorkspace> { return normalizeFollowUpImport(lsRead('followup-import', emptyFollowUpImport())); }
   async saveFollowUpImport(workspace: FollowUpImportWorkspace): Promise<FollowUpImportWorkspace> { localStorage.setItem(LS_PREFIX + 'followup-import', JSON.stringify(workspace)); return workspace; }
   async listFollowUps(): Promise<FollowUpListItem[]> {
     return this.followUps;

@@ -1117,3 +1117,17 @@ it('prefills first, second and third saved bodies on successive follow-up compos
     });
   }
 });
+
+it('loads a Unicode sent-thread body from an older saved import containing single escapes', async () => {
+  const { emptyFollowUpImport } = await import('../shared/followup-import');
+  // No conversation ID: reproduce the subject-matching path of business-email sheets.
+  localStorage.setItem(LS + 'followup-import', JSON.stringify({ ...emptyFollowUpImport(), fileName: 'drafts.xlsx', rows: [{ row: 2, email: 'marco@partner.example', account: '', conversationId: '', subject: String.raw`Partnership\u0020inquiry`, messages: [String.raw`Hello\n\nImported follow-up body`, 'Second body', 'Third body'], subjects: [String.raw`Re: Partnership\u0020inquiry`] }] }));
+  await renderApp();
+  await screen.findByRole('heading', { name: 'All Inbox' });
+  fireEvent.click(screen.getByRole('button', { name: /Follow-ups/ }));
+  await screen.findByRole('heading', { name: 'Follow-ups' });
+  fireEvent.click(screen.getByTitle('Send follow-up'));
+  await screen.findByRole('heading', { name: 'Reply' });
+  expect((screen.getByRole('textbox', { name: 'Message body' }) as HTMLTextAreaElement).value).toBe('Hello\n\nImported follow-up body');
+  expect(screen.getByDisplayValue('Re: Partnership inquiry')).toBeTruthy();
+});

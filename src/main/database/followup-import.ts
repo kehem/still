@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { emptyFollowUpImport, type FollowUpImportWorkspace } from '../../shared/followup-import';
+import { normalizeFollowUpImport, emptyFollowUpImport, type FollowUpImportWorkspace } from '../../shared/followup-import';
 import type { DatabaseService } from './db';
 const text = z.string().max(50000);
 export const followUpImportSchema = z.object({
@@ -14,7 +14,7 @@ export class FollowUpImportRepository {
   constructor(private db: DatabaseService) {}
   get(): FollowUpImportWorkspace {
     const row = this.db.db.prepare('SELECT document, source_bytes FROM followup_import_workspace WHERE id = 1').get() as { document: string; source_bytes: Uint8Array } | undefined;
-    return row ? { ...JSON.parse(row.document), sourceBase64: Buffer.from(row.source_bytes).toString('base64') } : emptyFollowUpImport();
+    return row ? normalizeFollowUpImport({ ...JSON.parse(row.document), sourceBase64: Buffer.from(row.source_bytes).toString('base64') }) : emptyFollowUpImport();
   }
   save(input: unknown): FollowUpImportWorkspace {
     if (JSON.stringify(input).length > 20 * 1024 * 1024) throw new Error('Follow-up workspace is too large (maximum 20 MB).');

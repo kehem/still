@@ -55,3 +55,15 @@ it('retains real recipient acceptance if the catch-all probe times out', async (
   await vi.advanceTimersByTimeAsync(1000);
   expect((await check).status).toBe('valid');
 });
+it('settles immediately on a connection close without an end event', async () => {
+  const check = probeRecipient('8.8.8.8', 'person@example.com');
+  socket.emit('close');
+  expect((await check).status).toBe('unknown');
+  expect(socket.destroy).toHaveBeenCalled();
+});
+it('does not mistake policy rejections mentioning unknown users for nonexistent mailboxes', async () => {
+  const check = probeRecipient('8.8.8.8', 'person@example.com');
+  reply('220 ready\r\n'); reply('250 hello\r\n'); reply('250 sender ok\r\n');
+  reply('550 5.7.1 Policy: user unknown to this unauthenticated relay\r\n');
+  expect((await check).status).toBe('unknown');
+});

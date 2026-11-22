@@ -61,3 +61,9 @@ it('uses the active tracking sequence without losing older terminal history', ()
   const row = parseFollowUpTable([['Email'], ['person@example.com']])[0];
   expect(matchFollowUp(row, [{ ...item, status: 'cancelled' }, item]).item).toBe(item);
 });
+it('matches single-escaped original subjects from real draft-sheet exports to Unicode sent subjects', () => {
+  const rows = parseFollowUpTable([['Business Email', 'Original Subject', 'Follow-up 1 Message'], ['person@example.com', String.raw`Proposal \u2014 Example`, String.raw`Hello\n\nFirst follow-up`]]);
+  expect(rows[0].subject).toBe('Proposal — Example');
+  expect(rows[0].messages[0]).toBe('Hello\n\nFirst follow-up');
+  expect(matchFollowUp(rows[0], [{ ...item, subject: 'Proposal — Example' }]).item).toBeTruthy();
+});

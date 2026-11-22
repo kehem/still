@@ -29,3 +29,8 @@ it('fills distinct bodies for multiple recipients at first, second and third fol
 it('shows a matching problem rather than silently opening a blank imported reply', () => {
   expect(() => importedFollowUpMessage({ ...emptyFollowUpImport(), rows: [{ ...row, conversationId: '', subject: 'Different thread' }] }, item, [item])).toThrow('cannot be matched safely');
 });
+it('uses already-saved single-escaped subjects and bodies without reimporting the workbook', () => {
+  const target = { ...item, subject: 'Original — Example' };
+  const saved = { ...row, conversationId: '', subject: String.raw`Original \u2014 Example`, messages: [String.raw`First\n\nHello`, 'Second', 'Third'], subjects: [String.raw`Re: Original \u2014 Example`] };
+  expect(importedFollowUpMessage({ ...emptyFollowUpImport(), rows: [saved] }, target, [target])).toEqual({ body: 'First\n\nHello', subject: 'Re: Original — Example' });
+});

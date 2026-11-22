@@ -1,3 +1,4 @@
+import { importedFollowUpMessage } from './features/followups/imported-message';
 import { confirmAction, showAlert } from './services/dialogs';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
@@ -412,15 +413,26 @@ function Shell() {
       .then(() => refreshNotifications());
   };
 
-  const sendFollowUp = (item: FollowUpListItem, body?: string, subject?: string) => {
-    openComposer({
-      accountId: item.account.id,
-      body: body ?? '',
-      toAddresses: [item.recipient],
-      subject: subject ?? (/^re:/i.test(item.subject) ? item.subject : `Re: ${item.subject}`),
-      inReplyToConversationId: item.conversation.id,
-      followUpEnabled: true,
-    });
+  const followUpPreparing = useRef(false);
+  const sendFollowUp = async (item: FollowUpListItem, body?: string, subject?: string) => {
+    if (followUpPreparing.current) return;
+    followUpPreparing.current = true;
+    try {
+      if (body === undefined) {
+        const saved = importedFollowUpMessage(await getAPI().getFollowUpImport(), item, followUps);
+        if (saved) { body = saved.body; subject = saved.subject; }
+      }
+      openComposer({
+        accountId: item.account.id,
+        body: body ?? '',
+        toAddresses: [item.recipient],
+        subject: subject ?? (/^re:/i.test(item.subject) ? item.subject : `Re: ${item.subject}`),
+        inReplyToConversationId: item.conversation.id,
+        followUpEnabled: true,
+      });
+    } catch (error) {
+      await showAlert(`Could not prepare the saved follow-up: ${error instanceof Error ? error.message : String(error)}`);
+    } finally { followUpPreparing.current = false; }
   };
 
   const startResize = (e: React.MouseEvent) => {

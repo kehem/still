@@ -18,8 +18,8 @@ it('rejects malformed addresses without DNS or SMTP', async () => {
   for (const address of ['bad', 'a\r\nRCPT TO:x@example.com', '<a>@example.com']) expect((await checker.check(address)).status).toBe('invalid');
   expect(dns.resolveMx).not.toHaveBeenCalled();
 });
-it('rejects missing or null MX without SMTP', async () => {
-  for (const records of [[], [{ exchange: '', priority: 0 }]]) {
+it('rejects explicit null MX without SMTP', async () => {
+  for (const records of [[{ exchange: '.', priority: 0 }], [{ exchange: '', priority: 0 }]]) {
     const { checker, probe } = setup(records);
     expect((await checker.check('a@example.com')).status).toBe('invalid');
     expect(probe).not.toHaveBeenCalled();
@@ -107,4 +107,46 @@ it('manual Recheck revokes the old approval if new checks fail', async () => {
   probe.mockResolvedValue({ status: 'invalid', detail: 'Mailbox rejected' });
   await checker.check('person@example.com', true);
   expect(() => checker.requireApproval('person@example.com', accepted.verificationId)).toThrow('unavailable or changed');
+});
+it('uses implicit MX when DNS has no MX data but the domain accepts SMTP', async () => {
+  for (const missing of ['empty', 'ENODATA']) {
+    const { checker, dns, probe } = setup([]);
+    if (missing === 'ENODATA') dns.resolveMx.mockRejectedValue({ code: 'ENODATA' });
+    expect((await checker.check('person@example.com')).status).toBe('valid');
+    expect(dns.resolve4).toHaveBeenCalledWith('example.com');
+    expect(probe).toHaveBeenCalledTimes(1);
+  }
+});
+it('does not use implicit MX after NXDOMAIN or temporary MX lookup failures', async () => {
+  for (const code of ['ENOTFOUND', 'ETIMEOUT', 'ESERVFAIL']) {
+    const { checker, dns, probe } = setup();
+    dns.resolveMx.mockRejectedValue({ code });
+    expect((await checker.check('person@example.com')).status).toBe('invalid');
+    expect(dns.resolve4).not.toHaveBeenCalled();
+    expect(probe).not.toHaveBeenCalled();
+  }
+});
+it('tries another public address on the same MX after a connection failure', async () => {
+  const { checker, dns, probe } = setup();
+  dns.resolve4.mockResolvedValue(['127.0.0.1', '8.8.8.8', '8.8.8.8', '1.1.1.1']);
+  probe.mockResolvedValueOnce({ status: 'unknown', detail: 'Connection refused' });
+  expect((await checker.check('person@example.com')).status).toBe('valid');
+  expect(probe.mock.calls.map(call => call[0])).toEqual(['8.8.8.8', '1.1.1.1']);
+});
+it('continues to a backup MX after a probe throws', async () => {
+  const { checker, probe } = setup([{ exchange: 'first.example.com', priority: 0 }, { exchange: 'backup.example.com', priority: 10 }]);
+  probe.mockRejectedValueOnce(new Error('Connection failed'));
+  expect((await checker.check('person@example.com')).status).toBe('valid');
+  expect(probe).toHaveBeenCalledTimes(2);
+});
+it('ignores a stray null entry when a real MX is also published', async () => {
+  const { checker, dns } = setup([{ exchange: '.', priority: 0 }, { exchange: 'mx.example.com', priority: 10 }]);
+  expect((await checker.check('person@example.com')).status).toBe('valid');
+  expect(dns.resolve4).toHaveBeenCalledWith('mx.example.com');
+  expect(dns.resolve4).not.toHaveBeenCalledWith('.');
+});
+it('retains the SMTP failure reason after the three-attempt limit', async () => {
+  const { checker, probe } = setup();
+  probe.mockResolvedValue({ status: 'unknown', detail: 'SMTP server unavailable or port 25 blocked' });
+  expect((await checker.check('person@example.com')).detail).toContain('port 25 blocked');
 });

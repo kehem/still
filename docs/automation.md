@@ -146,3 +146,11 @@ Recipient verification no longer runs on an expiry timer. Success and catch-all 
 Only **Recheck recipients** explicitly starts fresh attempts for settled results (including bypassing the MX cache and revoking previous approvals). Navigating away/back or queue refreshes reuse session results rather than probing again. A desktop restart starts a new verification session. Settled results are bounded to 10,000 recipients per session; reaching that limit asks for a restart instead of evicting an approval behind a visible Send button. The one-second UI clock is only for the send-interval countdown; it does not perform email checks. The 15-second sent-status refresh also remains local and does not restart verification for unchanged rows.
 
 This session-based policy supersedes the earlier five-minute approval expiry/automatic renewal described above. It intentionally does not guarantee future delivery; actual SMTP sending can still be rejected by the destination server.
+
+### MX and SMTP failure handling
+
+An empty MX answer or DNS `ENODATA` now uses the domain itself as the implicit MX (SMTP fallback). This is not used after NXDOMAIN, DNS timeouts or server failures. A single priority-zero Null MX (`.` or its resolver-normalized empty form) explicitly declares no receiving mail and remains blocked. Stray null entries alongside real MX hosts are ignored so those hosts can be checked.
+
+For each of up to three priority-ordered MX hosts, the checker tries up to three distinct public IPv4 addresses within the existing 12-second lookup budget. An unavailable address or thrown connection error no longer prevents trying another address or backup MX. Private/reserved addresses remain blocked. IPv6-only destinations are still unsupported and cannot be verified by this checker.
+
+SMTP connections that close without a final reply settle immediately. Enhanced `5.7.x` policy rejections remain inconclusive even if their text mentions an unknown user. The final failed result retains the SMTP diagnostic, including possible blocked outbound port 25. Three total verification attempts and session caching remain unchanged: there is no periodic recheck and no email DATA is sent. Local/provider port restrictions, greylisting and servers that refuse verification can still prevent a successful check even for a real mailbox.

@@ -25,6 +25,7 @@ export function probeRecipient(ip: string, address: string, timeoutMs = 5000): P
     const timer = setTimeout(() => finish('unknown', 'SMTP check timed out'), timeoutMs);
     socket.on('error', () => finish('unknown', 'SMTP server unavailable or port 25 blocked'));
     socket.on('end', () => finish('unknown', 'SMTP server closed the check'));
+    socket.on('close', () => finish('unknown', 'SMTP connection closed before verification completed'));
     socket.on('data', chunk => {
       bytes += chunk.length;
       if (bytes > 32768) { finish('unknown', 'Unexpected SMTP response'); return; }
@@ -40,7 +41,7 @@ export function probeRecipient(ip: string, address: string, timeoutMs = 5000): P
             // No message is sent to either address: DATA is never issued.
             socket.write(`RCPT TO:<still-check-${randomUUID()}@${address.slice(address.lastIndexOf('@') + 1)}>\r\n`);
           }
-          else if ([550, 551, 553].includes(code) && /5\.1\.[123]|user unknown|no such (?:user|mailbox)|mailbox.*(?:not found|does not exist)/i.test(line)) finish('invalid', 'SMTP reports recipient mailbox does not exist');
+          else if ([550, 551, 553].includes(code) && !/5\.7\.\d/.test(line) && /5\.1\.[123](?:\s|$)|user unknown|no such (?:user|mailbox)|mailbox.*(?:not found|does not exist)/i.test(line)) finish('invalid', 'SMTP reports recipient mailbox does not exist');
           else finish('unknown', 'SMTP recipient check inconclusive');
           return;
         }
@@ -109,21 +110,39 @@ export class RecipientChecker {
       const cachedMx = this.mxCache.get(domain);
       let records = cachedMx && cachedMx.expires > Date.now() ? cachedMx.records : undefined;
       if (!records) {
-        records = (await this.dns.resolveMx(domain)).sort((a, b) => a.priority - b.priority);
+        try {
+          records = await this.dns.resolveMx(domain);
+        } catch (error) {
+          // No MX data is not NXDOMAIN: SMTP permits an implicit MX at the domain itself.
+          if ((error as NodeJS.ErrnoException).code !== 'ENODATA') throw error;
+          records = [];
+        }
+        if (!records.length) records = [{ exchange: domain, priority: 0 }];
+        records.sort((a, b) => a.priority - b.priority);
         if (this.mxCache.size >= 2000) this.mxCache.delete(this.mxCache.keys().next().value!);
         this.mxCache.set(domain, { records, expires: Date.now() + 300000 });
       }
-      if (!records.length || records.some(r => r.exchange === '' || r.exchange === '.')) return { status: 'invalid', detail: 'Domain has no receiving MX server' };
-      for (const record of records.slice(0, 3)) {
+      const nullRecords = records.filter(r => r.exchange === '' || r.exchange === '.');
+      if (nullRecords.length === records.length && records.length === 1 && nullRecords[0].priority === 0) return { status: 'invalid', detail: 'Domain publishes Null MX: it does not accept email' };
+      // Ignore stray null entries in a mixed, misconfigured set rather than hiding working MX hosts.
+      const hosts = records.filter(r => r.exchange !== '' && r.exchange !== '.');
+      if (!hosts.length) return { status: 'unknown', detail: 'Domain publishes a malformed MX configuration' };
+      let lastDetail = 'MX found; SMTP check unavailable or inconclusive';
+      for (const record of hosts.slice(0, 3)) {
         if (Date.now() >= deadline) break;
         let ips: string[];
         try { ips = await this.dns.resolve4(record.exchange); } catch { continue; }
-        const ip = ips.find(publicMailIP);
-        if (!ip) continue;
-        const result = await this.probe(ip, address, Math.max(1, Math.min(5000, deadline - Date.now())));
-        if (result.status !== 'unknown') return result;
+        // One failed address must not conceal other working addresses for the same MX.
+        for (const ip of [...new Set(ips)].filter(publicMailIP).slice(0, 3)) {
+          if (Date.now() >= deadline) break;
+          try {
+            const result = await this.probe(ip, address, Math.max(1, Math.min(5000, deadline - Date.now())));
+            if (result.status !== 'unknown') return result;
+            lastDetail = result.detail;
+          } catch { lastDetail = 'SMTP server unavailable or port 25 blocked'; }
+        }
       }
-      return { status: 'unknown', detail: 'MX found; SMTP check unavailable or inconclusive' };
+      return { status: 'unknown', detail: lastDetail };
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
       return code === 'ENOTFOUND' || code === 'ENODATA'

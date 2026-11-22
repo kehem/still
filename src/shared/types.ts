@@ -1,4 +1,4 @@
-export interface RecipientCheck { status: 'valid' | 'invalid' | 'unknown'; detail: string }
+export interface RecipientCheck { status: 'valid' | 'catch_all' | 'invalid' | 'unknown'; detail: string }
 import type { AutomationWorkspace, AutomationSnapshot } from './automation';
 // ─── Accounts ────────────────────────────────────────────────────────────────
 

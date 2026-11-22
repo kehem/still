@@ -26,6 +26,8 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
   const [dailyText, setDailyText] = useState('50');
   const [secondsText, setSecondsText] = useState('30');
   const [showImport, setShowImport] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
   const [checks, setChecks] = useState<Record<string, RecipientCheck>>({});
   const [checkVersion, setCheckVersion] = useState(0);
   const ready = (row: { to: string }) => recipientCanSend(checks[row.to]);
@@ -77,12 +79,14 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
       pause(); setError('Save a daily limit of 1–10,000 and an interval of 1–86,400 seconds before sending.'); return;
     }
     const row = id ? ws.rows.find(r => r.id === id) : ws.rows.find(r => r.selected && r.status === 'pending' && validRow(r) && ready(r));
-    if (!row || row.status !== 'pending' || (!validRow(row) || !ready(row))) { pause(); setNotice('No selected valid pending rows.'); return; }
+    if (row && !ready(row)) { pause(); setNotice('Recipient check expired or is unavailable. Rechecking before sending; no email was sent.'); setCheckVersion(v => v + 1); return; }
+    if (!row || row.status !== 'pending' || !validRow(row)) { pause(); setNotice('No selected valid pending rows.'); return; }
     if (current.current.attemptedToday >= ws.daily) { setNotice('Daily limit reached. Automatic sending will wait for tomorrow.'); return; }
     if (Date.now() - current.current.lastAttemptAt < ws.seconds * 1000) { setNotice('Waiting for the send interval.'); return; }
     busy.current = true; setWorking(true); setError(''); setNotice(`Sending to ${row.to}…`);
     try {
-      const result = await getAPI().sendAutomationRow(row.id);
+      const proof = checks[row.to]?.verificationId;
+      const result = await (proof ? getAPI().sendAutomationRow(row.id, proof) : getAPI().sendAutomationRow(row.id));
       accept(result);
       const delivered = result.workspace.rows.find(r => r.id === row.id);
       if (delivered?.status === 'failed') { pause(); setError(`${delivered.error || 'Delivery failed'}. Check Sent before retrying uncertain deliveries.`); }
@@ -90,6 +94,7 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
       if (delivered?.error && delivered.status === 'sent') setError(delivered.error);
     } catch (e) {
       pause(); setError(e instanceof Error ? e.message : String(e));
+      if (e instanceof Error && /verification expired or changed/i.test(e.message)) setCheckVersion(v => v + 1);
       try { accept(await getAPI().getAutomation()); } catch { /* Keep the queue frozen until a successful refresh. */ }
     } finally { busy.current = false; setWorking(false); }
   };
@@ -151,6 +156,12 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
     })();
     return () => { cancelled = true; };
   }, [recipientKey, active, checkVersion]);
+  useEffect(() => {
+    const expiries = Object.values(checks).map(check => check.expiresAt).filter((value): value is number => value !== undefined);
+    if (!active || !expiries.length) return;
+    const timer = window.setTimeout(() => setCheckVersion(v => v + 1), Math.max(1, Math.min(...expiries) - Date.now() + 10));
+    return () => window.clearTimeout(timer);
+  }, [checks, active]);
   const domainKey = JSON.stringify([...new Set((ws?.rows || []).map(row => emailDomain(row.to)).filter((d): d is string => Boolean(d)))].sort());
   useEffect(() => {
     if (!active) return;
@@ -181,7 +192,11 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
   const pending = ws?.rows.filter(r => r.status === 'pending' && validRow(r) && ready(r)).length || 0;
   const selected = ws?.rows.filter(r => r.selected && r.status === 'pending' && validRow(r) && ready(r)).length || 0;
   const invalid = ws?.rows.filter(r => !validRow(r)).length || 0;
-  const settingsValid = limitsValid(Number(dailyText), Number(secondsText));
+  const settingsValid = limitsValid(Number(dailyText), Number(secondsText)) && (!ws || (Number(dailyText) === ws.daily && Number(secondsText) === ws.seconds));
+  const intervalWait = Math.max(0, Math.ceil(((snapshot?.lastAttemptAt || 0) + (ws?.seconds || 0) * 1000 - now) / 1000));
+  const limitReached = Boolean(ws && (snapshot?.attemptedToday || 0) >= ws.daily);
+  const sendBlocked = !ws?.accountId || !accounts.some(account => account.id === ws.accountId) || limitReached || intervalWait > 0;
+
 
   return <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-bg">
     <div className="mx-auto w-full max-w-[1440px] px-6 py-7 lg:px-10">
@@ -229,13 +244,13 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
           <div className="flex flex-wrap items-center gap-2">
             <button className={button} disabled={disabled} onClick={() => void refresh(true)}>Refresh sent status</button>
             <button className={button} disabled={disabled || !pending} onClick={() => void save({ rows: ws.rows.map(r => ({ ...r, selected: r.status === 'pending' && validRow(r) && ready(r) })) })}>Select all valid pending rows</button>
-            <button className={button} disabled={disabled || !selected || !settingsValid} onClick={async () => { if (await confirmAction('Send the next selected email now?')) void send(); }}>Send next</button>
-            {running ? <button className={primary} onClick={pause}>Pause</button> : <button className={primary} disabled={disabled || !selected || !settingsValid} onClick={async () => {
+            <button className={button} disabled={disabled || !selected || !settingsValid || sendBlocked} onClick={async () => { if (await confirmAction('Send the next selected email now?')) void send(); }}>Send next</button>
+            {running ? <button className={primary} onClick={pause}>Pause</button> : <button className={primary} disabled={disabled || !selected || !settingsValid || sendBlocked} onClick={async () => {
               if (await confirmAction(`Send ${selected} selected emails automatically, up to ${ws.daily} per day and at least ${ws.seconds} seconds apart?`)) { run.current = true; setRunning(true); void send(); }
             }}>Start automatic sending</button>}
           </div>
         </div>
-        <p role="status" aria-label="Sending status" className="mb-3 text-[12px] text-text-secondary"><span className={`mr-2 inline-block h-1.5 w-1.5 rounded-full ${running ? 'bg-accent' : 'bg-border-strong'}`} />{running ? 'Running' : 'Paused'}{notice ? ` · ${notice}` : ''}</p>
+        <p role="status" aria-label="Sending status" className="mb-3 text-[12px] text-text-secondary"><span className={`mr-2 inline-block h-1.5 w-1.5 rounded-full ${running ? 'bg-accent' : 'bg-border-strong'}`} />{running ? 'Running' : 'Paused'}{limitReached ? ' · Daily limit reached' : intervalWait > 0 ? ` · Waiting for the send interval: ${intervalWait}s` : ''}{notice ? ` · ${notice}` : ''}</p>
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full table-fixed text-left text-[12px]" style={{ minWidth: 780 }}>
             <thead className="border-b border-border bg-surface text-[10px] uppercase tracking-wider text-text-tertiary"><tr><th className="w-10 px-3 py-3"><span className="sr-only">Choose</span></th><th className="w-12 py-3">Row</th><th className="w-[22%] py-3">Recipient</th><th className="py-3">Message</th><th className="w-36 py-3">Status</th><th className="w-28 px-3 py-3 text-right">Action</th></tr></thead>
@@ -245,7 +260,7 @@ export function AutomationPage({ accounts, onSent, active = true }: { accounts: 
               <td className="py-4 pr-4 align-top"><div className="truncate" title={r.to}>{r.to}</div><div className="mt-1 text-[10px] text-text-tertiary" title="Detected from the public email domain or MX records. A gateway may hide the mailbox provider; this does not verify the mailbox exists.">{providerFor(r.to)}</div></td>
               <td className="py-4 pr-5 align-top"><button className="block w-full truncate text-left font-medium" aria-label={`Preview row ${i + 2}`} onClick={() => setExpanded(expanded === r.id ? null : r.id)}>{r.subject || '(no subject)'}</button><p className={`${expanded === r.id ? 'whitespace-pre-wrap' : 'truncate'} mt-1 text-text-secondary`}>{expanded === r.id ? r.body : r.body.slice(0, 100)}</p>{r.error && <p className="mt-2 text-[11px] text-text-secondary">{r.error}</p>}</td>
               <td className="py-4 pr-3 align-top"><span className={`rounded-full px-2 py-1 text-[10px] ${r.status === 'sent' ? 'bg-accent/10 text-accent' : 'bg-surface text-text-secondary'}`}>{r.status === 'sent' ? 'Done' : !validRow(r) ? 'Invalid data' : r.status === 'pending' ? 'Ready' : r.status === 'sending' ? 'Sending…' : 'Needs review'}</span>{r.followUpActive && <p className="mt-2 text-[10px] text-accent">Follow-up active</p>}{r.sentAt && <p className="mt-2 text-[10px] text-text-tertiary">{new Date(r.sentAt).toLocaleDateString()}</p>}</td>
-              <td className="px-3 py-3 text-right align-top">{validRow(r) && ready(r) && <button className={`${button} !h-8 !px-2`} aria-label={`Send mail to ${r.to}`} disabled={disabled || r.status !== 'pending' || !validRow(r) || !settingsValid} onClick={async () => { if (await confirmAction(`Send email?\n\nTo: ${r.to}\nEmail provider: ${providerFor(r.to)}\nSubject: ${r.subject}\n\n${checks[r.to]?.status === 'catch_all' ? 'Catch-all domain: the server accepts arbitrary addresses. This specific mailbox is unverified; delivery may bounce.' : 'MX and SMTP checks passed. This does not guarantee delivery or exclude catch-all mailboxes.'}`)) void send(r.id); }}><SendIcon size={12} />Send mail</button>}<p className="mt-2 text-[10px] text-text-tertiary">{!validRow(r) ? 'Invalid email or message' : checks[r.to]?.detail || (r.status === 'pending' ? 'Checking MX and SMTP…' : '')}</p></td>
+              <td className="px-3 py-3 text-right align-top">{validRow(r) && ready(r) && <button className={`${button} !h-8 !px-2`} aria-label={`Send mail to ${r.to}`} disabled={disabled || r.status !== 'pending' || !validRow(r) || !settingsValid || sendBlocked} onClick={async () => { if (await confirmAction(`Send email?\n\nTo: ${r.to}\nEmail provider: ${providerFor(r.to)}\nSubject: ${r.subject}\n\n${checks[r.to]?.status === 'catch_all' ? 'Catch-all domain: the server accepts arbitrary addresses. This specific mailbox is unverified; delivery may bounce.' : 'MX and SMTP checks passed. This does not guarantee delivery or exclude catch-all mailboxes.'}`)) void send(r.id); }}><SendIcon size={12} />Send mail</button>}<p className="mt-2 text-[10px] text-text-tertiary">{!validRow(r) ? 'Invalid email or message' : checks[r.to]?.detail || (r.status === 'pending' ? 'Checking MX and SMTP…' : '')}</p></td>
             </tr>)}</tbody>
           </table>
           {!ws.rows.length && <div className="px-6 py-14 text-center"><FileTextIcon size={26} className="mx-auto mb-3 text-text-tertiary" /><p className="text-[13px] font-medium">{ws.table.length ? 'Your spreadsheet is saved.' : 'A clear place for your next send.'}</p><p className="mt-1 text-[12px] text-text-secondary">{ws.table.length ? 'Choose the columns above and build your queue.' : 'Import a spreadsheet to prepare individual emails.'}</p></div>}

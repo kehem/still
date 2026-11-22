@@ -11,7 +11,7 @@ export function automationTestAPI() {
     importAutomationFile: vi.fn(async (input: { name: string; base64: string; table: string[][] }) => {
       snapshot.workspace = { ...snapshot.workspace, fileName: input.name, table: input.table, columns: [0, 1, 2], rows: [] }; return copy();
     }),
-    sendAutomationRow: vi.fn(async (id: string) => {
+    sendAutomationRow: vi.fn(async (id: string, _verificationId?: string) => {
       const row = snapshot.workspace.rows.find(r => r.id === id)!;
       row.status = 'sent'; row.selected = false; row.sentAt = new Date().toISOString();
       snapshot.sentTotal++; snapshot.sentToday++; snapshot.attemptedToday++; snapshot.lastAttemptAt = Date.now();

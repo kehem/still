@@ -1,3 +1,4 @@
+import { recipientCanSend } from '../../shared/recipient-check';
 import { randomUUID } from 'node:crypto';
 import { Resolver } from 'node:dns/promises';
 import { BlockList, createConnection, isIPv4 } from 'node:net';
@@ -58,6 +59,13 @@ export function probeRecipient(ip: string, address: string, timeoutMs = 5000): P
   });
 }
 export class RecipientChecker {
+  private approvals = new Map<string, { address: string; expiresAt: number }>();
+  requireApproval(address: string, verificationId: unknown): void {
+    const approval = typeof verificationId === 'string' ? this.approvals.get(verificationId) : undefined;
+    if (!approval || approval.address !== address || approval.expiresAt <= Date.now()) {
+      throw new Error('Recipient verification expired or changed. Refresh recipient checks before sending. No email was sent.');
+    }
+  }
   private cache = new Map<string, { result: RecipientCheck; expires: number }>();
   private mxCache = new Map<string, { records: { exchange: string; priority: number }[]; expires: number }>();
   private pending = new Map<string, Promise<RecipientCheck>>();
@@ -70,8 +78,17 @@ export class RecipientChecker {
     if (cached && cached.expires > Date.now()) return cached.result;
     const pending = this.pending.get(address); if (pending) return pending;
     const task = this.lookup(address, domain).then(result => {
+      const expiresAt = Date.now() + (result.status === 'unknown' ? 60000 : 300000);
+      let verificationId: string | undefined;
+      if (recipientCanSend(result)) {
+        for (const [id, approval] of this.approvals) if (approval.expiresAt <= Date.now()) this.approvals.delete(id);
+        if (this.approvals.size >= 10000) throw new Error('Too many pending recipient approvals. Try again after earlier checks expire.');
+        verificationId = randomUUID();
+        this.approvals.set(verificationId, { address, expiresAt });
+      }
+      result = { ...result, expiresAt, verificationId };
       if (this.cache.size >= 2000) this.cache.delete(this.cache.keys().next().value!);
-      this.cache.set(address, { result, expires: Date.now() + (result.status === 'unknown' ? 60000 : 300000) }); return result;
+      this.cache.set(address, { result, expires: expiresAt }); return result;
     });
     this.pending.set(address, task);
     try { return await task; } finally { this.pending.delete(address); }

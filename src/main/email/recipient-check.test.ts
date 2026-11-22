@@ -50,3 +50,33 @@ it('tries a backup MX when the primary cannot be resolved', async () => {
   expect((await checker.check('a@example.com')).status).toBe('valid');
   expect(probe).toHaveBeenCalledTimes(1);
 });
+it('authorizes the displayed acceptance without another DNS/SMTP check and binds it to the recipient', async () => {
+  const { checker, dns, probe } = setup();
+  const result = await checker.check('person@example.com');
+  expect(result.verificationId).toBeTruthy();
+  expect(result.expiresAt).toBeGreaterThan(Date.now());
+  probe.mockResolvedValue({ status: 'unknown', detail: 'Network changed' });
+  expect(() => checker.requireApproval('person@example.com', result.verificationId)).not.toThrow();
+  expect(() => checker.requireApproval('other@example.com', result.verificationId)).toThrow('expired or changed');
+  expect(() => checker.requireApproval('person@example.com', 'invented')).toThrow('expired or changed');
+  expect(() => checker.requireApproval('person@example.com', undefined)).toThrow('expired or changed');
+  expect(dns.resolveMx).toHaveBeenCalledTimes(1);
+  expect(probe).toHaveBeenCalledTimes(1);
+});
+it('rejects expired approvals without probing SMTP at send time', async () => {
+  vi.useFakeTimers();
+  try {
+    const { checker, probe } = setup();
+    const result = await checker.check('person@example.com');
+    vi.setSystemTime(result.expiresAt! + 1);
+    expect(() => checker.requireApproval('person@example.com', result.verificationId)).toThrow('expired or changed');
+    expect(probe).toHaveBeenCalledTimes(1);
+  } finally { vi.useRealTimers(); }
+});
+it('issues no sending approval for an unaccepted unknown recipient', async () => {
+  const { checker, probe } = setup();
+  probe.mockResolvedValue({ status: 'unknown', detail: 'Timed out' });
+  const result = await checker.check('person@example.com');
+  expect(result.verificationId).toBeUndefined();
+  expect(() => checker.requireApproval('person@example.com', result.verificationId)).toThrow();
+});

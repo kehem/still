@@ -1,3 +1,4 @@
+import { FollowUpSpreadsheet } from '../features/followups/FollowUpSpreadsheet';
 import { FOLLOW_UP_TABS, followUpTab, followUpDate, type FollowUpTab } from '../../shared/followup/tabs';
 import { useEffect, useState } from 'react';
 import type { FollowUpListItem, FollowUpSchedule } from '../../shared/types';
@@ -9,7 +10,7 @@ import { BellIcon, CheckIcon, ClockIcon, GearIcon, InboxIcon, SendIcon, XIcon } 
 interface FollowUpsPageProps {
   items: FollowUpListItem[];
   onOpen: (item: FollowUpListItem) => void;
-  onSendFollowUp: (item: FollowUpListItem) => void;
+  onSendFollowUp: (item: FollowUpListItem, body?: string) => void;
   onChanged: () => void;
 }
 
@@ -51,6 +52,7 @@ export function FollowUpsPage({ items, onOpen, onSendFollowUp, onChanged }: Foll
         </p>
 
 
+        <FollowUpSpreadsheet items={items} onPrepare={onSendFollowUp} />
         <div role="tablist" aria-label="Follow-up dates" className="mt-6 flex gap-1 overflow-x-auto border-b border-border">
           {FOLLOW_UP_TABS.map((entry, index) => <button key={entry.key} type="button" role="tab"
             id={`followup-tab-${entry.key}`} aria-controls={`followup-panel-${entry.key}`}

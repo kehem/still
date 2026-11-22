@@ -174,3 +174,16 @@ it('does not periodically recheck settled recipients and supports explicit manua
     expect(mock.api.checkEmailRecipients).toHaveBeenCalledWith(['r2@example.com'], true);
   } finally { vi.useRealTimers(); }
 });
+
+it('shows a compact verified label for accepted and catch-all recipients with details in tooltips', async () => {
+  mock.api.checkEmailRecipients.mockImplementation(async (addresses: string[]) => Object.fromEntries(addresses.map(address => [address, {
+    status: address === 'r1@example.com' ? 'valid' : 'catch_all',
+    detail: address === 'r1@example.com' ? 'MX found; SMTP accepted recipient' : 'Catch-all: specific mailbox unverified; may bounce',
+  }])));
+  await open();
+  await waitFor(() => expect(screen.getAllByText('SMTP & MX verified')).toHaveLength(2));
+  expect(screen.getByTitle('MX found; SMTP accepted recipient').textContent).toBe('SMTP & MX verified');
+  expect(screen.getByTitle('Catch-all: specific mailbox unverified; may bounce').textContent).toBe('SMTP & MX verified');
+  expect(screen.getByRole('button', { name: 'Send mail to r1@example.com' })).toBeTruthy();
+  expect(screen.getByRole('button', { name: 'Send mail to r2@example.com' })).toBeTruthy();
+});

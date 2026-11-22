@@ -7,7 +7,7 @@ export function parseFollowUpTable(table: string[][]): ImportedFollowUp[] {
   if (table.length > 5001) throw new Error('Maximum 5,000 rows per file.');
   const headers = (table[0] || []).map(normalize);
   const columns = ['email', 'account', 'conversationid', 'subject', 'followup1', 'followup2', 'followup3'].map(h => headers.indexOf(h));
-  if (columns[0] < 0 || columns.slice(4).some(c => c < 0)) throw new Error('Required columns: Email, Follow-up 1, Follow-up 2, Follow-up 3. Download a template first.');
+  if (columns[0] < 0) throw new Error('Required column: Email. Message columns are optional when writing your own body.');
   if (new Set(headers).size !== headers.length) throw new Error('Duplicate column headers are not allowed.');
   return table.slice(1).map((cells, index) => {
     const values = columns.map(c => c < 0 ? '' : String(cells[c] ?? ''));

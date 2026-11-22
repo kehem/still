@@ -10,8 +10,9 @@ it('exports conversation identity and all three editable template columns', () =
   expect(rows[0].messages).toEqual(['First\nmultiline message', 'Second', 'Third']);
   expect(matchFollowUp(rows[0], [item]).item).toBe(item);
 });
-it('requires template columns and rejects duplicate headers', () => {
-  expect(() => parseFollowUpTable([['Email', 'Message']])).toThrow('Required columns');
+it('requires email, accepts recipients without body columns and rejects duplicate headers', () => {
+  expect(() => parseFollowUpTable([['Message']])).toThrow('Required column: Email');
+  expect(parseFollowUpTable([['Email'], ['person@example.com']])[0].messages).toEqual(['', '', '']);
   expect(() => parseFollowUpTable([[...HEADERS, 'Email']])).toThrow('Duplicate');
 });
 it('rejects ambiguous, unknown, invalid and terminal matches without guessing', () => {

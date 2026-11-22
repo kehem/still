@@ -1,3 +1,4 @@
+import { FollowUpImportRepository } from '../database/followup-import';
 import { RecipientChecker } from '../email/recipient-check';
 import { EmailProviderLookup } from '../email/providers';
 import { enableAutomationFollowUp } from '../email/automation-followup';
@@ -71,6 +72,9 @@ export interface AppServices {
  * before touching the database (spec §3).
  */
 export function registerIpcHandlers(s: AppServices): void {
+  const followUpImport = new FollowUpImportRepository(s.db);
+  ipcMain.handle('followups:import:get', () => followUpImport.get());
+  ipcMain.handle('followups:import:save', (_event, input: unknown) => followUpImport.save(input));
   const recipients = new RecipientChecker();
   ipcMain.handle('email:check-recipients', async (_event, input: unknown) => {
     if (!Array.isArray(input) || input.length > 20 || input.some(a => typeof a !== 'string' || a.length > 254)) throw new Error('Invalid recipient check batch');

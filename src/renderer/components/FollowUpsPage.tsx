@@ -15,7 +15,8 @@ interface FollowUpsPageProps {
 }
 
 export function FollowUpsPage({ items, onOpen, onSendFollowUp, onChanged }: FollowUpsPageProps) {
-  const [tab, setTab] = useState<FollowUpTab>('today');
+  const tabs = [{ key: 'all', label: 'All active', heading: 'All active follow-ups' }, ...FOLLOW_UP_TABS] as const;
+  const [tab, setTab] = useState<FollowUpTab | 'all'>('today');
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const refresh = () => setNow(new Date());
@@ -37,11 +38,11 @@ export function FollowUpsPage({ items, onOpen, onSendFollowUp, onChanged }: Foll
     };
   }, []);
 
-  const buckets = Object.fromEntries(FOLLOW_UP_TABS.map(t => [t.key,
-    items.filter(item => followUpTab(item, now) === t.key).sort((a, b) =>
+  const buckets = Object.fromEntries(tabs.map(t => [t.key,
+    items.filter(item => t.key === 'all' ? !['completed', 'replied', 'cancelled'].includes(item.status) : followUpTab(item, now) === t.key).sort((a, b) =>
       (followUpDate(a) || a.lastSentAt).localeCompare(followUpDate(b) || b.lastSentAt)),
-  ])) as Record<FollowUpTab, FollowUpListItem[]>;
-  const selected = FOLLOW_UP_TABS.find(t => t.key === tab)!;
+  ])) as Record<FollowUpTab | 'all', FollowUpListItem[]>;
+  const selected = tabs.find(t => t.key === tab)!;
 
   return (
     <main className="min-h-0 min-w-0 flex-1 overflow-y-auto px-6 py-6">
@@ -54,25 +55,25 @@ export function FollowUpsPage({ items, onOpen, onSendFollowUp, onChanged }: Foll
 
         <FollowUpSpreadsheet items={items} onPrepare={onSendFollowUp} />
         <div role="tablist" aria-label="Follow-up dates" className="mt-6 flex gap-1 overflow-x-auto border-b border-border">
-          {FOLLOW_UP_TABS.map((entry, index) => <button key={entry.key} type="button" role="tab"
+          {tabs.map((entry, index) => <button key={entry.key} type="button" role="tab"
             id={`followup-tab-${entry.key}`} aria-controls={`followup-panel-${entry.key}`}
             aria-selected={tab === entry.key} tabIndex={tab === entry.key ? 0 : -1}
             onClick={() => { setNow(new Date()); setTab(entry.key); }}
             onKeyDown={event => {
               let next = index;
-              if (event.key === 'ArrowRight') next = (index + 1) % FOLLOW_UP_TABS.length;
-              else if (event.key === 'ArrowLeft') next = (index + FOLLOW_UP_TABS.length - 1) % FOLLOW_UP_TABS.length;
+              if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+              else if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
               else if (event.key === 'Home') next = 0;
-              else if (event.key === 'End') next = FOLLOW_UP_TABS.length - 1;
+              else if (event.key === 'End') next = tabs.length - 1;
               else return;
-              event.preventDefault(); setTab(FOLLOW_UP_TABS[next].key);
-              document.getElementById(`followup-tab-${FOLLOW_UP_TABS[next].key}`)?.focus();
+              event.preventDefault(); setTab(tabs[next].key);
+              document.getElementById(`followup-tab-${tabs[next].key}`)?.focus();
             }}
             className={`flex shrink-0 items-center gap-2 border-b-2 px-3 py-3 text-[12px] transition-colors ${tab === entry.key ? 'border-accent font-semibold text-text' : 'border-transparent text-text-secondary hover:text-text'}`}>
             {entry.label}<span className="text-[10px] tabular-nums text-text-tertiary">{buckets[entry.key].length}</span>
           </button>)}
         </div>
-        <p className="mt-3 text-[11px] text-text-tertiary">Today shows only today’s dates. Earlier unfinished follow-ups move to Due. Dates use your local time.</p>
+        <p className="mt-3 text-[11px] text-text-tertiary">Use All active to send manually to upcoming or waiting conversations too. Today shows today’s dates; Due shows earlier dates. Dates use your local time.</p>
         <section role="tabpanel" id={`followup-panel-${tab}`} aria-labelledby={`followup-tab-${tab}`} className="mt-5" tabIndex={0}>
           {buckets[tab].length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-16 text-center">

@@ -264,5 +264,13 @@ CREATE INDEX automation_delivery_conversation ON automation_deliveries(conversat
 CREATE INDEX idx_messages_automation_match ON messages(account_id, direction, subject);
 `,
   },
+  {
+    version: 4,
+    name: 'followup_import_workspace',
+    sql: `CREATE TABLE followup_import_workspace (
+      id INTEGER PRIMARY KEY CHECK(id = 1), document TEXT NOT NULL,
+      source_bytes BLOB NOT NULL, updated_at TEXT NOT NULL
+    );`,
+  },
 
 ];

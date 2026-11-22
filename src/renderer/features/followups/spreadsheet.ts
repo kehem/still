@@ -1,10 +1,12 @@
+import type { ImportedFollowUp } from '../../../shared/followup-import';
+export type { ImportedFollowUp } from '../../../shared/followup-import';
 import type { FollowUpListItem } from '../../../shared/types';
 
 export const HEADERS = ['Email', 'Account', 'Conversation ID', 'Subject', 'Follow-up 1', 'Follow-up 2', 'Follow-up 3', 'Status', 'Next due', 'Current stage'];
 /** Draft-sheet layout; original Email / Follow-up N imports remain supported. */
 export const DRAFT_HEADERS = ['Company Name', 'Business Email', 'Email Verification Status', 'Official Website', 'Company Category', 'Draft Status', 'Original Subject', 'Initial Email',
   ...Array.from({ length: 5 }, (_, n) => [`Follow-up ${n + 1} Subject`, `Follow-up ${n + 1} Message`]).flat()];
-export interface ImportedFollowUp { row: number; email: string; account: string; conversationId: string; subject: string; messages: string[]; subjects?: string[]; company?: string; verification?: string }
+
 const normalize = (value: string) => value.trim().toLowerCase().replace(/[\s_-]+/g, '');
 export function parseFollowUpTable(table: string[][]): ImportedFollowUp[] {
   if (table.length > 5001) throw new Error('Maximum 5,000 rows per file.');

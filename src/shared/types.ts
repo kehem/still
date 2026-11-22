@@ -376,6 +376,8 @@ export interface StillAPI {
   markConversationRead(conversationId: string): Promise<void>;
   trashConversation(conversationId: string): Promise<void>;
   restoreConversation(conversationId: string): Promise<void>;
+  getFollowUpImport(): Promise<import('./followup-import').FollowUpImportWorkspace>;
+  saveFollowUpImport(workspace: import('./followup-import').FollowUpImportWorkspace): Promise<import('./followup-import').FollowUpImportWorkspace>;
   listFollowUps(): Promise<FollowUpListItem[]>;
   /**
    * Starts tracking a conversation. Returns null when it cannot be tracked

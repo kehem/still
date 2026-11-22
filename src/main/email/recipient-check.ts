@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Resolver } from 'node:dns/promises';
 import { BlockList, createConnection, isIPv4 } from 'node:net';
 import { emailDomain } from '../../shared/email-providers';
@@ -11,10 +12,14 @@ export const publicMailIP = (ip: string) => isIPv4(ip) && !blocked.check(ip);
 export function probeRecipient(ip: string, address: string, timeoutMs = 5000): Promise<RecipientCheck> {
   return new Promise(resolve => {
     let heloFallback = false;
+    let recipientAccepted = false;
+    const acceptedDetail = 'MX found; SMTP accepted recipient. Catch-all status could not be confirmed; delivery is not guaranteed.';
     let finished = false, buffer = '', bytes = 0, step = 0;
     const socket = createConnection({ host: ip, port: 25 });
     const finish = (status: RecipientCheck['status'], detail: string) => {
-      if (finished) return; finished = true; clearTimeout(timer); socket.destroy(); resolve({ status, detail });
+      if (finished) return; finished = true; clearTimeout(timer); socket.destroy();
+      // Once the real RCPT has been accepted, an inconclusive optional probe must not undo that evidence.
+      resolve(recipientAccepted && status === 'unknown' ? { status: 'valid', detail: acceptedDetail } : { status, detail });
     };
     const timer = setTimeout(() => finish('unknown', 'SMTP check timed out'), timeoutMs);
     socket.on('error', () => finish('unknown', 'SMTP server unavailable or port 25 blocked'));
@@ -28,9 +33,19 @@ export function probeRecipient(ip: string, address: string, timeoutMs = 5000): P
         if (!/^\d{3} /.test(line)) continue; // Wait for the final line of a multiline reply.
         const code = Number(line.slice(0, 3));
         if (step === 3) {
-          if (code === 250 || code === 251) finish('valid', 'MX found; SMTP accepted recipient (delivery not guaranteed)');
+          if (code === 250 || code === 251) {
+            recipientAccepted = true; step = 4;
+            // A random RCPT in the same transaction identifies likely accept-all domains.
+            // No message is sent to either address: DATA is never issued.
+            socket.write(`RCPT TO:<still-check-${randomUUID()}@${address.slice(address.lastIndexOf('@') + 1)}>\r\n`);
+          }
           else if ([550, 551, 553].includes(code) && /5\.1\.[123]|user unknown|no such (?:user|mailbox)|mailbox.*(?:not found|does not exist)/i.test(line)) finish('invalid', 'SMTP reports recipient mailbox does not exist');
           else finish('unknown', 'SMTP recipient check inconclusive');
+          return;
+        }
+        if (step === 4) {
+          if (code === 250 || code === 251) finish('catch_all', 'Likely catch-all domain: SMTP accepted a random test address. This specific mailbox is unverified; sending is allowed but may bounce.');
+          else finish('valid', acceptedDetail);
           return;
         }
         if (step === 1 && [500, 502, 504].includes(code) && !heloFallback) {

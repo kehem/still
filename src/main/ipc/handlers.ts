@@ -1,3 +1,4 @@
+import { recipientCanSend } from '../../shared/recipient-check';
 import { FollowUpImportRepository } from '../database/followup-import';
 import { RecipientChecker } from '../email/recipient-check';
 import { EmailProviderLookup } from '../email/providers';
@@ -276,7 +277,7 @@ export function registerIpcHandlers(s: AppServices): void {
     automationSending = true;
     try {
       const row = automation.snapshot().workspace.rows.find(row => row.id === id);
-      if (!row || (await recipients.check(row.to)).status !== 'valid') throw new Error('Recipient has not passed MX and SMTP checks. Refresh recipient checks before sending.');
+      if (!row || !recipientCanSend(await recipients.check(row.to))) throw new Error('Recipient has not passed MX and SMTP checks. Refresh recipient checks before sending.');
       const claimed = automation.claim(id);
       let result;
       try {

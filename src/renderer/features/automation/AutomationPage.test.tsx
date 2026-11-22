@@ -128,3 +128,12 @@ it('reveals a passed recipient immediately while checking the next recipient sep
   finishSecond({ 'r2@example.com': { status: 'invalid', detail: 'No mailbox' } });
   await screen.findByText('No mailbox');
 });
+it('shows Send for catch-all recipients with a warning and permits the send action', async () => {
+  mock.api.checkEmailRecipients.mockImplementation(async (addresses: string[]) => Object.fromEntries(addresses.map(address => [address, { status: 'catch_all', detail: 'Catch-all domain: specific mailbox unverified; sending may bounce.' }])));
+  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
+  const send = await screen.findByRole('button', { name: 'Send mail to r1@example.com' });
+  expect((send as HTMLButtonElement).disabled).toBe(false);
+  fireEvent.click(send);
+  await waitFor(() => expect(mock.api.sendAutomationRow).toHaveBeenCalledWith('1'));
+  expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('specific mailbox is unverified'));
+});

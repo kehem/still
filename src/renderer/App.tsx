@@ -412,12 +412,12 @@ function Shell() {
       .then(() => refreshNotifications());
   };
 
-  const sendFollowUp = (item: FollowUpListItem, body?: string) => {
+  const sendFollowUp = (item: FollowUpListItem, body?: string, subject?: string) => {
     openComposer({
       accountId: item.account.id,
       body: body ?? '',
       toAddresses: [item.recipient],
-      subject: /^re:/i.test(item.subject) ? item.subject : `Re: ${item.subject}`,
+      subject: subject ?? (/^re:/i.test(item.subject) ? item.subject : `Re: ${item.subject}`),
       inReplyToConversationId: item.conversation.id,
       followUpEnabled: true,
     });

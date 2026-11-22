@@ -1,4 +1,4 @@
-export interface RecipientCheck { status: 'valid' | 'catch_all' | 'invalid' | 'unknown'; detail: string }
+export interface RecipientCheck { status: 'valid' | 'catch_all' | 'invalid' | 'unknown'; detail: string; expiresAt?: number; verificationId?: string }
 import type { AutomationWorkspace, AutomationSnapshot } from './automation';
 // ─── Accounts ────────────────────────────────────────────────────────────────
 
@@ -360,7 +360,7 @@ export interface StillAPI {
   getAutomation(): Promise<AutomationSnapshot>;
   saveAutomation(workspace: AutomationWorkspace): Promise<AutomationSnapshot>;
   importAutomationFile(input: { name: string; base64: string; table: string[][] }): Promise<AutomationSnapshot>;
-  sendAutomationRow(id: string): Promise<AutomationSnapshot>;
+  sendAutomationRow(id: string, verificationId?: string): Promise<AutomationSnapshot>;
   getSettings(): Promise<Settings>;
   updateSettings(patch: Partial<Settings>): Promise<Settings>;
   listAccounts(): Promise<Account[]>;

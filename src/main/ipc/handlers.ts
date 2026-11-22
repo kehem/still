@@ -1,4 +1,3 @@
-import { recipientCanSend } from '../../shared/recipient-check';
 import { FollowUpImportRepository } from '../database/followup-import';
 import { RecipientChecker } from '../email/recipient-check';
 import { EmailProviderLookup } from '../email/providers';
@@ -271,13 +270,14 @@ export function registerIpcHandlers(s: AppServices): void {
     const file = parseOrThrow(automationImportSchema, input);
     return automation.importFile(file.name, file.base64, file.table);
   });
-  ipcMain.handle('automation:send', async (_event, input: unknown) => {
+  ipcMain.handle('automation:send', async (_event, input: unknown, verificationId: unknown) => {
     const id = parseOrThrow(idSchema, input);
     if (automationSending) throw new Error('An automation email is already sending');
     automationSending = true;
     try {
       const row = automation.snapshot().workspace.rows.find(row => row.id === id);
-      if (!row || !recipientCanSend(await recipients.check(row.to))) throw new Error('Recipient has not passed MX and SMTP checks. Refresh recipient checks before sending.');
+      if (!row) throw new Error('This queue row no longer exists. Refresh the queue.');
+      recipients.requireApproval(row.to, verificationId);
       const claimed = automation.claim(id);
       let result;
       try {

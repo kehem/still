@@ -137,3 +137,27 @@ it('shows Send for catch-all recipients with a warning and permits the send acti
   await waitFor(() => expect(mock.api.sendAutomationRow).toHaveBeenCalledWith('1'));
   expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('specific mailbox is unverified'));
 });
+it('passes the exact displayed approval when sending rather than starting another recipient check', async () => {
+  mock.api.checkEmailRecipients.mockImplementation(async (addresses: string[]) => Object.fromEntries(addresses.map(address => [address, { status: 'valid', detail: 'Accepted', expiresAt: Date.now() + 300000, verificationId: `proof:${address}` }])));
+  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
+  fireEvent.click(await screen.findByRole('button', { name: 'Send mail to r1@example.com' }));
+  await waitFor(() => expect(mock.api.sendAutomationRow).toHaveBeenCalledWith('1', 'proof:r1@example.com'));
+});
+it('disables Send actions when the daily limit is already reached', async () => {
+  const original = mock.api.getAutomation.getMockImplementation()!;
+  mock.api.getAutomation.mockImplementation(async () => ({ ...await original(), attemptedToday: 50 }));
+  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
+  const send = await screen.findByRole('button', { name: 'Send mail to r1@example.com' });
+  expect((send as HTMLButtonElement).disabled).toBe(true);
+  expect((screen.getByText('Send next') as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('Daily limit reached');
+});
+it('shows an interval wait and disables row sending until the interval permits it', async () => {
+  const original = mock.api.getAutomation.getMockImplementation()!;
+  mock.api.getAutomation.mockImplementation(async () => ({ ...await original(), lastAttemptAt: Date.now() }));
+  render(<AutomationPage accounts={accounts} onSent={() => {}} />);
+  const send = await screen.findByRole('button', { name: 'Send mail to r1@example.com' });
+  expect((send as HTMLButtonElement).disabled).toBe(true);
+  expect(screen.getByRole('status', { name: 'Sending status' }).textContent).toContain('Waiting for the send interval');
+  expect(mock.api.sendAutomationRow).not.toHaveBeenCalled();
+});

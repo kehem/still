@@ -1,16 +1,21 @@
 // @vitest-environment jsdom
+import { emptyFollowUpImport } from '../../../shared/followup-import';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, expect, it, vi } from 'vitest';
+import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import type { FollowUpListItem } from '../../../shared/types';
 import { FollowUpSpreadsheet } from './FollowUpSpreadsheet';
 import { HEADERS } from './spreadsheet';
 import Papa from 'papaparse';
-const mocks = vi.hoisted(() => ({ toFile: vi.fn().mockResolvedValue(undefined), write: vi.fn() }));
+const mocks = vi.hoisted(() => ({ toFile: vi.fn().mockResolvedValue(undefined), write: vi.fn(), get: vi.fn(), save: vi.fn() }));
+vi.mock('../../services/api', () => ({ isElectron: true, getAPI: () => ({ getFollowUpImport: mocks.get, saveFollowUpImport: mocks.save }) }));
+beforeEach(() => { mocks.get.mockResolvedValue(emptyFollowUpImport()); mocks.save.mockImplementation(async value => value); });
 vi.mock('write-excel-file/browser', () => ({ default: mocks.write }));
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 const item = { recipient: 'person@example.com', account: { email: 'me@example.com' }, conversation: { id: 'thread' }, subject: 'Proposal', status: 'scheduled', currentStage: 0 } as FollowUpListItem;
 async function upload(table: string[][]) {
+  await waitFor(() => expect((screen.getByRole('button', { name: 'Import Excel / CSV' }) as HTMLButtonElement).disabled).toBe(false));
   const file = new File([], 'followups.csv', { type: 'text/csv' });
+  Object.defineProperty(file, 'arrayBuffer', { value: async () => new TextEncoder().encode(Papa.unparse(table)).buffer });
   Object.defineProperty(file, 'text', { value: async () => Papa.unparse(table) });
   fireEvent.change(screen.getByLabelText('Upload follow-up spreadsheet'), { target: { files: [file] } });
 }
@@ -35,6 +40,7 @@ it('does not offer a reply for unknown conversations or empty stage messages', a
 it('exports Excel with explicit string cells and conversation identity', async () => {
   mocks.write.mockReturnValue({ toFile: mocks.toFile });
   render(<FollowUpSpreadsheet items={[item]} onPrepare={vi.fn()} />);
+  await waitFor(() => expect((screen.getByRole('button', { name: 'Export Excel' }) as HTMLButtonElement).disabled).toBe(false));
   fireEvent.click(screen.getByRole('button', { name: 'Export Excel' }));
   await waitFor(() => expect(mocks.toFile).toHaveBeenCalledWith('follow-ups.xlsx'));
   const table = mocks.write.mock.calls[0][0];
@@ -84,4 +90,30 @@ it('prepares the fifth follow-up subject and message from a business-email draft
   expect(screen.getByText('Subject: Re: Fifth proposal')).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'Review follow-up 5' }));
   expect(prepare).toHaveBeenCalledWith(item, 'Fifth body', 'Re: Fifth proposal');
+});
+it('restores a saved import and allows reviewing an upcoming conversation before it is due', async () => {
+  const future = { ...item, nextDueAt: '2099-01-01T09:00:00Z', status: 'scheduled' as const };
+  mocks.get.mockResolvedValue({ ...emptyFollowUpImport(), fileName: 'saved.xlsx', selectedRows: [2], rowStages: { '2': 1 },
+    rows: [{ row: 2, email: item.recipient, account: '', conversationId: 'thread', subject: 'Proposal', messages: ['First', 'Second', 'Third'] }] });
+  const prepare = vi.fn(); render(<FollowUpSpreadsheet items={[future]} onPrepare={prepare} />);
+  expect(await screen.findByText('saved.xlsx')).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: 'Review follow-up 2' }));
+  expect(prepare).toHaveBeenCalledWith(future, 'Second');
+  fireEvent.change(screen.getByLabelText('Follow-up for row 2'), { target: { value: '2' } });
+  await waitFor(() => expect(mocks.save).toHaveBeenLastCalledWith(expect.objectContaining({ rowStages: { '2': 2 } })));
+});
+it('saves imported source bytes before exposing the new imported rows', async () => {
+  render(<FollowUpSpreadsheet items={[item]} onPrepare={vi.fn()} />);
+  await upload([['Email'], [item.recipient]]);
+  await screen.findByText('Follow-up 1 is empty');
+  const saved = mocks.save.mock.calls.find(([value]) => value.fileName === 'followups.csv')![0];
+  expect(atob(saved.sourceBase64)).toContain(item.recipient);
+  expect(saved.rows[0].email).toBe(item.recipient);
+});
+it('does not overwrite saved data when restoring the workspace fails', async () => {
+  mocks.get.mockRejectedValue(new Error('Disk unavailable'));
+  render(<FollowUpSpreadsheet items={[item]} onPrepare={vi.fn()} />);
+  await screen.findByText(/Could not load saved import/);
+  expect(mocks.save).not.toHaveBeenCalled();
+  expect((screen.getByRole('button', { name: 'Import Excel / CSV' }).closest('fieldset') as HTMLFieldSetElement).disabled).toBe(true);
 });

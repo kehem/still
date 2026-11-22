@@ -1094,3 +1094,26 @@ describe('saved spreadsheet follow-up prefills', () => {
     });
   });
 });
+
+it('prefills first, second and third saved bodies on successive follow-up composer sessions', async () => {
+  const { emptyFollowUpImport } = await import('../shared/followup-import');
+  localStorage.setItem(LS + 'followup-import', JSON.stringify({ ...emptyFollowUpImport(), fileName: 'saved.xlsx', rows: [{ row: 2, email: 'marco@partner.example', account: '', conversationId: 'c3', subject: 'Original imported subject', messages: ['Unique first body', 'Unique second body', 'Unique third body'], subjects: ['Re: First follow-up', 'Re: Second follow-up', 'Re: Third follow-up'] }] }));
+  localStorage.setItem(LS + 'settings', JSON.stringify({ confirmBeforeSend: false }));
+  await renderApp();
+  await screen.findByRole('heading', { name: 'All Inbox' });
+  fireEvent.click(screen.getByRole('button', { name: /Follow-ups/ }));
+  await screen.findByRole('heading', { name: 'Follow-ups' });
+  fireEvent.click(screen.getByRole('tab', { name: /^All active / }));
+  for (const body of ['Unique first body', 'Unique second body', 'Unique third body']) {
+    const send = screen.getAllByTitle('Send follow-up').find(button => button.closest('.group')?.textContent?.includes('Partnership inquiry'));
+    expect(send).toBeTruthy(); fireEvent.click(send!);
+    await screen.findByRole('heading', { name: 'Reply' });
+    expect((screen.getByRole('textbox', { name: 'Message body' }) as HTMLTextAreaElement).value).toBe(body);
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    await waitFor(() => expect(screen.queryByRole('heading', { name: 'Reply' })).toBeNull());
+    await waitFor(() => {
+      const messages = JSON.parse(localStorage.getItem(LS + 'messages') || '[]') as Message[];
+      expect(messages.some(message => message.conversationId === 'c3' && message.bodyText === body)).toBe(true);
+    });
+  }
+});

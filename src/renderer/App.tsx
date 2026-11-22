@@ -30,7 +30,7 @@ type View =
   | { kind: 'automation' }
   | { kind: 'settings'; section: SettingsSection };
 
-type ComposerState = { open: boolean; initial: Partial<Draft> & { id?: string } };
+type ComposerState = { session?: number; open: boolean; initial: Partial<Draft> & { id?: string } };
 
 /** A selected row keeps both ids: the list highlights the message, the reading
  *  pane loads the conversation. They differ because a message id is not a
@@ -235,11 +235,12 @@ function Shell() {
     }
   }, [view, accounts]);
 
+  const composerSession = useRef(0);
   const openComposer = useCallback(
     (initial: Partial<Draft> & { id?: string }) => {
       const accountId =
         initial.accountId ?? settings.defaultSendingAccountId ?? accounts[0]?.id ?? null;
-      setComposer({ open: true, initial: { accountId, ...initial } });
+      setComposer({ session: ++composerSession.current, open: true, initial: { accountId, ...initial } });
     },
     [accounts, settings.defaultSendingAccountId],
   );
@@ -606,7 +607,7 @@ function Shell() {
 
       {composer.open && (
         <Composer
-          key={composer.initial.id ?? composer.initial.inReplyToConversationId ?? 'new'}
+          key={composer.session ?? composer.initial.id ?? composer.initial.inReplyToConversationId ?? 'new'}
           accounts={accounts}
           initial={composer.initial}
           onClose={() => setComposer({ open: false, initial: {} })}

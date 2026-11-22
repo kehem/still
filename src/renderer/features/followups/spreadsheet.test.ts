@@ -48,3 +48,16 @@ it('rejects conflicting aliases and multiline imported subjects', () => {
   expect(() => parseFollowUpTable([['Email', 'Follow-up 1', 'Follow-up 1 Message']])).toThrow('Ambiguous');
   expect(() => parseFollowUpTable([['Business Email', 'Follow-up 1 Subject'], ['person@example.com', 'Subject\\nBcc: other@example.com']])).toThrow('single line');
 });
+it('matches reply-prefix, case and whitespace differences without confusing different subjects', () => {
+  const row = parseFollowUpTable([['Business Email', 'Original Subject'], ['person@example.com', 'Proposal']])[0];
+  expect(matchFollowUp(row, [{ ...item, subject: ' Re: RE:  PROPOSAL ' }]).item).toBeTruthy();
+  expect(matchFollowUp({ ...row, subject: 'Different proposal' }, [item]).item).toBeUndefined();
+});
+it('uses explicit conversation identity even when its subject has changed', () => {
+  const row = parseFollowUpTable([HEADERS, ['person@example.com', '', 'thread', 'Original proposal', 'One', 'Two', 'Three']])[0];
+  expect(matchFollowUp(row, [{ ...item, subject: 'Updated proposal' }]).item).toBeTruthy();
+});
+it('uses the active tracking sequence without losing older terminal history', () => {
+  const row = parseFollowUpTable([['Email'], ['person@example.com']])[0];
+  expect(matchFollowUp(row, [{ ...item, status: 'cancelled' }, item]).item).toBe(item);
+});

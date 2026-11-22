@@ -39,16 +39,18 @@ export function parseFollowUpTable(table: string[][]): ImportedFollowUp[] {
       messages: messageColumns.map(c => draftText(cell(c))), subjects, company: cell(companyColumn).trim(), verification: cell(verificationColumn).trim() };
   }).filter(r => [r.email, r.account, r.conversationId, r.subject, ...r.messages].some(v => v.trim()));
 }
+export const normalizeFollowUpSubject = (subject: string) => subject.normalize('NFC').trim().replace(/^(?:re\s*:\s*)+/i, '').replace(/\s+/g, ' ').toLowerCase();
 export function matchFollowUp(row: ImportedFollowUp, items: FollowUpListItem[]): { item?: FollowUpListItem; error?: string } {
   if (!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(row.email)) return { error: 'Invalid email address' };
-  const matches = items.filter(item => item.recipient.toLowerCase() === row.email.toLowerCase()
+  const matches = items.filter(item => item.recipient.trim().toLowerCase() === row.email.trim().toLowerCase()
     && (!row.account || item.account.email.toLowerCase() === row.account.toLowerCase())
     && (!row.conversationId || item.conversation.id === row.conversationId)
-    && (!row.subject || item.subject === row.subject));
+    && (row.conversationId || !row.subject || normalizeFollowUpSubject(item.subject) === normalizeFollowUpSubject(row.subject)));
   if (!matches.length) return { error: 'No matching tracked conversation. Enable follow-up from Sent first.' };
-  if (matches.length > 1) return { error: 'Ambiguous match. Include Account and Conversation ID from an export.' };
-  if (['completed', 'replied', 'cancelled'].includes(matches[0].status)) return { error: 'Conversation is completed, replied, or cancelled' };
-  return { item: matches[0] };
+  const active = matches.filter(item => !['completed', 'replied', 'cancelled'].includes(item.status));
+  if (active.length > 1) return { error: 'Ambiguous match. Include Account and Conversation ID from an export.' };
+  if (!active.length) return { error: 'Conversation is completed, replied, or cancelled' };
+  return { item: active[0] };
 }
 export function followUpExport(items: FollowUpListItem[]): string[][] {
   return [HEADERS, ...items.map(i => [i.recipient, i.account.email, i.conversation.id, i.subject, '', '', '', i.status, i.nextDueAt || '', String(i.currentStage + 1)])];

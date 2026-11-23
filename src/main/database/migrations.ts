@@ -272,5 +272,17 @@ CREATE INDEX idx_messages_automation_match ON messages(account_id, direction, su
       source_bytes BLOB NOT NULL, updated_at TEXT NOT NULL
     );`,
   },
+  {
+    version: 5,
+    name: 'recipient_checks',
+    // Completed recipient checks are saved so an address is checked only once;
+    // only an explicit recheck replaces a stored result.
+    sql: `CREATE TABLE recipient_checks (
+      address TEXT PRIMARY KEY,
+      status TEXT NOT NULL CHECK (status IN ('valid', 'catch_all', 'invalid', 'unknown')),
+      detail TEXT NOT NULL,
+      checked_at TEXT NOT NULL
+    );`,
+  },
 
 ];

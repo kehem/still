@@ -36,6 +36,7 @@ describe('database migrations', () => {
       'notifications',
       'sync_state',
       'messages_fts',
+      'recipient_checks',
     ]) {
       expect(tables.has(table), `missing table ${table}`).toBe(true);
     }

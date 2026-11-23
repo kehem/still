@@ -1,10 +1,19 @@
 import { expect, it, vi } from 'vitest';
 import type { Resolver } from 'node:dns/promises';
-import { publicMailIP, RecipientChecker } from './recipient-check';
-function setup(mx = [{ exchange: 'mx.example.com', priority: 0 }]) {
+import { publicMailIP, RecipientChecker, type RecipientCheckStore } from './recipient-check';
+import type { RecipientCheck } from '../../shared/types';
+function setup(mx = [{ exchange: 'mx.example.com', priority: 0 }], store?: RecipientCheckStore) {
   const dns = { resolveMx: vi.fn().mockResolvedValue(mx), resolve4: vi.fn().mockResolvedValue(['8.8.8.8']) };
   const probe = vi.fn().mockResolvedValue({ status: 'valid', detail: 'Accepted' });
-  return { dns, probe, checker: new RecipientChecker(dns as unknown as Resolver, probe) };
+  return { dns, probe, checker: new RecipientChecker(dns as unknown as Resolver, probe, store) };
+}
+function memoryStore(seed: [string, Pick<RecipientCheck, 'status' | 'detail'>][] = []) {
+  const saved = new Map<string, Pick<RecipientCheck, 'status' | 'detail'>>(seed);
+  const store: RecipientCheckStore = {
+    load: address => saved.get(address),
+    save: (address, result) => void saved.set(address, { ...result }),
+  };
+  return { saved, store };
 }
 it('requires MX and SMTP acceptance and caches checks per recipient', async () => {
   const { checker, dns, probe } = setup();
@@ -149,4 +158,97 @@ it('retains the SMTP failure reason after the three-attempt limit', async () => 
   const { checker, probe } = setup();
   probe.mockResolvedValue({ status: 'unknown', detail: 'SMTP server unavailable or port 25 blocked' });
   expect((await checker.check('person@example.com')).detail).toContain('port 25 blocked');
+});
+
+// ─── Microsoft-hosted mail ───────────────────────────────────────────────────
+
+it('treats Microsoft-hosted mail as unverified but sendable when SMTP checks are inconclusive', async () => {
+  const { checker, probe } = setup([{ exchange: 'contoso-com.mail.protection.outlook.com', priority: 0 }]);
+  probe.mockResolvedValue({ status: 'unknown', detail: '421 4.7.0 throttled' });
+  const result = await checker.check('person@contoso.com');
+  expect(result.status).toBe('catch_all');
+  expect(result.detail).toContain('Microsoft');
+  expect(result.verificationId).toBeTruthy();
+  expect(probe).toHaveBeenCalledTimes(1); // no repeated retries against Microsoft
+});
+it('keeps definitive Microsoft recipient rejections invalid', async () => {
+  const { checker, probe } = setup([{ exchange: 'contoso-com.mail.protection.outlook.com', priority: 0 }]);
+  probe.mockResolvedValue({ status: 'invalid', detail: 'SMTP reports recipient mailbox does not exist' });
+  const result = await checker.check('person@contoso.com');
+  expect(result.status).toBe('invalid');
+  expect(result.verificationId).toBeUndefined();
+});
+it('passes Microsoft-hosted mail even when the MX host has no resolvable address', async () => {
+  const { checker, dns, probe } = setup([{ exchange: 'outlook-com.olc.protection.outlook.com', priority: 5 }]);
+  dns.resolve4.mockRejectedValue({ code: 'ESERVFAIL' });
+  const result = await checker.check('person@outlook.com');
+  expect(result.status).toBe('catch_all');
+  expect(result.detail).toContain('Microsoft');
+  expect(probe).not.toHaveBeenCalled();
+});
+it('reports Microsoft consumer domains as sendable even when DNS lookups fail entirely', async () => {
+  const { checker, dns, probe } = setup();
+  dns.resolveMx.mockRejectedValue({ code: 'ETIMEOUT' });
+  const result = await checker.check('person@hotmail.com');
+  expect(result.status).toBe('catch_all');
+  expect(result.detail).toContain('Microsoft');
+  expect(probe).not.toHaveBeenCalled();
+});
+it('does not rewrite definitive rejections for Microsoft consumer domains', async () => {
+  const { checker, probe } = setup([{ exchange: '.', priority: 0 }]);
+  const result = await checker.check('person@hotmail.com');
+  expect(result.status).toBe('invalid');
+  expect(result.verificationId).toBeUndefined();
+  expect(probe).not.toHaveBeenCalled();
+});
+
+// ─── Saved checks (database persistence) ─────────────────────────────────────
+
+it('saves every completed check and treats a saved result as already checked', async () => {
+  const { saved, store } = memoryStore();
+  const { checker } = setup(undefined, store);
+  const first = await checker.check('person@example.com');
+  expect(first.status).toBe('valid');
+  expect(saved.get('person@example.com')).toEqual({ status: 'valid', detail: 'Accepted' });
+  // A new session over the same store: already checked, no DNS or SMTP.
+  const dns = { resolveMx: vi.fn(), resolve4: vi.fn() };
+  const probe = vi.fn();
+  const second = await new RecipientChecker(dns as unknown as Resolver, probe, store).check('person@example.com');
+  expect(second).toMatchObject({ status: 'valid', detail: 'Accepted' });
+  expect(dns.resolveMx).not.toHaveBeenCalled();
+  expect(probe).not.toHaveBeenCalled();
+});
+it('binds a fresh sending approval to an already checked result and keeps it stable', async () => {
+  const { store } = memoryStore([['person@example.com', { status: 'catch_all', detail: 'Unverified mailbox' }]]);
+  const { checker, probe } = setup(undefined, store);
+  const result = await checker.check('person@example.com');
+  expect(result.verificationId).toBeTruthy();
+  expect(() => checker.requireApproval('person@example.com', result.verificationId)).not.toThrow();
+  expect(() => checker.requireApproval('other@example.com', result.verificationId)).toThrow('unavailable or changed');
+  expect((await checker.check('person@example.com')).verificationId).toBe(result.verificationId);
+  expect(probe).not.toHaveBeenCalled();
+});
+it('remembers failed checks in the store and re-checks only with Recheck', async () => {
+  const { saved, store } = memoryStore();
+  const { checker, probe } = setup(undefined, store);
+  probe.mockResolvedValue({ status: 'unknown', detail: 'SMTP timeout' });
+  const failed = await checker.check('person@example.com');
+  expect(failed.status).toBe('invalid');
+  expect(probe).toHaveBeenCalledTimes(3);
+  // A new session: the failed check is already saved, so nothing is re-probed.
+  const dns = { resolveMx: vi.fn(), resolve4: vi.fn() };
+  const retryProbe = vi.fn();
+  const fresh = new RecipientChecker(dns as unknown as Resolver, retryProbe, store);
+  const loaded = await fresh.check('person@example.com');
+  expect(loaded.status).toBe('invalid');
+  expect(loaded.verificationId).toBeUndefined();
+  expect(retryProbe).not.toHaveBeenCalled();
+  // Explicit Recheck replaces the saved result.
+  retryProbe.mockResolvedValue({ status: 'valid', detail: 'Accepted' });
+  (dns.resolveMx as ReturnType<typeof vi.fn>).mockResolvedValue([{ exchange: 'mx.example.com', priority: 0 }]);
+  (dns.resolve4 as ReturnType<typeof vi.fn>).mockResolvedValue(['8.8.8.8']);
+  const rechecked = await fresh.check('person@example.com', true);
+  expect(rechecked.status).toBe('valid');
+  expect(retryProbe).toHaveBeenCalled();
+  expect(saved.get('person@example.com')).toEqual({ status: 'valid', detail: 'Accepted' });
 });

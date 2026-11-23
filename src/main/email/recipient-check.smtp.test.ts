@@ -67,3 +67,15 @@ it('does not mistake policy rejections mentioning unknown users for nonexistent 
   reply('550 5.7.1 Policy: user unknown to this unauthenticated relay\r\n');
   expect((await check).status).toBe('unknown');
 });
+it('recognizes Microsoft recipient-not-found rejections as nonexistent mailboxes', async () => {
+  const check = probeRecipient('8.8.8.8', 'person@contoso.com');
+  reply('220 ready\r\n'); reply('250 hello\r\n'); reply('250 sender ok\r\n');
+  reply('550 5.1.10 RESOLVER.ADR.RecipientNotFound; Recipient not found by SMTP address lookup\r\n');
+  expect((await check).status).toBe('invalid');
+});
+it('does not treat sender-side 5.1.0 denials as proof of a nonexistent mailbox', async () => {
+  const check = probeRecipient('8.8.8.8', 'person@example.com');
+  reply('220 ready\r\n'); reply('250 hello\r\n'); reply('250 sender ok\r\n');
+  reply('550 5.1.0 Sender denied\r\n');
+  expect((await check).status).toBe('unknown');
+});

@@ -1,9 +1,22 @@
 import { Resolver } from 'node:dns/promises';
 import { knownEmailProvider, emailDomain } from '../../shared/email-providers';
 
+const hostMatches = (host: string, suffix: string) => host === suffix || host.endsWith(`.${suffix}`);
+const mxHosts = (exchanges: string[]) => exchanges.map(host => host.toLowerCase().replace(/\.$/, ''));
+
+/**
+ * Microsoft-hosted mail (consumer Outlook and Microsoft 365 / Exchange Online)
+ * accepts every recipient at SMTP and rejects unknown mailboxes only after
+ * DATA, so external recipient verification cannot confirm a mailbox either way.
+ */
+export function isMicrosoftMx(exchanges: string[]): boolean {
+  return mxHosts(exchanges).some(host =>
+    hostMatches(host, 'mail.protection.outlook.com') || hostMatches(host, 'olc.protection.outlook.com'));
+}
+
 export function providerFromMx(exchanges: string[]): string {
-  const hosts = exchanges.map(host => host.toLowerCase().replace(/\.$/, ''));
-  const has = (suffix: string) => hosts.some(host => host === suffix || host.endsWith(`.${suffix}`));
+  const hosts = mxHosts(exchanges);
+  const has = (suffix: string) => hosts.some(host => hostMatches(host, suffix));
   // Gateways do not reliably reveal the actual mailbox provider behind them.
   if (has('pphosted.com') || has('ppe-hosted.com')) return 'Proofpoint (mail gateway)';
   if (has('mimecast.com')) return 'Mimecast (mail gateway)';

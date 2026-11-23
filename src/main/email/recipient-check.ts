@@ -2,7 +2,8 @@ import { recipientCanSend } from '../../shared/recipient-check';
 import { randomUUID } from 'node:crypto';
 import { Resolver } from 'node:dns/promises';
 import { BlockList, createConnection, isIPv4 } from 'node:net';
-import { emailDomain } from '../../shared/email-providers';
+import { emailDomain, knownEmailProvider } from '../../shared/email-providers';
+import { isMicrosoftMx } from './providers';
 import type { RecipientCheck } from '../../shared/types';
 
 const blocked = new BlockList();
@@ -41,7 +42,7 @@ export function probeRecipient(ip: string, address: string, timeoutMs = 5000): P
             // No message is sent to either address: DATA is never issued.
             socket.write(`RCPT TO:<still-check-${randomUUID()}@${address.slice(address.lastIndexOf('@') + 1)}>\r\n`);
           }
-          else if ([550, 551, 553].includes(code) && !/5\.7\.\d/.test(line) && /5\.1\.[123](?:\s|$)|user unknown|no such (?:user|mailbox)|mailbox.*(?:not found|does not exist)/i.test(line)) finish('invalid', 'SMTP reports recipient mailbox does not exist');
+          else if ([550, 551, 553].includes(code) && !/5\.7\.\d/.test(line) && /5\.1\.(?:[123]|10)(?:\s|$)|user unknown|no such (?:user|mailbox)|(?:mailbox|recipient).*(?:not found|does not exist)/i.test(line)) finish('invalid', 'SMTP reports recipient mailbox does not exist');
           else finish('unknown', 'SMTP recipient check inconclusive');
           return;
         }
@@ -59,6 +60,22 @@ export function probeRecipient(ip: string, address: string, timeoutMs = 5000): P
     });
   });
 }
+/**
+ * Persistent record of completed checks: once an address has been checked and
+ * saved, later sessions treat it as already checked instead of re-probing.
+ */
+export interface RecipientCheckStore {
+  load(address: string): Pick<RecipientCheck, 'status' | 'detail'> | undefined;
+  save(address: string, result: Pick<RecipientCheck, 'status' | 'detail'>): void;
+}
+
+/**
+ * Microsoft-hosted mail accepts every recipient at SMTP and rejects unknown
+ * mailboxes only after DATA, which this checker never sends. An inconclusive
+ * probe there is an unverified mailbox, not a failed check.
+ */
+const MICROSOFT_UNVERIFIED_DETAIL = 'Microsoft-hosted mail: the server accepts recipients without confirming individual mailboxes to external checks. This specific mailbox is unverified; sending is allowed but may bounce.';
+
 export class RecipientChecker {
   private approvals = new Map<string, { address: string }>();
   requireApproval(address: string, verificationId: unknown): void {
@@ -70,7 +87,19 @@ export class RecipientChecker {
   private cache = new Map<string, RecipientCheck>();
   private mxCache = new Map<string, { records: { exchange: string; priority: number }[]; expires: number }>();
   private pending = new Map<string, Promise<RecipientCheck>>();
-  constructor(private dns = new Resolver({ timeout: 1500, tries: 1 }), private probe = probeRecipient) {}
+  constructor(private dns = new Resolver({ timeout: 1500, tries: 1 }), private probe = probeRecipient, private store?: RecipientCheckStore) {}
+  /** Sending is authorized only by an approval the user was shown this session. */
+  private approve(address: string, result: RecipientCheck): RecipientCheck {
+    if (!recipientCanSend(result)) return result;
+    const verificationId = randomUUID();
+    this.approvals.set(verificationId, { address });
+    return { ...result, verificationId };
+  }
+  private microsoftKnown(domain: string): boolean {
+    if (knownEmailProvider(domain) === 'Outlook') return true;
+    const records = this.mxCache.get(domain)?.records;
+    return Boolean(records && isMicrosoftMx(records.map(record => record.exchange)));
+  }
   async check(address: string, force = false): Promise<RecipientCheck> {
     const domain = emailDomain(address);
     const local = address.slice(0, address.lastIndexOf('@'));
@@ -81,24 +110,38 @@ export class RecipientChecker {
     if (cached?.verificationId) this.approvals.delete(cached.verificationId);
     if (force) { this.cache.delete(address); this.mxCache.delete(domain); }
     if (!this.cache.has(address) && this.cache.size + this.pending.size >= 10000) throw new Error('Recipient check session limit reached. Restart the app to check more addresses.');
+    if (!force) {
+      // A completed check saved earlier means this email is already checked.
+      const saved = this.store?.load(address);
+      if (saved) {
+        const result = this.approve(address, saved);
+        this.cache.set(address, result);
+        return result;
+      }
+    }
     const task = (async () => {
       let result: RecipientCheck = { status: 'unknown', detail: 'Recipient check unavailable' };
+      let rejected: RecipientCheck | undefined;
       let attempts = 0;
       for (; attempts < 3; attempts++) {
         try { result = await this.lookup(address, domain); }
         catch { result = { status: 'unknown', detail: 'Recipient check unavailable' }; }
         if (recipientCanSend(result)) break;
+        if (result.status === 'invalid') rejected = result;
         // Retry failed DNS/MX checks with a fresh response, not a cached failure.
         this.mxCache.delete(domain);
       }
       if (!recipientCanSend(result)) {
-        result = { status: 'invalid', attempts: 3, detail: `Not valid for sending after 3 failed checks. ${result.detail}. This may be a verification failure, not proof the mailbox does not exist. Use Recheck to try again.` };
+        result = !rejected && this.microsoftKnown(domain)
+          // Microsoft never confirms mailboxes to external checks; inconclusive is not failed.
+          ? { status: 'catch_all', attempts: attempts + 1, detail: MICROSOFT_UNVERIFIED_DETAIL }
+          : { status: 'invalid', attempts: 3, detail: `Not valid for sending after 3 failed checks. ${(rejected ?? result).detail}. This may be a verification failure, not proof the mailbox does not exist. Use Recheck to try again.` };
       } else {
-        const verificationId = randomUUID();
-        this.approvals.set(verificationId, { address });
-        result = { ...result, attempts: attempts + 1, verificationId };
+        result = this.approve(address, { ...result, attempts: attempts + 1 });
       }
       this.cache.set(address, result);
+      // Persist only the outcome; approval IDs and attempt counts are session state.
+      this.store?.save(address, { status: result.status, detail: result.detail });
       return result;
     })();
     this.pending.set(address, task);
@@ -127,6 +170,7 @@ export class RecipientChecker {
       // Ignore stray null entries in a mixed, misconfigured set rather than hiding working MX hosts.
       const hosts = records.filter(r => r.exchange !== '' && r.exchange !== '.');
       if (!hosts.length) return { status: 'unknown', detail: 'Domain publishes a malformed MX configuration' };
+      const microsoftHosted = isMicrosoftMx(hosts.map(record => record.exchange));
       let lastDetail = 'MX found; SMTP check unavailable or inconclusive';
       for (const record of hosts.slice(0, 3)) {
         if (Date.now() >= deadline) break;
@@ -142,6 +186,9 @@ export class RecipientChecker {
           } catch { lastDetail = 'SMTP server unavailable or port 25 blocked'; }
         }
       }
+      // Microsoft-hosted mail cannot be verified or refuted by external SMTP probes:
+      // unresolvable MX addresses or inconclusive probes must not fail the check.
+      if (microsoftHosted) return { status: 'catch_all', detail: MICROSOFT_UNVERIFIED_DETAIL };
       return { status: 'unknown', detail: lastDetail };
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;

@@ -11,6 +11,7 @@ import {
   FollowUpRepository,
   MessageRepository,
   NotificationRepository,
+  RecipientCheckRepository,
   ScheduleRepository,
   SettingsRepository,
 } from '../database/repositories';
@@ -75,7 +76,7 @@ export function registerIpcHandlers(s: AppServices): void {
   const followUpImport = new FollowUpImportRepository(s.db);
   ipcMain.handle('followups:import:get', () => followUpImport.get());
   ipcMain.handle('followups:import:save', (_event, input: unknown) => followUpImport.save(input));
-  const recipients = new RecipientChecker();
+  const recipients = new RecipientChecker(undefined, undefined, new RecipientCheckRepository(s.db));
   ipcMain.handle('email:check-recipients', async (_event, input: unknown, force: unknown) => {
     if (force !== undefined && typeof force !== 'boolean') throw new Error('Invalid recipient recheck option');
     if (!Array.isArray(input) || input.length > 20 || input.some(a => typeof a !== 'string' || a.length > 254)) throw new Error('Invalid recipient check batch');

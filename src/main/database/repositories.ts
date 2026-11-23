@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { DatabaseService } from './db';
+import type { RecipientCheckStore } from '../email/recipient-check';
 import type {
   Account,
   Conversation,
@@ -12,6 +13,7 @@ import type {
   MessageListOptions,
   NewAccountInput,
   NotificationItem,
+  RecipientCheck,
   SaveDraftInput,
   Settings,
   UpdateAccountInput,
@@ -1093,5 +1095,34 @@ export class NotificationRepository {
     this.db.db
       .prepare('DELETE FROM notifications WHERE sequence_id = ? AND delivered_at IS NULL')
       .run(sequenceId);
+  }
+}
+
+// ─── Recipient checks ────────────────────────────────────────────────────────
+
+type RecipientCheckResult = Pick<RecipientCheck, 'status' | 'detail'>;
+
+/**
+ * Saves every completed recipient check so an address is checked only once:
+ * later sessions reuse the stored result, and only an explicit recheck
+ * replaces it.
+ */
+export class RecipientCheckRepository implements RecipientCheckStore {
+  constructor(private readonly db: DatabaseService) {}
+
+  load(address: string): RecipientCheckResult | undefined {
+    const row = this.db.db
+      .prepare('SELECT status, detail FROM recipient_checks WHERE address = ?')
+      .get(address) as RecipientCheckResult | undefined;
+    return row ? { status: row.status, detail: row.detail } : undefined;
+  }
+
+  save(address: string, result: RecipientCheckResult): void {
+    this.db.db
+      .prepare(
+        'INSERT INTO recipient_checks(address, status, detail, checked_at) VALUES(?, ?, ?, ?) ' +
+          'ON CONFLICT(address) DO UPDATE SET status = excluded.status, detail = excluded.detail, checked_at = excluded.checked_at',
+      )
+      .run(address, result.status, result.detail, new Date().toISOString());
   }
 }

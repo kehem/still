@@ -3,6 +3,12 @@
 // src/preload/index.ts
 var import_electron = require("electron");
 var api = {
+  checkEmailRecipients: (addresses, force) => import_electron.ipcRenderer.invoke("email:check-recipients", addresses, force),
+  getEmailProviders: (domains) => import_electron.ipcRenderer.invoke("email:providers", domains),
+  getAutomation: () => import_electron.ipcRenderer.invoke("automation:get"),
+  saveAutomation: (workspace) => import_electron.ipcRenderer.invoke("automation:save", workspace),
+  importAutomationFile: (input) => import_electron.ipcRenderer.invoke("automation:import", input),
+  sendAutomationRow: (id, verificationId) => import_electron.ipcRenderer.invoke("automation:send", id, verificationId),
   getSettings: () => import_electron.ipcRenderer.invoke("settings:get"),
   updateSettings: (patch) => import_electron.ipcRenderer.invoke("settings:update", patch),
   listAccounts: () => import_electron.ipcRenderer.invoke("accounts:list"),
@@ -16,6 +22,10 @@ var api = {
   listMessages: (options) => import_electron.ipcRenderer.invoke("messages:list", options ?? {}),
   getConversation: (id) => import_electron.ipcRenderer.invoke("conversations:get", id),
   markConversationRead: (conversationId) => import_electron.ipcRenderer.invoke("conversations:markRead", conversationId),
+  trashConversation: (id) => import_electron.ipcRenderer.invoke("conversations:trash", id),
+  restoreConversation: (id) => import_electron.ipcRenderer.invoke("conversations:restore", id),
+  getFollowUpImport: () => import_electron.ipcRenderer.invoke("followups:import:get"),
+  saveFollowUpImport: (workspace) => import_electron.ipcRenderer.invoke("followups:import:save", workspace),
   listFollowUps: () => import_electron.ipcRenderer.invoke("followups:list"),
   createFollowUp: (input) => import_electron.ipcRenderer.invoke("followups:create", input),
   disableFollowUp: (conversationId) => import_electron.ipcRenderer.invoke("followups:disable", conversationId),
